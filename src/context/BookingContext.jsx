@@ -124,6 +124,10 @@ export const BookingProvider = ({ children }) => {
 		dispatch({ type: "SET_DISTANCE_DURATION", payload: data });
 	};
 
+	const setBookingNumber = (number) => {
+		dispatch({ type: "SET_BOOKING_NUMBER", payload: number });
+	};
+
 	const resetBooking = () => {
 		dispatch({ type: "RESET_BOOKING" });
 	};
@@ -138,6 +142,7 @@ export const BookingProvider = ({ children }) => {
 		setSelectedExtras,
 		setPassengerDetails,
 		setDistanceAndDuration,
+		setBookingNumber,
 		resetBooking,
 	};
 
@@ -153,3 +158,4 @@ export const useBooking = () => {
 	}
 	return context;
 };
+
