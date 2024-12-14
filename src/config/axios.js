@@ -1,7 +1,11 @@
 import axios from "axios";
 
+const BASE_URL =
+	import.meta.env.VITE_API_URL ||
+	"https://elite-transportation-backend.onrender.com/v1";
+
 const apiClient = axios.create({
-	baseURL: "http://localhost:3000/v1",
+	baseURL: BASE_URL,
 	headers: {
 		"Content-Type": "application/json",
 	},
@@ -23,7 +27,6 @@ apiClient.interceptors.response.use(
 	async (error) => {
 		const originalRequest = error.config;
 
-		// Check if error is 401 and we haven't retried yet
 		if (error.response?.status === 401 && !originalRequest._retry) {
 			originalRequest._retry = true;
 
@@ -34,20 +37,18 @@ apiClient.interceptors.response.use(
 				}
 
 				const response = await axios.post(
-					"http://localhost:3000/v1/auth/refresh-tokens",
+					`${BASE_URL}/auth/refresh-tokens`,
 					{ refreshToken },
-					{ skipAuthRefresh: true } // Prevent infinite loop
+					{ skipAuthRefresh: true }
 				);
 
 				const { access, refresh } = response.data;
 				localStorage.setItem("accessToken", access.token);
 				localStorage.setItem("refreshToken", refresh.token);
 
-				// Update header for future requests
 				apiClient.defaults.headers.common[
 					"Authorization"
 				] = `Bearer ${access.token}`;
-				// Update current request
 				originalRequest.headers.Authorization = `Bearer ${access.token}`;
 
 				return apiClient(originalRequest);

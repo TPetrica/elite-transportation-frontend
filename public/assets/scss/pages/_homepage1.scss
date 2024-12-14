@@ -122,17 +122,28 @@
 	max-width: 1170px;
 	display: flex;
 	align-items: center;
+
 	.search-item {
 		width: 100%;
 		display: flex;
 		padding: 0px 15px;
 		align-items: center;
 		position: relative;
+
+		@media (max-width: 1199px) {
+			&.search-from,
+			&.search-to {
+				padding-top: 20px;
+				padding-bottom: 20px;
+			}
+		}
+
 		.search-icon {
 			max-width: 52px;
 			width: 100%;
 			min-width: 52px;
 			margin-right: 15px;
+
 			.item-icon {
 				display: inline-block;
 				width: 52px;
@@ -142,11 +153,9 @@
 				background-position: center;
 				background-repeat: no-repeat;
 				vertical-align: middle;
+
 				&.icon-date {
 					background-image: url(/assets/imgs/template/icons/calendar.svg);
-				}
-				&.icon-time {
-					background-image: url(/assets/imgs/template/icons/time.svg);
 				}
 				&.icon-from {
 					background-image: url(/assets/imgs/template/icons/from.svg);
@@ -156,8 +165,10 @@
 				}
 			}
 		}
+
 		.search-inputs {
 			width: 100%;
+
 			.search-input {
 				width: 100%;
 				display: inline-block;
@@ -171,19 +182,29 @@
 			}
 		}
 	}
+
 	.search-button {
 		max-width: 161px;
 		min-width: 161px;
 	}
-	.search-time {
-		max-width: 200px;
-		min-width: 200px;
-	}
+
 	.search-date {
 		max-width: 230px;
 		min-width: 230px;
 	}
+
+	@media (max-width: 1199px) {
+		flex-direction: column;
+		border-radius: 16px;
+
+		.search-button,
+		.search-date {
+			max-width: 100%;
+			min-width: 100%;
+		}
+	}
 }
+
 .list-logos {
 	display: flex;
 	align-items: center;

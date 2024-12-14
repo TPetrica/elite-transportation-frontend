@@ -234,6 +234,7 @@ export default function BookingTime() {
 										format="MMMM DD YYYY"
 										minDate={new Date()}
 										className="custom-datepicker"
+										placeholder="Select the date"
 									/>
 								</div>
 
@@ -284,3 +285,4 @@ export default function BookingTime() {
 		</div>
 	);
 }
+

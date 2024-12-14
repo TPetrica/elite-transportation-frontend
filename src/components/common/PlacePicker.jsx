@@ -1,18 +1,11 @@
 import { useGooglePlacesAutocomplete } from "@/hooks/useGooglePlacesAutocomplete";
 import { EnvironmentOutlined, LoadingOutlined } from "@ant-design/icons";
 import { Select } from "antd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 
 const Container = styled.div`
 	width: 100%;
-`;
-
-const Label = styled.label`
-	display: block;
-	font-weight: 500;
-	margin-bottom: 8px;
-	color: #333;
 `;
 
 const StyledSelect = styled(Select)`
@@ -22,52 +15,48 @@ const StyledSelect = styled(Select)`
 
 	.ant-select-selector {
 		height: 48px !important;
-		padding: 16px !important;
+		padding: 8px 12px !important;
 		border: 1px solid #e5e7eb !important;
 		border-radius: 8px !important;
 		background: #fff !important;
 		box-shadow: none !important;
+		display: flex;
+		align-items: center;
 	}
 
 	.ant-select-selection-search {
-		width: 100% !important;
-	}
-
-	.ant-select-selection-item {
-		text-overflow: ellipsis !important;
-		overflow: hidden !important;
-		white-space: nowrap !important;
-		max-width: calc(100% - 32px) !important;
-		padding-right: 20px !important;
-	}
-
-	.ant-select-dropdown {
-		max-width: calc(100vw - 32px);
-	}
-
-	.ant-select-item {
-		max-width: 100%;
-		white-space: normal;
-		word-wrap: break-word;
+		display: flex;
+		align-items: center;
 	}
 
 	.ant-select-selection-placeholder {
-		text-overflow: ellipsis !important;
-		overflow: hidden !important;
-		white-space: nowrap !important;
+		color: #6b7280;
+	}
+
+	.ant-select-selection-item {
+		line-height: 32px !important;
 	}
 `;
 
-export default function PlacePicker({ value, onChange, type, label }) {
+export default function PlacePicker({ value, onChange, type, placeholder }) {
 	const [searchTerm, setSearchTerm] = useState("");
+	const [internalValue, setInternalValue] = useState(
+		value?.address || value || ""
+	);
 	const { suggestions, loading, getDetails, setSearchInput } =
 		useGooglePlacesAutocomplete(import.meta.env.VITE_GOOGLE_MAPS_API_KEY, type);
+
+	// Update internal value when prop value changes
+	useEffect(() => {
+		setInternalValue(value?.address || value || "");
+	}, [value]);
 
 	const handleSearch = (newValue) => {
 		setSearchTerm(newValue);
 		setSearchInput(newValue);
+		setInternalValue(newValue);
 		if (newValue) {
-			onChange({
+			onChange?.({
 				address: newValue,
 				coordinates: null,
 			});
@@ -76,23 +65,25 @@ export default function PlacePicker({ value, onChange, type, label }) {
 
 	const handleChange = async (placeId, option) => {
 		if (!option) {
-			onChange({
+			onChange?.({
 				address: placeId,
 				coordinates: null,
 			});
+			setInternalValue(placeId);
 			return;
 		}
 
 		try {
 			const details = await getDetails(placeId);
 			if (details) {
-				onChange({
+				onChange?.({
 					address: option.label,
 					coordinates: {
 						lat: details.geometry.location.lat(),
 						lng: details.geometry.location.lng(),
 					},
 				});
+				setInternalValue(option.label);
 				setSearchTerm("");
 				setSearchInput("");
 			}
@@ -111,13 +102,13 @@ export default function PlacePicker({ value, onChange, type, label }) {
 
 	return (
 		<Container>
-			<Label>{label}</Label>
 			<StyledSelect
 				showSearch
-				value={value?.address || value}
-				placeholder={`Enter ${
-					type === "pickup" ? "pickup" : "drop-off"
-				} location`}
+				value={internalValue || undefined}
+				placeholder={
+					placeholder ||
+					`Enter ${type === "pickup" ? "pickup" : "drop-off"} location`
+				}
 				defaultActiveFirstOption={false}
 				filterOption={false}
 				onSearch={handleSearch}
@@ -126,6 +117,14 @@ export default function PlacePicker({ value, onChange, type, label }) {
 				options={options}
 				searchValue={searchTerm}
 				loading={loading}
+				allowClear
+				onClear={() => {
+					setInternalValue("");
+					onChange?.({
+						address: "",
+						coordinates: null,
+					});
+				}}
 				suffixIcon={loading ? <LoadingOutlined /> : <EnvironmentOutlined />}
 				optionRender={(option) => (
 					<div style={{ display: "flex", alignItems: "center" }}>
@@ -144,4 +143,3 @@ export default function PlacePicker({ value, onChange, type, label }) {
 		</Container>
 	);
 }
-

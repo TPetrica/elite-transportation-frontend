@@ -43,13 +43,11 @@ const bookingReducer = (state, action) => {
 			return {
 				...state,
 				selectedDate: action.payload,
-				pickupDetails: { ...state.pickupDetails, date: action.payload },
 			};
 		case "SET_SELECTED_TIME":
 			return {
 				...state,
 				selectedTime: action.payload,
-				pickupDetails: { ...state.pickupDetails, time: action.payload },
 			};
 		case "SET_SELECTED_VEHICLE":
 			return {
@@ -84,8 +82,6 @@ const bookingReducer = (state, action) => {
 				distance: action.payload.distance,
 				duration: action.payload.duration,
 			};
-		case "SET_BOOKING_NUMBER":
-			return { ...state, bookingNumber: action.payload };
 		case "RESET_BOOKING":
 			return initialState;
 		default:
@@ -128,10 +124,6 @@ export const BookingProvider = ({ children }) => {
 		dispatch({ type: "SET_DISTANCE_DURATION", payload: data });
 	};
 
-	const setBookingNumber = (number) => {
-		dispatch({ type: "SET_BOOKING_NUMBER", payload: number });
-	};
-
 	const resetBooking = () => {
 		dispatch({ type: "RESET_BOOKING" });
 	};
@@ -146,7 +138,6 @@ export const BookingProvider = ({ children }) => {
 		setSelectedExtras,
 		setPassengerDetails,
 		setDistanceAndDuration,
-		setBookingNumber,
 		resetBooking,
 	};
 

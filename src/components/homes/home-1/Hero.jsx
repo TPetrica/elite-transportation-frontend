@@ -1,3 +1,12 @@
+import DatePickerComponent from "@/components/common/DatePicker";
+import PlacePicker from "@/components/common/PlacePicker";
+import { useBooking } from "@/context/BookingContext";
+import moment from "moment";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Autoplay, Navigation, Pagination } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
+
 const banners = [
 	{
 		id: 1,
@@ -31,14 +40,11 @@ const banners = [
 	},
 ];
 
-import DatePickerComponent from "@/components/common/DatePicker";
-import PlacePicker from "@/components/common/PlacePicker";
-import TimePickerComponent from "@/components/common/TimePicker";
-
-import { Autoplay, Navigation, Pagination } from "swiper/modules";
-import { Swiper, SwiperSlide } from "swiper/react";
-
 export default function Hero() {
+	const navigate = useNavigate();
+	const { setPickupDetails, setDropoffDetails, setSelectedDate } = useBooking();
+	const [selectedDateLocal, setSelectedDateLocal] = useState(new Date());
+
 	const settings = {
 		slidesPerView: 1,
 		loop: true,
@@ -55,6 +61,17 @@ export default function Hero() {
 		autoplay: {
 			delay: 10000,
 		},
+	};
+
+	const handleSearch = () => {
+		const momentDate = moment(selectedDateLocal);
+
+		setSelectedDate(momentDate);
+		setPickupDetails({
+			date: momentDate.format("YYYY-MM-DD"),
+		});
+
+		navigate("/booking-time");
 	};
 
 	return (
@@ -91,6 +108,7 @@ export default function Hero() {
 					</div>
 				</Swiper>
 			</div>
+
 			<div className="box-search-ride wow fadeInUp">
 				<div className="search-item search-date">
 					<div className="search-icon">
@@ -98,38 +116,55 @@ export default function Hero() {
 					</div>
 					<div className="search-inputs">
 						<label className="text-14 color-grey">Date</label>
-						<DatePickerComponent />
+						<DatePickerComponent
+							value={selectedDateLocal}
+							onChange={setSelectedDateLocal}
+						/>
 					</div>
 				</div>
-				<div className="search-item search-time">
-					<div className="search-icon">
-						<span className="item-icon icon-time"> </span>
-					</div>
-					<div className="search-inputs">
-						<label className="text-14 color-grey">Time</label>
-						<TimePickerComponent />
-					</div>
-				</div>
+
 				<div className="search-item search-from">
 					<div className="search-icon">
 						<span className="item-icon icon-from"> </span>
 					</div>
-					<div className="search-inputs">
+					<div className="search-inputs" style={{ marginTop: "-20px" }}>
 						<label className="text-14 color-grey">From</label>
-						<PlacePicker />
+						<PlacePicker
+							onChange={(location) => {
+								setPickupDetails({
+									address: location.address,
+									coordinates: location.coordinates,
+								});
+							}}
+							type="pickup"
+						/>
 					</div>
 				</div>
+
 				<div className="search-item search-to">
 					<div className="search-icon">
 						<span className="item-icon icon-to"> </span>
 					</div>
-					<div className="search-inputs">
+					<div className="search-inputs" style={{ marginTop: "-20px" }}>
 						<label className="text-14 color-grey">To</label>
-						<PlacePicker />
+						<PlacePicker
+							onChange={(location) => {
+								setDropoffDetails({
+									address: location.address,
+									coordinates: location.coordinates,
+								});
+							}}
+							type="dropoff"
+						/>
 					</div>
 				</div>
+
 				<div className="search-item search-button">
-					<button className="btn btn-search" type="submit">
+					<button
+						className="btn btn-search"
+						type="submit"
+						onClick={handleSearch}
+					>
 						<img src="/assets/imgs/template/icons/search.svg" alt="luxride" />
 						Search
 					</button>
@@ -138,4 +173,3 @@ export default function Hero() {
 		</section>
 	);
 }
-
