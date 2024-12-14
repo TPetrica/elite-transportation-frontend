@@ -60,7 +60,7 @@ export default function Header1() {
 									className="text-14-medium call-phone color-white hover-up"
 									href="tel:+1 (435) 901-9158"
 								>
-									+41 22 715 7000
+									+1 (435) 901-9158
 								</a>
 							</div>
 							<div className="d-none d-xxl-inline-block box-dropdown-cart align-middle mr-10">
