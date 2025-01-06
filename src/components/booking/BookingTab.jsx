@@ -5,15 +5,22 @@ const tabs = [
 	{
 		id: 1,
 		href: "/booking-time",
-		iconClass: "icon-book icon-calendar",
-		text: "Date & Time",
+		iconClass: "icon-book icon-vehicle",
+		text: "Ride Info",
 		number: "01",
 	},
+	// {
+	// 	id: 2,
+	// 	href: "/booking-service",
+	// 	iconClass: "icon-book icon-vehicle",
+	// 	text: "Service",
+	// 	number: "02",
+	// },
 	{
 		id: 2,
-		href: "/booking-vehicle",
-		iconClass: "icon-book icon-vehicle",
-		text: "Vehicle",
+		href: "/booking-extra",
+		iconClass: "icon-book icon-pax",
+		text: "Extras",
 		number: "02",
 	},
 	{
@@ -64,3 +71,4 @@ export default function BookingTab() {
 		</div>
 	);
 }
+

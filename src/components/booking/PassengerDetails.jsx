@@ -9,9 +9,10 @@ export default function PassengerDetails() {
 	const {
 		setPassengerDetails,
 		passengerDetails: existingDetails,
-		selectedVehicle,
+		selectedService,
 		selectedDate,
 		selectedTime,
+		updatePricing,
 	} = useBooking();
 
 	const [formData, setFormData] = useState({
@@ -19,18 +20,37 @@ export default function PassengerDetails() {
 		lastName: existingDetails?.lastName || "",
 		email: existingDetails?.email || "",
 		phone: existingDetails?.phone || "",
-		passengers: existingDetails?.passengers || "",
-		luggage: existingDetails?.luggage || "",
+		passengers: existingDetails?.passengers || "3",
+		luggage: existingDetails?.luggage || "4",
+		skiBags: existingDetails?.skiBags || "0",
+		flightNumber: existingDetails?.flightNumber || "",
+		flightTime: existingDetails?.flightTime || "",
 		notes: existingDetails?.notes || "",
 	});
+
 	const [focused, setFocused] = useState({});
 	const [errors, setErrors] = useState({});
 
 	useFormFocus();
 
+	const getMaxValues = () => {
+		if (selectedService?.id === "group") {
+			return {
+				passengers: 7,
+				luggage: 4,
+				skiBags: 2,
+			};
+		}
+		return {
+			passengers: 4,
+			luggage: 8,
+			skiBags: 4,
+		};
+	};
+
 	useEffect(() => {
-		if (!selectedVehicle) {
-			navigate("/booking-vehicle");
+		if (!selectedService) {
+			navigate("/booking-time");
 			return;
 		}
 
@@ -38,7 +58,13 @@ export default function PassengerDetails() {
 			navigate("/booking-time");
 			return;
 		}
-	}, []);
+
+		// Initial price calculation
+		updatePricing({
+			numPassengers: parseInt(formData.passengers),
+			hours: selectedService?.id === "hourly" ? 2 : undefined,
+		});
+	}, [selectedService, selectedDate, selectedTime, navigate]);
 
 	const validateForm = () => {
 		const newErrors = {};
@@ -54,10 +80,18 @@ export default function PassengerDetails() {
 		if (!formData.phone.trim()) newErrors.phone = "Phone number is required";
 		else if (!phoneRegex.test(formData.phone))
 			newErrors.phone = "Invalid phone format";
-		if (!formData.passengers)
-			newErrors.passengers = "Please select number of passengers";
-		if (!formData.luggage)
-			newErrors.luggage = "Please select number of luggage items";
+
+		if (
+			selectedService?.id === "from-airport" ||
+			selectedService?.id === "to-airport"
+		) {
+			if (!formData.flightNumber.trim()) {
+				newErrors.flightNumber = "Flight number is required";
+			}
+			if (!formData.flightTime.trim()) {
+				newErrors.flightTime = "Flight time is required";
+			}
+		}
 
 		setErrors(newErrors);
 		return Object.keys(newErrors).length === 0;
@@ -74,19 +108,25 @@ export default function PassengerDetails() {
 		}
 	};
 
-	const handleFocus = (name) => {
-		setFocused((prev) => ({
-			...prev,
-			[name]: true,
-		}));
-	};
+	const handleQuantityChange = (field, change) => {
+		const currentValue = parseInt(formData[field]) || 0;
+		const maxValues = getMaxValues();
 
-	const handleBlur = (name) => {
-		if (!formData[name]) {
-			setFocused((prev) => ({
-				...prev,
-				[name]: false,
-			}));
+		const newValue = Math.max(
+			0,
+			Math.min(currentValue + change, maxValues[field])
+		);
+		setFormData((prev) => ({
+			...prev,
+			[field]: String(newValue),
+		}));
+
+		// Update pricing when passenger count changes
+		if (field === "passengers") {
+			updatePricing({
+				numPassengers: newValue,
+				hours: selectedService?.id === "hourly" ? 2 : undefined,
+			});
 		}
 	};
 
@@ -198,65 +238,158 @@ export default function PassengerDetails() {
 									</div>
 								</div>
 
-								<div className="col-lg-6">
-									<div
-										className={`form-group ${
-											errors.passengers ? "has-error" : ""
-										}`}
-									>
-										<label className="form-label" htmlFor="passengers">
-											Passengers *
-										</label>
-										<select
-											className="form-control"
-											id="passengers"
-											name="passengers"
-											value={formData.passengers}
-											onChange={handleChange}
-											onFocus={() => handleFocus("passengers")}
-											onBlur={() => handleBlur("passengers")}
-										>
-											<option value="" disabled hidden></option>
-											{[...Array(10)].map((_, i) => (
-												<option key={i + 1} value={i + 1}>
-													{i + 1}
-												</option>
-											))}
-										</select>
-										{errors.passengers && (
-											<div className="error-message">{errors.passengers}</div>
-										)}
-									</div>
-								</div>
+								{(selectedService?.id === "from-airport" ||
+									selectedService?.id === "to-airport") && (
+									<>
+										<div className="col-lg-6">
+											<div
+												className={`form-group ${
+													errors.flightNumber ? "has-error" : ""
+												}`}
+											>
+												<label className="form-label" htmlFor="flightNumber">
+													Flight Number *
+												</label>
+												<input
+													className="form-control"
+													id="flightNumber"
+													name="flightNumber"
+													type="text"
+													value={formData.flightNumber}
+													onChange={handleChange}
+												/>
+												{errors.flightNumber && (
+													<div className="error-message">
+														{errors.flightNumber}
+													</div>
+												)}
+											</div>
+										</div>
+										<div className="col-lg-6">
+											<div
+												className={`form-group ${
+													errors.flightTime ? "has-error" : ""
+												}`}
+											>
+												<label className="form-label" htmlFor="flightTime">
+													{selectedService?.id === "from-airport"
+														? "Arrival Time *"
+														: "Departure Time *"}
+												</label>
+												<input
+													className="form-control"
+													id="flightTime"
+													name="flightTime"
+													type="time"
+													value={formData.flightTime}
+													onChange={handleChange}
+												/>
+												{errors.flightTime && (
+													<div className="error-message">
+														{errors.flightTime}
+													</div>
+												)}
+											</div>
+										</div>
+									</>
+								)}
 
-								<div className="col-lg-6">
-									<div
-										className={`form-group ${
-											errors.luggage ? "has-error" : ""
-										}`}
-									>
-										<label className="form-label" htmlFor="luggage">
-											Luggage *
-										</label>
-										<select
-											className="form-control"
-											id="luggage"
-											name="luggage"
-											value={formData.luggage}
-											onChange={handleChange}
-											onFocus={() => handleFocus("luggage")}
-											onBlur={() => handleBlur("luggage")}
-										>
-											<option value="" disabled hidden></option>
-											{[...Array(10)].map((_, i) => (
-												<option key={i + 1} value={i + 1}>
-													{i + 1}
-												</option>
-											))}
-										</select>
-										{errors.luggage && (
-											<div className="error-message">{errors.luggage}</div>
-										)}
+								<div className="col-lg-12">
+									<div className="row">
+										<div className="col-lg-4">
+											<div className="form-group">
+												<label className="form-label">
+													Number of Passengers (Max: {getMaxValues().passengers}
+													)
+												</label>
+												<div className="quantity-section">
+													<button
+														type="button"
+														className="quantity-button"
+														onClick={() =>
+															handleQuantityChange("passengers", -1)
+														}
+													>
+														-
+													</button>
+													<input
+														type="text"
+														className="quantity-input"
+														value={formData.passengers}
+														readOnly
+													/>
+													<button
+														type="button"
+														className="quantity-button"
+														onClick={() =>
+															handleQuantityChange("passengers", 1)
+														}
+													>
+														+
+													</button>
+												</div>
+											</div>
+										</div>
+
+										<div className="col-lg-4">
+											<div className="form-group">
+												<label className="form-label">
+													Luggage Count (Max: {getMaxValues().luggage})
+												</label>
+												<div className="quantity-section">
+													<button
+														type="button"
+														className="quantity-button"
+														onClick={() => handleQuantityChange("luggage", -1)}
+													>
+														-
+													</button>
+													<input
+														type="text"
+														className="quantity-input"
+														value={formData.luggage}
+														readOnly
+													/>
+													<button
+														type="button"
+														className="quantity-button"
+														onClick={() => handleQuantityChange("luggage", 1)}
+													>
+														+
+													</button>
+												</div>
+											</div>
+										</div>
+
+										<div className="col-lg-4">
+											<div className="form-group">
+												<label className="form-label">
+													Ski/Snowboard Bags (Max: {getMaxValues().skiBags})
+												</label>
+												<div className="quantity-section">
+													<button
+														type="button"
+														className="quantity-button"
+														onClick={() => handleQuantityChange("skiBags", -1)}
+													>
+														-
+													</button>
+													<input
+														type="text"
+														className="quantity-input"
+														value={formData.skiBags}
+														readOnly
+													/>
+													<button
+														type="button"
+														className="quantity-button"
+														onClick={() => handleQuantityChange("skiBags", 1)}
+													>
+														+
+													</button>
+												</div>
+											</div>
+										</div>
 									</div>
 								</div>
 
@@ -290,7 +423,6 @@ export default function PassengerDetails() {
 										strokeWidth="1.5"
 										viewBox="0 0 24 24"
 										xmlns="http://www.w3.org/2000/svg"
-										aria-hidden="true"
 									>
 										<path
 											strokeLinecap="round"
@@ -308,4 +440,3 @@ export default function PassengerDetails() {
 		</div>
 	);
 }
-

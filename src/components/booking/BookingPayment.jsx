@@ -14,7 +14,7 @@ export default function BookingPayment() {
 		pricing,
 		pickupDetails,
 		dropoffDetails,
-		selectedVehicle,
+		selectedService,
 		passengerDetails,
 		distance,
 		duration,
@@ -36,8 +36,8 @@ export default function BookingPayment() {
 			setLoading(true);
 			setError(null);
 
-			if (!selectedVehicle?.id) {
-				throw new Error("Please select a vehicle");
+			if (!selectedService?.id) {
+				throw new Error("Please select a service");
 			}
 
 			const cleanPassengerDetails = {
@@ -65,7 +65,7 @@ export default function BookingPayment() {
 						miles: parseInt(distance.miles),
 					},
 					duration,
-					vehicle: selectedVehicle.id,
+					vehicle: selectedService.id,
 					passengerDetails: cleanPassengerDetails,
 					email: passengerDetails.email || "",
 				},
@@ -121,3 +121,4 @@ export default function BookingPayment() {
 		</div>
 	);
 }
+

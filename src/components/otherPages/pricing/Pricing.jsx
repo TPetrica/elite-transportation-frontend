@@ -1,121 +1,205 @@
-import { plansData } from "@/data/pricing";
-
+import {
+	additionalFees,
+	hourlyRates,
+	mainRates,
+	serviceTypes,
+} from "@/data/pricing";
 import { useState } from "react";
+import { PriceDetailsModal } from "./PriceDetailsModal";
 
 export default function Pricing() {
-  const [isYearly, setIsYearly] = useState(false);
-  return (
-    <section className="section mt-120 mb-100">
-      <div className="container-sub">
-        <div className="text-center">
-          <h2 className="heading-44-medium wow fadeInUp">
-            Price Table With Featured
-          </h2>
-        </div>
-        <div className="mt-30 text-center box-bill-switch wow fadeInUp">
-          <div className="d-inline-block mr-30 mb-30">
-            <span className="text-14 color-text text-billed-month">
-              Bill Monthly
-            </span>
-            <label className="switch ml-20 mr-20">
-              <input
-                id="cb_billed_type"
-                type="checkbox"
-                name="billed_type"
-                onChange={() => setIsYearly((pre) => !pre)}
-              />
-              <span className="slider round"></span>{" "}
-            </label>
-            <span className="text-14 color-text text-billed-year">
-              Bill Annually
-            </span>
-          </div>
-          <span className="btn btn-rounded mb-30">Save 20%</span>
-        </div>
-        <div className="row mt-20 align-items-end pricing-style-2">
-          {plansData.map((elm, i) => (
-            <div key={i} className="col-xl-4 col-lg-4 col-md-6">
-              <div className="card-plan hover-up wow fadeInUp">
-                <div className="card-plan-top">
-                  <div className="card-top-left-info">
-                    <h5 className="color-text text-20-medium title-plan">
-                      {elm.title}
-                    </h5>
-                    <div
-                      className={`for-month ${
-                        !isYearly ? "display-month" : ""
-                      }`}
-                    >
-                      <h3 className="heading-36-medium">{`${
-                        elm.monthlyPrice ? elm.monthlyPrice.toFixed(2) : "Free"
-                      }`}</h3>
-                      <p className="text-14 color-text desc-plan">per month</p>
-                    </div>
-                    <div
-                      className={`for-year ${isYearly ? "display-year" : ""}`}
-                    >
-                      <h3 className="heading-36-medium">{`${
-                        elm.monthlyPrice
-                          ? (elm.monthlyPrice * 12 * 0.8).toFixed(2)
-                          : "Free"
-                      }`}</h3>
-                      <p className="text-14 color-text desc-plan">per year</p>
-                    </div>
-                  </div>
-                  <div className="card-top-right-image">
-                    <img src={elm.imageSrc} alt="luxride" />
-                  </div>
-                </div>
-                <div className="item-desc-plan">
-                  <p className="color-text text-14">{elm.description}</p>
-                </div>
-                <div className="mt-30 mb-30">
-                  <ul className="list-ticks-plan">
-                    {elm.features.map((elm2, i2) => (
-                      <li key={i2}>
-                        <svg
-                          className="icon-16"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                          xmlns="http://www.w3.org/2000/svg"
-                          aria-hidden="true"
-                        >
-                          <path
-                            clipRule="evenodd"
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-                          ></path>
-                        </svg>
-                        {elm2}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="mt-20">
-                  <a className="btn btn-border-black" href="#">
-                    Join
-                    <svg
-                      className="icon-16"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                      aria-hidden="true"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"
-                      ></path>
-                    </svg>
-                  </a>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
+	const [selectedRate, setSelectedRate] = useState(null);
+	const [showModal, setShowModal] = useState(false);
+
+	const handleOpenModal = (rate) => {
+		setSelectedRate(rate);
+		setShowModal(true);
+	};
+
+	const handleCloseModal = () => {
+		setShowModal(false);
+		setSelectedRate(null);
+	};
+
+	return (
+		<section className="py-5" style={{ backgroundColor: "#f8f9fa" }}>
+			<div className="container">
+				{/* Main Heading */}
+				<div className="text-center mb-5">
+					<h1 className="display-4 mb-3" style={{ color: "#2c3e50" }}>
+						Transportation Rates
+					</h1>
+					<p className="lead text-muted">
+						Luxury transportation between Park City and Salt Lake International
+						Airport
+					</p>
+					<div className="alert alert-info mt-3" role="alert">
+						<i className="fas fa-info-circle me-2"></i>
+						All rates include private luxury SUV, professional driver, taxes,
+						and fees. 20% gratuity is automatically added.
+					</div>
+				</div>
+
+				{/* Main Rates Table */}
+				<div className="card shadow-sm mb-5 border-0">
+					<div
+						className="card-header py-3"
+						style={{ backgroundColor: "#1a237e" }}
+					>
+						<h3 className="h4 mb-0 text-white">Airport Transfer Rates</h3>
+					</div>
+					<div className="card-body">
+						<div className="table-responsive">
+							<table className="table table-hover align-middle">
+								<thead className="table-light">
+									<tr>
+										<th className="text-dark">Vehicle</th>
+										<th className="text-dark">Capacity</th>
+										<th className="text-dark">Summer Rate</th>
+										<th className="text-dark">Winter Rate</th>
+										<th className="text-dark">Action</th>
+									</tr>
+								</thead>
+								<tbody>
+									{mainRates.map((rate, index) => (
+										<tr key={index}>
+											<td className="fw-medium">{rate.vehicle}</td>
+											<td>{rate.capacity}</td>
+											<td className="text-success fw-bold">${rate.summer}</td>
+											<td className="text-primary fw-bold">${rate.winter}</td>
+											<td>
+												{rate.details && (
+													<button
+														className="btn btn-sm btn-outline-primary rounded-pill px-3"
+														onClick={() => handleOpenModal(rate)}
+													>
+														<i className="fas fa-info-circle me-1"></i>
+														Details
+													</button>
+												)}
+											</td>
+										</tr>
+									))}
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+
+				{/* Hourly Rates */}
+				<div className="card shadow-sm mb-5 border-0">
+					<div
+						className="card-header py-3"
+						style={{ backgroundColor: "#1a237e" }}
+					>
+						<h3 className="h4 mb-0 text-white">Hourly As-Directed Service</h3>
+					</div>
+					<div className="card-body">
+						<div className="alert alert-light border mb-4">
+							<i className="fas fa-car me-2"></i>
+							Hire a Driver and a Luxury SUV for your special event or night on
+							the town! Includes luxury vehicle, driver, taxes, fees, and
+							bottled water.
+						</div>
+						<div className="table-responsive">
+							<table className="table table-hover align-middle">
+								<thead className="table-light">
+									<tr>
+										<th className="text-dark">Vehicle</th>
+										<th className="text-dark">Capacity</th>
+										<th className="text-dark">Rate</th>
+										<th className="text-dark">Duration</th>
+									</tr>
+								</thead>
+								<tbody>
+									{hourlyRates.map((rate, index) => (
+										<tr key={index}>
+											<td className="fw-medium">{rate.vehicle}</td>
+											<td>{rate.capacity}</td>
+											<td className="text-success fw-bold">${rate.rate}</td>
+											<td>{rate.duration}</td>
+										</tr>
+									))}
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+
+				{/* Additional Fees */}
+				<div className="row g-4">
+					<div className="col-md-6">
+						<div className="card shadow-sm h-100 border-0">
+							<div
+								className="card-header py-3"
+								style={{ backgroundColor: "#1a237e" }}
+							>
+								<h3 className="h4 mb-0 text-white">Additional Services</h3>
+							</div>
+							<div className="card-body">
+								<div className="table-responsive">
+									<table className="table table-hover align-middle">
+										<thead className="table-light">
+											<tr>
+												<th className="text-dark">Service</th>
+												<th className="text-dark">Fee</th>
+											</tr>
+										</thead>
+										<tbody>
+											{additionalFees.map((fee, index) => (
+												<tr key={index}>
+													<td>
+														<div className="fw-medium">{fee.service}</div>
+														{fee.note && (
+															<small className="text-muted d-block">
+																{fee.note}
+															</small>
+														)}
+													</td>
+													<td className="text-success fw-bold">
+														{fee.fee === 0 ? "Free" : `$${fee.fee}`}
+													</td>
+												</tr>
+											))}
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div className="col-md-6">
+						<div className="card shadow-sm h-100 border-0">
+							<div
+								className="card-header py-3"
+								style={{ backgroundColor: "#1a237e" }}
+							>
+								<h3 className="h4 mb-0 text-white">Available Services</h3>
+							</div>
+							<div className="card-body">
+								<div className="list-group list-group-flush">
+									{serviceTypes.map((service, index) => (
+										<div key={index} className="list-group-item">
+											<div className="d-flex w-100 justify-content-between align-items-center">
+												<h6 className="mb-1">{service.type}</h6>
+											</div>
+											<p className="mb-1 text-muted small">{service.details}</p>
+										</div>
+									))}
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				{/* Modal */}
+				{showModal && selectedRate && (
+					<PriceDetailsModal
+						selectedRate={selectedRate}
+						onClose={handleCloseModal}
+					/>
+				)}
+			</div>
+		</section>
+	);
 }

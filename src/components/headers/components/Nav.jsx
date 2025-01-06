@@ -22,19 +22,19 @@ export const menuItems = [
 	},
 	{
 		id: 4,
-		title: "Fleet",
-		link: "/fleet",
+		title: "Rates",
+		link: "/rates",
 	},
 	{
 		id: 5,
 		title: "Services",
 		link: "/services",
 	},
-	{
-		id: 6,
-		title: "Blog",
-		link: "/blog",
-	},
+	// {
+	// 	id: 6,
+	// 	title: "Blog",
+	// 	link: "/blog",
+	// },
 	{
 		id: 7,
 		title: "Contact",

@@ -7,6 +7,34 @@ import DatePicker from "react-multi-date-picker";
 import { useNavigate } from "react-router-dom";
 import SideBar from "./SideBar";
 
+const services = [
+	{
+		id: "from-airport",
+		title: "From Airport",
+		description: "Airport pickup with flight tracking",
+	},
+	{
+		id: "to-airport",
+		title: "To Airport",
+		description: "Airport dropoff service",
+	},
+	{
+		id: "round-trip",
+		title: "Round Trip",
+		description: "Two-way transportation service",
+	},
+	{
+		id: "hourly",
+		title: "Hourly Service",
+		description: "2 hour minimum - $100/h",
+	},
+	{
+		id: "group",
+		title: "Group Transportation",
+		description: "Up to 7 passengers",
+	},
+];
+
 export default function BookingTime() {
 	const navigate = useNavigate();
 	const {
@@ -19,11 +47,15 @@ export default function BookingTime() {
 		setSelectedDate,
 		setSelectedTime,
 		setDistanceAndDuration,
+		setSelectedService,
+		selectedService,
 	} = useBooking();
 
 	const [error, setError] = useState("");
 	const [availableTimeSlots, setAvailableTimeSlots] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
+	const [flightNumber, setFlightNumber] = useState("");
+	const [flightTime, setFlightTime] = useState("");
 
 	useEffect(() => {
 		const calculateDistance = async () => {
@@ -71,19 +103,14 @@ export default function BookingTime() {
 			setIsLoading(true);
 			setError("");
 
-			console.log("Fetching slots for date:", selectedDate); // Debug log
-
 			const result = await calendarService.getAvailableTimeSlots(selectedDate);
-			console.log("API response:", result); // Debug log
 
 			if (result.success) {
 				const formattedSlots = calendarService.formatAvailableSlots(
 					result.data
 				);
-				console.log("Formatted slots:", formattedSlots); // Debug log
 				setAvailableTimeSlots(formattedSlots);
 			} else {
-				console.error("Error fetching slots:", result.error); // Debug log
 				setError(result.error || "Error fetching available times");
 			}
 
@@ -93,13 +120,13 @@ export default function BookingTime() {
 		fetchAvailableTimeSlots();
 	}, [selectedDate]);
 
+	const handleServiceSelect = (event) => {
+		const service = services.find((s) => s.id === event.target.value);
+		setSelectedService(service);
+	};
+
 	const handleDateSelect = (date) => {
-		console.log("Selected date from picker:", date); // Debug log
-
-		// Convert the date to a moment object
 		const momentDate = moment(date.toDate());
-		console.log("Converted to moment:", momentDate.format("YYYY-MM-DD")); // Debug log
-
 		setSelectedDate(momentDate);
 		setSelectedTime(null);
 		setPickupDetails({
@@ -125,7 +152,6 @@ export default function BookingTime() {
 				});
 			} else {
 				setError("This time slot is no longer available");
-				// Refresh available slots
 				const slotsResult = await calendarService.getAvailableTimeSlots(
 					selectedDate
 				);
@@ -158,6 +184,10 @@ export default function BookingTime() {
 	};
 
 	const canProceed = () => {
+		if (!selectedService) {
+			return false;
+		}
+
 		return Boolean(
 			pickupDetails?.address &&
 				dropoffDetails?.address &&
@@ -185,7 +215,7 @@ export default function BookingTime() {
 				return;
 			}
 
-			navigate("/booking-vehicle");
+			navigate("/booking-extra");
 		} catch (error) {
 			console.error("Error proceeding to next step:", error);
 			setError("Failed to verify time slot availability");
@@ -198,6 +228,23 @@ export default function BookingTime() {
 				<div className="box-content-detail">
 					<div className="box-booking-form">
 						<div className="booking-grid">
+							{/* Service Type Selection */}
+							<div className="form-field">
+								<span className="field-label">Select Service Type</span>
+								<select
+									className="form-control"
+									value={selectedService?.id || ""}
+									onChange={handleServiceSelect}
+								>
+									<option value="">Select a service</option>
+									{services.map((service) => (
+										<option key={service.id} value={service.id}>
+											{service.title}
+										</option>
+									))}
+								</select>
+							</div>
+
 							<div className="location-section">
 								<div className="form-field">
 									<span className="field-label">Pickup Location</span>

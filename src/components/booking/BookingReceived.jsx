@@ -47,7 +47,6 @@ export default function BookingReceived() {
 
 	const { bookingDetails } = sessionData;
 
-	console.log("bookingDetails", bookingDetails);
 	return (
 		<section className="section">
 			<div className="container-sub">

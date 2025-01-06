@@ -6,7 +6,7 @@ export default function SideBar() {
 	const {
 		pickupDetails,
 		dropoffDetails,
-		selectedVehicle,
+		selectedService,
 		selectedExtras,
 		distance,
 		duration,
@@ -15,7 +15,6 @@ export default function SideBar() {
 	} = useBooking();
 
 	const { pathname } = useLocation();
-	const currentStep = pathname.split("/")[1];
 
 	const formatDateTime = (date, time) => {
 		if (!date) return "";
@@ -33,6 +32,22 @@ export default function SideBar() {
 			style: "currency",
 			currency: "USD",
 		}).format(amount);
+	};
+
+	const formatCapacity = (capacity) => {
+		if (!capacity) return "";
+
+		let result = "";
+		if (capacity.passengers) {
+			result += `${capacity.passengers} passengers`;
+		}
+		if (capacity.luggage) {
+			result +=
+				capacity.luggage === "number"
+					? `, ${capacity.luggage} luggage`
+					: `, ${capacity.luggage}`;
+		}
+		return result;
 	};
 
 	return (
@@ -99,15 +114,17 @@ export default function SideBar() {
 					</div>
 				)}
 
-				{/* Vehicle Details */}
-				{selectedVehicle && (
+				{/* Service Details */}
+				{selectedService && (
 					<>
 						<div className="border-bottom mt-30 mb-25"></div>
 						<div className="mt-0">
-							<span className="text-14 color-grey">Vehicle</span>
+							<span className="text-14 color-grey">Service</span>
 							<br />
 							<span className="text-14-medium color-text">
-								{selectedVehicle.title} ({selectedVehicle.type})
+								{selectedService.title}
+								<br />
+								{formatCapacity(selectedService.capacity)}
 							</span>
 						</div>
 					</>
@@ -150,18 +167,41 @@ export default function SideBar() {
 				)}
 
 				{/* Pricing Summary */}
-				{(selectedVehicle || selectedExtras?.length > 0) && (
+				{(selectedService || selectedExtras?.length > 0) && (
 					<div className="pricing-summary mt-30">
 						<ul className="list-prices list-prices-2">
-							{selectedVehicle && (
+							{/* Base Price */}
+							{selectedService && (
 								<li>
-									<span className="text">Vehicle Price</span>
+									<span className="text">Service Price</span>
 									<span className="price">
-										{formatCurrency(pricing.vehiclePrice)}
+										{formatCurrency(pricing.basePrice)}
 									</span>
 								</li>
 							)}
-							{selectedExtras?.length > 0 && (
+
+							{/* Gratuity */}
+							{pricing.gratuity > 0 && (
+								<li>
+									<span className="text">Gratuity (20%)</span>
+									<span className="price">
+										{formatCurrency(pricing.gratuity)}
+									</span>
+								</li>
+							)}
+
+							{/* Night Fee */}
+							{pricing.nightFee > 0 && (
+								<li>
+									<span className="text">Night Service Fee</span>
+									<span className="price">
+										{formatCurrency(pricing.nightFee)}
+									</span>
+								</li>
+							)}
+
+							{/* Extras Total */}
+							{pricing.extrasPrice > 0 && (
 								<li>
 									<span className="text">Extras Total</span>
 									<span className="price">
@@ -170,6 +210,7 @@ export default function SideBar() {
 								</li>
 							)}
 						</ul>
+
 						<div className="border-bottom mt-30 mb-15"></div>
 						<ul className="list-prices">
 							<li>

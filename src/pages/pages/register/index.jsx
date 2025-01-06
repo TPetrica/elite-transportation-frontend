@@ -17,7 +17,6 @@ export default function RegisterPage() {
 	const { user } = useAuth();
 	const navigate = useNavigate();
 
-	console.log("user", user);
 	useEffect(() => {
 		if (user) {
 			navigate("/");

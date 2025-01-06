@@ -7,7 +7,13 @@ import SideBar from "./SideBar";
 
 export default function BookingExtra() {
 	const navigate = useNavigate();
-	const { setSelectedExtras, setPickupDetails } = useBooking();
+	const {
+		selectedService,
+		setSelectedExtras,
+		setPickupDetails,
+		selectedExtras,
+	} = useBooking();
+
 	const [quantityItems, setQuantityItems] = useState([]);
 	const [selectItems, setSelectItems] = useState([]);
 	const [flightNumber, setFlightNumber] = useState("");
@@ -17,32 +23,79 @@ export default function BookingExtra() {
 	useFormFocus();
 
 	useEffect(() => {
+		if (!selectedService) {
+			navigate("/booking-time");
+			return;
+		}
+	}, [selectedService, navigate]);
+
+	const updateContextExtras = (newQuantityItems, newSelectItems) => {
+		const selectedQuantityItems = newQuantityItems.filter(
+			(item) => item.quantity > 0
+		);
+		const selectedSelectionItems = newSelectItems.filter(
+			(item) => item.selected
+		);
+
+		const formattedExtras = [
+			...selectedQuantityItems.map((item) => ({
+				item: item.id,
+				quantity: item.quantity,
+				price: item.price,
+				name: item.name,
+			})),
+			...selectedSelectionItems.map((item) => ({
+				item: item.id,
+				quantity: 1,
+				price: item.price,
+				name: item.name,
+			})),
+		];
+
+		setSelectedExtras(formattedExtras);
+	};
+
+	useEffect(() => {
 		const fetchExtras = async () => {
 			try {
 				const result = await ExtraService.getExtras();
 				if (result.success && result.data) {
 					const quantity = result.data
 						.filter((extra) => extra.maxQuantity > 1)
-						.map((item) => ({
-							id: item._id,
-							name: item.name,
-							price: item.price,
-							description: item.description,
-							quantity: 0,
-							maxQuantity: item.maxQuantity,
-							type: "quantity",
-						}));
+						.map((item) => {
+							const previousSelection = selectedExtras.find(
+								(selected) => selected.item === item.id
+							);
+							return {
+								id: item.id,
+								name: item.name,
+								price: item.price,
+								description: item.description,
+								quantity: previousSelection?.quantity || 0,
+								maxQuantity: item.maxQuantity,
+								type: "quantity",
+							};
+						});
 
 					const selection = result.data
 						.filter((extra) => extra.maxQuantity === 1)
-						.map((item) => ({
-							id: item._id,
-							name: item.name,
-							price: item.price,
-							description: item.description,
-							selected: false,
-							type: "selection",
-						}));
+						.map((item) => {
+							const previousSelection = selectedExtras.find(
+								(selected) => selected.item === item.id
+							);
+							return {
+								id: item.id,
+								name: item.name,
+								price: item.price,
+								description: item.description,
+								selected: !!previousSelection,
+								type: "selection",
+							};
+						});
+
+					if (selectedService?.id.includes("airport-transfer")) {
+						setFlightNumber("");
+					}
 
 					setQuantityItems(quantity);
 					setSelectItems(selection);
@@ -58,7 +111,7 @@ export default function BookingExtra() {
 		};
 
 		fetchExtras();
-	}, []);
+	}, [selectedService, selectedExtras]);
 
 	const handleQuantity = (qty, i) => {
 		if (qty < 0 || qty > quantityItems[i].maxQuantity) return;
@@ -68,6 +121,8 @@ export default function BookingExtra() {
 		item.quantity = parseInt(qty);
 		items[i] = item;
 		setQuantityItems(items);
+
+		updateContextExtras(items, selectItems);
 	};
 
 	const handleSelect = (i) => {
@@ -76,37 +131,18 @@ export default function BookingExtra() {
 		item.selected = !item.selected;
 		items[i] = item;
 		setSelectItems(items);
+
+		updateContextExtras(quantityItems, items);
 	};
 
 	const handleContinue = async () => {
 		try {
-			const selectedQuantityItems = quantityItems.filter(
-				(item) => item.quantity > 0
-			);
-			const selectedSelectionItems = selectItems.filter(
-				(item) => item.selected
-			);
-
-			const formattedExtras = [
-				...selectedQuantityItems.map((item) => ({
-					item: item.id,
-					quantity: item.quantity,
-					price: item.price,
-					name: item.name,
-				})),
-				...selectedSelectionItems.map((item) => ({
-					item: item.id,
-					quantity: 1,
-					price: item.price,
-					name: item.name,
-				})),
-			];
-
-			setSelectedExtras(formattedExtras);
-			setPickupDetails((prev) => ({
-				...prev,
-				flightNumber: flightNumber.trim(),
-			}));
+			if (selectedService?.id.includes("airport-transfer")) {
+				setPickupDetails((prev) => ({
+					...prev,
+					flightNumber: flightNumber.trim(),
+				}));
+			}
 
 			navigate("/booking-passenger");
 		} catch (err) {
@@ -129,31 +165,38 @@ export default function BookingExtra() {
 					<h3 className="heading-24-medium color-text mb-30 wow fadeInUp">
 						Extra Options
 					</h3>
-					<div className="form-contact form-comment wow fadeInUp">
-						<form onSubmit={(e) => e.preventDefault()}>
-							<div className="row">
-								<div className="col-lg-12">
-									<div className="form-group">
-										<label className="form-label" htmlFor="flightNumber">
-											Flight/train number
-										</label>
-										<input
-											className="form-control"
-											id="flightNumber"
-											name="flightNumber"
-											type="text"
-											value={flightNumber}
-											onChange={(e) => setFlightNumber(e.target.value)}
-										/>
+
+					{selectedService?.id.includes("airport-transfer") && (
+						<div
+							className="form-contact form-comment wow fadeInUp"
+							key="flight-form"
+						>
+							<form onSubmit={(e) => e.preventDefault()}>
+								<div className="row">
+									<div className="col-lg-12">
+										<div className="form-group">
+											<label className="form-label" htmlFor="flightNumber">
+												Flight number
+											</label>
+											<input
+												className="form-control"
+												id="flightNumber"
+												name="flightNumber"
+												type="text"
+												value={flightNumber}
+												onChange={(e) => setFlightNumber(e.target.value)}
+												placeholder="Enter your flight number"
+											/>
+										</div>
 									</div>
 								</div>
-							</div>
-						</form>
-					</div>
+							</form>
+						</div>
+					)}
 
 					<div className="list-extras wow fadeInUp">
-						{quantityItems.map((elm, i) => (
-							<div key={elm.id} className="item-extra">
+						{quantityItems.map((elm) => (
+							<div key={`quantity-${elm.id}`} className="item-extra">
 								<div className="extra-info">
 									<h5 className="text-20-medium color-text mb-5">
 										{elm.name} <span className="price">${elm.price}</span>
@@ -162,27 +205,39 @@ export default function BookingExtra() {
 								</div>
 								<div className="extra-quantity">
 									<span
-										onClick={() => handleQuantity(elm.quantity - 1, i)}
+										onClick={() =>
+											handleQuantity(
+												elm.quantity - 1,
+												quantityItems.indexOf(elm)
+											)
+										}
 										className="minus"
 									>
 										{" "}
 									</span>
 									<input
 										className="form-control"
-										onChange={(e) => handleQuantity(e.target.value, i)}
+										onChange={(e) =>
+											handleQuantity(e.target.value, quantityItems.indexOf(elm))
+										}
 										type="text"
 										value={elm.quantity}
 									/>
 									<span
-										onClick={() => handleQuantity(elm.quantity + 1, i)}
+										onClick={() =>
+											handleQuantity(
+												elm.quantity + 1,
+												quantityItems.indexOf(elm)
+											)
+										}
 										className="plus"
 									></span>
 								</div>
 							</div>
 						))}
 
-						{selectItems.map((elm, i) => (
-							<div key={elm.id} className="item-extra">
+						{selectItems.map((elm) => (
+							<div key={`selection-${elm.id}`} className="item-extra">
 								<div className="extra-info">
 									<h5 className="text-20-medium color-text mb-5">
 										{elm.name} <span className="price">${elm.price}</span>
@@ -191,7 +246,7 @@ export default function BookingExtra() {
 								</div>
 								<div className="extra-quantity">
 									<button
-										onClick={() => handleSelect(i)}
+										onClick={() => handleSelect(selectItems.indexOf(elm))}
 										className={`btn ${
 											elm.selected ? "btn-primary" : "btn-grey"
 										} w-100`}

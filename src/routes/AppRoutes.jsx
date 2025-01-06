@@ -23,21 +23,22 @@ import ContactPage1 from "@/pages/pages/contact";
 import ContactPage2 from "@/pages/pages/contact-2";
 import LoginPage from "@/pages/pages/login";
 import OurTeamPage from "@/pages/pages/our-team";
-import PricingPage from "@/pages/pages/pricing";
 import RegisterPage from "@/pages/pages/register";
 import TeamSinglePage from "@/pages/pages/team-single";
 import ServiceSinglePage from "@/pages/services/service-single";
 
 // Protected Pages
+import BookingExtraPage from "@/pages/booking/booking-extra";
 import BookingPassengerPage from "@/pages/booking/booking-passenger";
 import BookingPaymentPage from "@/pages/booking/booking-payment";
 import BookingReceivedPage from "@/pages/booking/booking-received";
 import BookingTimePage from "@/pages/booking/booking-time";
-import BookingVehiclePage from "@/pages/booking/booking-vehicle";
 import InvoicePage from "@/pages/invoice";
 import CookiePolicyPage from "@/pages/pages/cookie";
 import PrivacyPolicyPage from "@/pages/pages/privacy";
+import RatesPage from "@/pages/pages/rates";
 import TermsAndConditionsPage from "@/pages/pages/terms";
+import ServiceGridPage1 from "@/pages/services/service-grid";
 import GuestBookingRoute from "@/routes/GuestBookingRoute";
 
 const AppRoutes = () => {
@@ -70,7 +71,7 @@ const AppRoutes = () => {
 				<Route path="team-single/:id" element={<TeamSinglePage />} />
 				<Route path="register" element={<RegisterPage />} />
 				<Route path="login" element={<LoginPage />} />
-				<Route path="pricing" element={<PricingPage />} />
+				<Route path="rates" element={<RatesPage />} />
 				<Route path="coming-soon" element={<CommingSoonPage />} />
 
 				{/* <Route path="fleet-list" element={<FleetListPage1 />} />
@@ -79,10 +80,10 @@ const AppRoutes = () => {
 				<Route path="fleet-list-4" element={<FleetListPage4 />} /> */}
 				<Route path="fleet" element={<FleetSinglePage />} />
 
-				{/* <Route path="services" element={<ServiceGridPage1 />} />
-				<Route path="service-grid-2" element={<ServiceGridPage2 />} />
-				<Route path="service-grid-3" element={<ServiceGridPage3 />} /> */}
-				<Route path="services" element={<ServiceSinglePage />} />
+				<Route path="services" element={<ServiceGridPage1 />} />
+				{/* <Route path="service-grid-2" element={<ServiceGridPage2 />} />
+        <Route path="service-grid-3" element={<ServiceGridPage3 />} /> */}
+				<Route path="service-single/:id" element={<ServiceSinglePage />} />
 
 				<Route path="blog" element={<BlogsGridPage1 />} />
 				{/* <Route path="blog-grid-2" element={<BlogsGridPage2 />} />
@@ -91,7 +92,8 @@ const AppRoutes = () => {
 
 				{/* Protected Routes */}
 				<Route path="booking-time" element={<BookingTimePage />} />
-				<Route path="booking-vehicle" element={<BookingVehiclePage />} />
+				{/* <Route path="booking-service" element={<BookingVehiclePage />} /> */}
+				<Route path="booking-extra" element={<BookingExtraPage />} />
 				<Route path="booking-passenger" element={<BookingPassengerPage />} />
 				<Route path="booking-payment" element={<BookingPaymentPage />} />
 				<Route

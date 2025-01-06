@@ -1,110 +1,96 @@
 export const services = [
-  {
-    id: 1,
-    title: "Intercity Rides",
-    description: "Mercedes-Benz E-Class, BMW 5 Series, Cadillac XTS or similar",
-    image: "/assets/imgs/page/homepage1/service1.png",
-  },
-  {
-    id: 2,
-    title: "Chauffeur Hailing",
-    description: "Mercedes-Benz E-Class, BMW 5 Series, Cadillac XTS or similar",
-    image: "/assets/imgs/page/homepage1/service2.png",
-  },
-  {
-    id: 3,
-    title: "Airport Transfers",
-    description: "Mercedes-Benz E-Class, BMW 5 Series, Cadillac XTS or similar",
-    image: "/assets/imgs/page/homepage1/service3.png",
-  },
-  {
-    id: 4,
-    title: "Sprinter Class",
-    description: "Mercedes-Benz E-Class, BMW 5 Series, Cadillac XTS or similar",
-    image: "/assets/imgs/page/homepage1/service5.png",
-  },
-  {
-    id: 5,
-    title: "Wedding Class",
-    description: "Mercedes-Benz E-Class, BMW 5 Series, Cadillac XTS or similar",
-    image: "/assets/imgs/page/services/wedding.png",
-  },
-  {
-    id: 6,
-    title: "Travel Transfer",
-    description: "Mercedes-Benz E-Class, BMW 5 Series, Cadillac XTS or similar",
-    image: "/assets/imgs/page/services/travel.png",
-  },
-];
-export const services2 = [
-  { id: 1, text: "Intercity Rides" },
-  { id: 2, text: "Chauffeur Hailing" },
-  { id: 3, text: "Airport Transfer" },
-  { id: 4, text: "Sprinter Class" },
+	{
+		id: 1,
+		title: "Airport Transfers",
+		description:
+			"Professional transportation between Park City and Salt Lake International Airport",
+		image: "/assets/imgs/page/homepage1/service3.png",
+		longDescription:
+			"Enjoy reliable and comfortable transportation with our professional airport transfer service. We track your flight and ensure timely pickups and dropoffs.",
+		features: [
+			"Flight tracking included",
+			"Professional chauffeurs",
+			"Complimentary wait time",
+			"Door-to-door service",
+			"Child seats available",
+			"24/7 service",
+		],
+	},
+	{
+		id: 2,
+		title: "Hourly Charter",
+		description: "Flexible hourly service for any occasion",
+		image: "/assets/imgs/page/homepage1/service1.png",
+		longDescription:
+			"Book our luxury vehicles by the hour for special events, sightseeing, or business meetings. Includes professional chauffeur and amenities.",
+		features: [
+			"2-hour minimum",
+			"Professional chauffeur",
+			"Luxury vehicles",
+			"Flexible scheduling",
+			"Local area expertise",
+			"Complimentary water",
+		],
+	},
+	{
+		id: 3,
+		title: "Group Transportation",
+		description: "Comfortable solutions for groups up to 14 passengers",
+		image: "/assets/imgs/page/homepage1/service2.png",
+		longDescription:
+			"Specialized group transportation services with luxury vans and professional drivers. Ideal for corporate groups, weddings, or special events.",
+		features: [
+			"Up to 14 passengers",
+			"Luggage accommodation",
+			"Professional chauffeur",
+			"Group rates available",
+			"Event coordination",
+			"Multiple vehicle options",
+		],
+	},
+	{
+		id: 4,
+		title: "Winter Sports Transport",
+		description: "Transportation to all major ski resorts",
+		image: "/assets/imgs/page/homepage1/service5.png",
+		longDescription:
+			"Specialized winter sports transportation to all major ski resorts. We accommodate ski and snowboard equipment with experienced winter drivers.",
+		features: [
+			"Ski equipment transport",
+			"Resort knowledge",
+			"Winter-ready vehicles",
+			"Early morning service",
+			"Multiple resort options",
+			"Group rates available",
+		],
+	},
 ];
 
-export const services4 = [
-  {
-    id: 1,
-    image: "/assets/imgs/page/homepage8/img2.png",
-    alt: "luxride",
-    title: "Intercity Rides",
-    description:
-      "The price of tickets for low-cost airlines for a specific route has a much larger spread than that of regular airlines. It depends on the time to departure, demand and competition on the route. Unlike regular airlines, low-cost airlines rarely offer cheap tickets more than 3 months before departure.",
-  },
-  {
-    id: 2,
-    image: "/assets/imgs/page/homepage8/img2.png",
-    alt: "luxride",
-    title: "Limousine service",
-    description:
-      "The price of tickets for low-cost airlines for a specific route has a much larger spread than that of regular airlines. It depends on the time to departure, demand and competition on the route. Unlike regular airlines, low-cost airlines rarely offer cheap tickets more than 3 months before departure.",
-  },
-  {
-    id: 3,
-    image: "/assets/imgs/page/homepage8/img2.png",
-    alt: "luxride",
-    title: "Chauffeur service",
-    description:
-      "The price of tickets for low-cost airlines for a specific route has a much larger spread than that of regular airlines. It depends on the time to departure, demand and competition on the route. Unlike regular airlines, low-cost airlines rarely offer cheap tickets more than 3 months before departure.",
-  },
-  {
-    id: 4,
-    image: "/assets/imgs/page/homepage8/img2.png",
-    alt: "luxride",
-    title: "Private car service",
-    description:
-      "The price of tickets for low-cost airlines for a specific route has a much larger spread than that of regular airlines. It depends on the time to departure, demand and competition on the route. Unlike regular airlines, low-cost airlines rarely offer cheap tickets more than 3 months before departure.",
-  },
+export const features7 = [
+	"Door-to-door service",
+	"Professional chauffeurs",
+	"Flight tracking",
+	"Modern luxury vehicles",
+	"24/7 customer support",
+	"Competitive rates",
+	"Easy online booking",
 ];
-export const services5 = [
-  {
-    id: 1,
-    image: "/assets/imgs/page/homepage10/service1.png",
-    title: "Intercity Rides",
-    description:
-      "The price of tickets for low-cost airlines for a specific route has a much larger spread than that of regular airlines. It depends on the time to departure, demand and competition on the route. Unlike regular airlines, low-cost airlines rarely offer cheap tickets more than 3 months before departure.",
-  },
-  {
-    id: 2,
-    image: "/assets/imgs/page/homepage10/service2.png",
-    title: "Intercity Rides",
-    description:
-      "The price of tickets for low-cost airlines for a specific route has a much larger spread than that of regular airlines. It depends on the time to departure, demand and competition on the route. Unlike regular airlines, low-cost airlines rarely offer cheap tickets more than 3 months before departure.",
-  },
-  {
-    id: 1,
-    image: "/assets/imgs/page/homepage10/service1.png",
-    title: "Intercity Rides",
-    description:
-      "The price of tickets for low-cost airlines for a specific route has a much larger spread than that of regular airlines. It depends on the time to departure, demand and competition on the route. Unlike regular airlines, low-cost airlines rarely offer cheap tickets more than 3 months before departure.",
-  },
-  {
-    id: 2,
-    image: "/assets/imgs/page/homepage10/service2.png",
-    title: "Intercity Rides",
-    description:
-      "The price of tickets for low-cost airlines for a specific route has a much larger spread than that of regular airlines. It depends on the time to departure, demand and competition on the route. Unlike regular airlines, low-cost airlines rarely offer cheap tickets more than 3 months before departure.",
-  },
-];
+
+// Keep original arrays for compatibility
+export const services2 = services.map((service) => ({
+	id: service.id,
+	text: service.title,
+}));
+
+export const services4 = services.map((service) => ({
+	...service,
+	image: "/assets/imgs/page/homepage8/img2.png",
+	alt: "luxride",
+}));
+
+export const services5 = services.map((service) => ({
+	...service,
+	image: "/assets/imgs/page/homepage10/service1.png",
+}));
+
 export const allServices = [...services, ...services4, ...services5];

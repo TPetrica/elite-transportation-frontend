@@ -8,13 +8,9 @@ class CalendarService {
 			const momentDate = moment.isMoment(date) ? date : moment(date);
 			const formattedDate = momentDate.format("YYYY-MM-DD");
 
-			console.log("Requesting slots for date:", formattedDate); // Debug log
-
 			const response = await ApiService.get(
 				`/availability/time-slots?date=${formattedDate}`
 			);
-
-			console.log("Response from server:", response.data); // Debug log
 
 			return {
 				success: true,
@@ -68,3 +64,4 @@ class CalendarService {
 }
 
 export default new CalendarService();
+
