@@ -3,8 +3,8 @@ export const mainRates = [
 		title: "Private SUV",
 		vehicle: "Private SUV",
 		capacity: "1-2 passengers",
-		summer: 175,
-		winter: 185,
+		summer: 150,
+		winter: 160,
 		description: "Perfect for couples or solo travelers",
 		features: [
 			"Door-to-door service",
@@ -13,20 +13,13 @@ export const mainRates = [
 			"Complimentary wait time",
 			"Free car seats upon request",
 		],
-		details: {
-			basePrice: 175,
-			winterSUV: 10,
-			standardGratuity: 35,
-			fuelSurcharge: 12.5,
-			totalPrice: 237,
-		},
 	},
 	{
 		title: "Private SUV",
 		vehicle: "Private SUV",
-		capacity: "3-4 passengers",
-		summer: 190,
-		winter: 200,
+		capacity: "3-5 passengers",
+		summer: 180,
+		winter: 190,
 		description: "Ideal for small groups and families",
 		features: [
 			"Door-to-door service",
@@ -35,41 +28,40 @@ export const mainRates = [
 			"Complimentary wait time",
 			"Free car seats upon request",
 		],
-		details: {
-			basePrice: 190,
-			winterSUV: 10,
-			standardGratuity: 38,
-			fuelSurcharge: 12.5,
-			totalPrice: 255,
-		},
 	},
 	{
-		title: "Private Van",
-		vehicle: "Private Van",
-		capacity: "Up to 10 passengers",
-		summer: 315,
-		winter: 345,
+		title: "Group Rates",
+		vehicle: "Private SUV",
+		capacity: "Up to 7 people",
+		summer: 365,
+		winter: 385,
 		description: "Perfect for larger groups and events",
 		features: [
 			"Spacious interior",
-			"Ample luggage space",
+			"Second car for luggage included",
 			"Professional chauffeur",
 			"Flight tracking included",
 			"Group rates available",
 		],
+		note: "The Group Rates service includes a second car that will take care of the luggage",
 	},
 ];
 
 export const hourlyRates = [
 	{
 		vehicle: "Private SUV",
-		capacity: "1-4 passengers",
-		rate: "100",
+		capacity: "1-5 people",
+		rate: 100,
 		duration: "2 hour minimum",
-		includes:
-			"Includes luxury vehicle, professional driver, taxes, fees, and bottled water",
+		includes: "Professional chauffeur and luxury vehicle",
+		note: "During the Christmas Holiday and the Sundance Film Festival all as-directed reservations require a 3-hour minimum.",
 	},
 ];
+
+export const perPersonRates = {
+	minimumPassengers: 3,
+	ratePerPerson: 65,
+};
 
 export const additionalFees = [
 	{
@@ -87,12 +79,15 @@ export const additionalFees = [
 		fee: 0,
 		note: "Free upon request",
 	},
-	{
-		service: "Cottonwood Canyons",
-		fee: 40,
-		note: "Additional fee applies",
-	},
+	// {
+	// 	service: "Cottonwood Canyons",
+	// 	fee: 40,
+	// 	note: "Additional fee applies",
+	// },
 ];
+
+export const gratuityNote =
+	"Gratuity is completely optional, but always sincerely appreciated.";
 
 export const serviceTypes = [
 	{
@@ -112,3 +107,4 @@ export const serviceTypes = [
 		details: "2 hour minimum - $100/h",
 	},
 ];
+

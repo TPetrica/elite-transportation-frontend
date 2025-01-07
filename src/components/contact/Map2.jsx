@@ -86,9 +86,9 @@ export default function Map2() {
 											<p className="text-16 color-white">
 												<a
 													className="cardLink btn btn-link color-white hover-up"
-													href="mailto:contact@elitetransportationpk.com"
+													href="mailto:elitetransportationpc@gmail.com"
 												>
-													contact@elitetransportationpk.com
+													elitetransportationpc@gmail.com
 												</a>
 											</p>
 										</div>
@@ -113,3 +113,4 @@ export default function Map2() {
 		</section>
 	);
 }
+

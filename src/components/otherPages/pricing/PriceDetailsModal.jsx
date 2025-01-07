@@ -1,48 +1,59 @@
 export const PriceDetailsModal = ({ selectedRate, onClose }) => {
-	if (!selectedRate?.details) return null;
-
 	return (
 		<div className="modal-wrapper">
 			<div className="modal-backdrop" onClick={onClose} />
 			<div className="modal-dialog">
 				<div className="modal-content">
 					<div className="modal-header">
-						<h5 className="modal-title">Rate Breakdown</h5>
+						<h5 className="modal-title">{selectedRate.title} Details</h5>
 						<button type="button" className="close-button" onClick={onClose}>
 							×
 						</button>
 					</div>
 					<div className="modal-body">
 						<div className="rate-header">
-							<div>{selectedRate.vehicle}</div>
-							<div className="capacity">{selectedRate.capacity}</div>
-						</div>
-
-						<div className="price-list">
-							<div className="price-item">
-								<span>Base Price</span>
-								<span>${selectedRate.details.basePrice}</span>
+							<div className="description mb-4">
+								<h6 className="text-muted">Description</h6>
+								<p>{selectedRate.description}</p>
 							</div>
 
-							<div className="price-item">
-								<span>Winter SUV Fee</span>
-								<span>${selectedRate.details.winterSUV}</span>
+							<div className="capacity mb-4">
+								<h6 className="text-muted">Capacity</h6>
+								<p>{selectedRate.capacity}</p>
 							</div>
 
-							<div className="price-item">
-								<span>Standard Gratuity (20%)</span>
-								<span>${selectedRate.details.standardGratuity}</span>
+							<div className="features mb-4">
+								<h6 className="text-muted">Features</h6>
+								<ul className="feature-list">
+									{selectedRate.features.map((feature, index) => (
+										<li key={index}>{feature}</li>
+									))}
+								</ul>
 							</div>
 
-							<div className="price-item">
-								<span>Fuel Surcharge</span>
-								<span>${selectedRate.details.fuelSurcharge}</span>
+							<div className="rates">
+								<h6 className="text-muted">Rates</h6>
+								<div className="rate-grid">
+									<div className="rate-item">
+										<span>Summer Rate</span>
+										<span className="price">${selectedRate.summer}</span>
+									</div>
+									<div className="rate-item">
+										<span>Winter Rate</span>
+										<span className="price">${selectedRate.winter}</span>
+									</div>
+								</div>
 							</div>
 
-							<div className="price-total">
-								<span>Total</span>
-								<span>${selectedRate.details.totalPrice}</span>
-							</div>
+							{selectedRate.note && (
+								<div className="note mt-4">
+									<h6 className="text-muted">Note</h6>
+									<p className="alert alert-info">
+										<i className="fas fa-info-circle me-2"></i>
+										{selectedRate.note}
+									</p>
+								</div>
+							)}
 						</div>
 					</div>
 				</div>
@@ -82,21 +93,25 @@ export const PriceDetailsModal = ({ selectedRate, onClose }) => {
 					background: white;
 					border-radius: 8px;
 					box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+					border: none;
 				}
 
 				.modal-header {
-					padding: 1.25rem;
+					padding: 1rem;
 					border-bottom: 1px solid #eee;
 					display: flex;
 					justify-content: space-between;
 					align-items: center;
+					background-color: #1a237e;
+					color: white;
+					border-radius: 8px 8px 0 0;
 				}
 
 				.modal-title {
 					font-size: 1.25rem;
 					font-weight: 500;
-					color: #333;
 					margin: 0;
+					color: white;
 				}
 
 				.close-button {
@@ -105,47 +120,65 @@ export const PriceDetailsModal = ({ selectedRate, onClose }) => {
 					font-size: 1.5rem;
 					padding: 0;
 					cursor: pointer;
-					color: #666;
+					color: white;
 				}
 
 				.modal-body {
 					padding: 1.5rem;
 				}
 
-				.rate-header {
-					margin-bottom: 1.5rem;
-					font-size: 1.1rem;
+				.description p {
+					margin-bottom: 0;
+					color: #333;
 				}
 
-				.capacity {
-					color: #666;
-					font-size: 0.9rem;
-					margin-top: 0.25rem;
+				.feature-list {
+					list-style: none;
+					padding: 0;
+					margin: 0;
 				}
 
-				.price-list {
-					display: flex;
-					flex-direction: column;
-					gap: 0.75rem;
-				}
-
-				.price-item {
-					display: flex;
-					justify-content: space-between;
+				.feature-list li {
 					padding: 0.5rem 0;
 					border-bottom: 1px solid #eee;
+					color: #333;
 				}
 
-				.price-total {
-					display: flex;
-					justify-content: space-between;
-					padding: 1rem 0;
+				.feature-list li:last-child {
+					border-bottom: none;
+				}
+
+				.rate-grid {
+					display: grid;
+					grid-template-columns: 1fr 1fr;
+					gap: 1rem;
 					margin-top: 0.5rem;
-					border-top: 2px solid #eee;
-					font-weight: 600;
-					font-size: 1.1rem;
+				}
+
+				.rate-item {
+					padding: 1rem;
+					background-color: #f8f9fa;
+					border-radius: 4px;
+					text-align: center;
+				}
+
+				.rate-item span {
+					display: block;
+				}
+
+				.rate-item .price {
+					font-size: 1.25rem;
+					font-weight: bold;
+					color: #1a237e;
+					margin-top: 0.5rem;
+				}
+
+				h6.text-muted {
+					margin-bottom: 0.5rem;
+					color: #666;
 				}
 			`}</style>
 		</div>
 	);
 };
+
