@@ -3,8 +3,8 @@ export const services = [
 		id: 1,
 		title: "Airport Transfers",
 		description:
-			"Professional transportation between Park City and Salt Lake International Airport",
-		image: "/assets/imgs/page/homepage1/service3.png",
+			"Reliable luxury transportation between Park City and Salt Lake International Airport (SLC). Professional chauffeurs track your flight and provide door-to-door service with complimentary wait time and luggage assistance.",
+		image: "/assets/imgs/page/homepage1/service1.webp",
 		longDescription:
 			"Enjoy reliable and comfortable transportation with our professional airport transfer service. We track your flight and ensure timely pickups and dropoffs.",
 		features: [
@@ -19,8 +19,9 @@ export const services = [
 	{
 		id: 2,
 		title: "Hourly Charter",
-		description: "Flexible hourly service for any occasion",
-		image: "/assets/imgs/page/homepage1/service1.png",
+		description:
+			"Flexible luxury vehicle service with a professional chauffeur at your disposal. Perfect for business meetings, shopping trips, local sightseeing, or special events in and around Park City. Minimum 2-hour booking.",
+		image: "/assets/imgs/page/homepage1/service2.webp",
 		longDescription:
 			"Book our luxury vehicles by the hour for special events, sightseeing, or business meetings. Includes professional chauffeur and amenities.",
 		features: [
@@ -35,8 +36,9 @@ export const services = [
 	{
 		id: 3,
 		title: "Group Transportation",
-		description: "Comfortable solutions for groups up to 14 passengers",
-		image: "/assets/imgs/page/homepage1/service2.png",
+		description:
+			"Premium group transportation in spacious luxury vans accommodating up to 14 passengers. Ideal for corporate events, wedding parties, family gatherings, and special occasions with ample luggage space and professional service.",
+		image: "/assets/imgs/page/homepage1/service3.webp",
 		longDescription:
 			"Specialized group transportation services with luxury vans and professional drivers. Ideal for corporate groups, weddings, or special events.",
 		features: [
@@ -51,8 +53,9 @@ export const services = [
 	{
 		id: 4,
 		title: "Winter Sports Transport",
-		description: "Transportation to all major ski resorts",
-		image: "/assets/imgs/page/homepage1/service5.png",
+		description:
+			"Specialized transportation to Park City's premier ski resorts including Park City Mountain and Deer Valley. Expert winter drivers, equipment accommodation, and early morning service available for the perfect ski day.",
+		image: "/assets/imgs/page/homepage1/service4.webp",
 		longDescription:
 			"Specialized winter sports transportation to all major ski resorts. We accommodate ski and snowboard equipment with experienced winter drivers.",
 		features: [
@@ -94,3 +97,4 @@ export const services5 = services.map((service) => ({
 }));
 
 export const allServices = [...services, ...services4, ...services5];
+

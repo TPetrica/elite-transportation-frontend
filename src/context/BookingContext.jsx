@@ -38,6 +38,7 @@ const initialState = {
 	selectedService: null,
 	selectedVehicle: null,
 	selectedExtras: [],
+	bookingNumber: null,
 	passengerDetails: null,
 	distance: null,
 	duration: null,
@@ -324,6 +325,12 @@ const bookingReducer = (state, action) => {
 				duration: action.payload.duration,
 			};
 
+		case "SET_BOOKING_NUMBER":
+			return {
+				...state,
+				bookingNumber: action.payload,
+			};
+
 		case "RESET_BOOKING":
 			return initialState;
 
@@ -375,6 +382,10 @@ export const BookingProvider = ({ children }) => {
 		dispatch({ type: "UPDATE_PRICING", payload: details });
 	};
 
+	const setBookingNumber = (number) => {
+		dispatch({ type: "SET_BOOKING_NUMBER", payload: number });
+	};
+
 	const resetBooking = () => {
 		dispatch({ type: "RESET_BOOKING" });
 	};
@@ -392,6 +403,7 @@ export const BookingProvider = ({ children }) => {
 		setDistanceAndDuration,
 		updatePricing,
 		resetBooking,
+		setBookingNumber,
 	};
 
 	return (
@@ -406,3 +418,4 @@ export const useBooking = () => {
 	}
 	return context;
 };
+

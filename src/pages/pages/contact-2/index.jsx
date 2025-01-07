@@ -7,7 +7,7 @@ import MobailHeader1 from "@/components/headers/MobailHeader1";
 import MetaComponent from "@/components/common/MetaComponent";
 const metadata = {
 	title:
-		"Contact 2 || Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
+		"Contact Us || Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
 	description:
 		"Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
 };

@@ -70,7 +70,7 @@ export default function Footer1() {
 						</div>
 						<div className="col-lg-3 width-20 mb-30">
 							<h5 className="text-18-medium color-white mb-20 wow fadeInUp">
-								Explore
+								Services
 							</h5>
 							<ul className="menu-footer wow fadeInUp">
 								{links3.map((elm, i) => (
@@ -147,7 +147,7 @@ export default function Footer1() {
 					<div className="footer-bottom">
 						<div className="row align-items-center">
 							<div className="col-lg-8 col-md-12 text-center text-lg-start">
-								<span className="text-14 color-white mr-50">
+								<span className="text-14 color-white mr-30">
 									© {new Date().getFullYear()} Elite Transportation
 								</span>
 								<ul className="menu-bottom">

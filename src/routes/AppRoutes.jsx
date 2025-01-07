@@ -19,7 +19,6 @@ import HomePage9 from "@/pages/homes/home-9";
 import PageNotFoundPage from "@/pages/page-not-found";
 import AboutPage2 from "@/pages/pages/about-2";
 import CommingSoonPage from "@/pages/pages/coming-soon";
-import ContactPage1 from "@/pages/pages/contact";
 import ContactPage2 from "@/pages/pages/contact-2";
 import LoginPage from "@/pages/pages/login";
 import OurTeamPage from "@/pages/pages/our-team";
@@ -65,8 +64,8 @@ const AppRoutes = () => {
 					element={<TermsAndConditionsPage />}
 				/>
 				<Route path="about-us" element={<AboutPage2 />} />
-				<Route path="contact" element={<ContactPage1 />} />
-				<Route path="contact-2" element={<ContactPage2 />} />
+				{/* <Route path="contact" element={<ContactPage1 />} /> */}
+				<Route path="contact" element={<ContactPage2 />} />
 				<Route path="our-team" element={<OurTeamPage />} />
 				<Route path="team-single/:id" element={<TeamSinglePage />} />
 				<Route path="register" element={<RegisterPage />} />

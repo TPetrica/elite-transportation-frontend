@@ -65,7 +65,7 @@ export default function BookingPayment() {
 						miles: parseInt(distance.miles),
 					},
 					duration,
-					vehicle: selectedService.id,
+					service: selectedService.id,
 					passengerDetails: cleanPassengerDetails,
 					email: passengerDetails.email || "",
 				},

@@ -3,6 +3,15 @@ import PaymentService from "@/services/payment.service";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
+// Service display names mapping
+const SERVICE_NAMES = {
+	"to-airport": "Airport Transfer (To Airport)",
+	"from-airport": "Airport Transfer (From Airport)",
+	"round-trip": "Round Trip Service",
+	hourly: "Hourly Service",
+	group: "Group Transportation",
+};
+
 export default function BookingReceived() {
 	const [searchParams] = useSearchParams();
 	const navigate = useNavigate();
@@ -47,6 +56,8 @@ export default function BookingReceived() {
 
 	const { bookingDetails } = sessionData;
 
+	console.log("sessionData", sessionData);
+	console.log("bookingDetails", bookingDetails);
 	return (
 		<section className="section">
 			<div className="container-sub">
@@ -96,6 +107,22 @@ export default function BookingReceived() {
 						</div>
 					</div>
 
+					{/* Service Details */}
+					<div className="box-booking-border wow fadeInUp">
+						<h6 className="heading-20-medium color-text">
+							Service Information
+						</h6>
+						<ul className="list-prices">
+							<li>
+								<span className="text-top">Service Type</span>
+								<span className="text-bottom">
+									{SERVICE_NAMES[bookingDetails.service] ||
+										bookingDetails.service}
+								</span>
+							</li>
+						</ul>
+					</div>
+
 					{/* Reservation Details */}
 					<div className="box-booking-border wow fadeInUp">
 						<h6 className="heading-20-medium color-text">
@@ -134,33 +161,6 @@ export default function BookingReceived() {
 							</li>
 						</ul>
 					</div>
-
-					{/* Vehicle Details */}
-					{bookingDetails.vehicle && (
-						<div className="box-booking-border wow fadeInUp">
-							<h6 className="heading-20-medium color-text">Selected Vehicle</h6>
-							<div className="mt-20 mb-20 text-center">
-								<img
-									src={bookingDetails.vehicle.image}
-									alt={bookingDetails.vehicle.name}
-								/>
-							</div>
-							<ul className="list-prices">
-								<li>
-									<span className="text-top">Class</span>
-									<span className="text-bottom">
-										{bookingDetails.vehicle.class}
-									</span>
-								</li>
-								<li>
-									<span className="text-top">Vehicle</span>
-									<span className="text-bottom">
-										{bookingDetails.vehicle.name}
-									</span>
-								</li>
-							</ul>
-						</div>
-					)}
 
 					{/* Passenger Details */}
 					{bookingDetails.passengerDetails && (

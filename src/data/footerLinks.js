@@ -21,10 +21,12 @@ export const socialMediaPlatforms = [
 ];
 
 export const links1 = [
+	{ id: 1, text: "Reservation", href: "/booking-time" },
 	{ id: 1, text: "About us", href: "/about-us" },
-	{ id: 2, text: "Our offerings", href: "/fleet-list" },
+	{ id: 2, text: "Our services", href: "/services" },
+	{ id: 4, text: "Rates", href: "/rates" },
 	{ id: 4, text: "Team", href: "/our-team" },
-	{ id: 5, text: "Blog", href: "/blog" },
+	// { id: 5, text: "Blog", href: "/blog" },
 	// { id: 6, text: "Careers", href: "#" },
 	// { id: 7, text: "Gift cards", href: "#" },
 ];
@@ -37,12 +39,12 @@ export const links2 = [
 	// { id: 5, name: "Paris", href: "#" },
 ];
 export const links3 = [
-	{ id: 1, name: "Intercity rides", href: "#" },
-	{ id: 2, name: "Limousine service", href: "#" },
-	{ id: 3, name: "Chauffeur service", href: "#" },
-	{ id: 4, name: "Private car service", href: "#" },
-	{ id: 5, name: "Ground transportation", href: "#" },
-	{ id: 6, name: "Airport transfer", href: "#" },
+	{ id: 1, name: "Airport Transfers", href: "/service-single/1" },
+	{ id: 2, name: "Hourly Charter", href: "/service-single/2" },
+	{ id: 3, name: "Group Transportation", href: "/service-single/3" },
+	{ id: 4, name: "Winter Sports Transport", href: "/service-single/4" },
+	// { id: 5, name: "Ground transportation", href: "#" },
+	// { id: 6, name: "Airport transfer", href: "#" },
 ];
 export const links4 = [
 	// { id: 1, name: "Business", href: "#" },

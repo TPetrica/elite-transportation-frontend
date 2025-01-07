@@ -1,33 +1,17 @@
-import { features7 } from "@/data/features";
-
-export default function Features2() {
+export default function Features2({ service }) {
 	return (
 		<section className="section">
 			<div className="container-sub">
 				<div className="mt-120">
 					<h2 className="heading-44-medium mb-30 color-text title-fleet wow fadeInUp">
-						Airport transfer in the city
+						{service.title}
 					</h2>
 					<div className="content-single wow fadeInUp">
-						<p>
-							We offer luxury chauffeur driven airport transfers and pickups to
-							London. Exceptional Safe, Meet and Greet. One hour of
-							complimentary wait time and flight tracking. Professional Drivers
-							& Vehicles. Fixed prices on airport transfers. VIP service, get
-							your quote today!
-						</p>
-						<p>
-							Et, morbi at sagittis vehicula rutrum. Lacus tortor, quam arcu mi
-							et, at lectus leo nunc. Mattis cras auctor vel pharetra tempor.
-							Rhoncus pellentesque habitant ac tempor. At aliquam euismod est in
-							praesent ornare etiam id. Faucibus libero sit vehicula sed
-							condimentum. Vitae in nam porttitor rutrum sed aliquam donec sed.
-							Sapien facilisi lectus.
-						</p>
+						<p>{service.longDescription}</p>
 						<ul className="list-ticks list-ticks-small">
-							{features7.map((elm, i) => (
+							{service.features.map((feature, i) => (
 								<li key={i} className="text-16 mb-20">
-									{elm}
+									{feature}
 								</li>
 							))}
 						</ul>
@@ -40,15 +24,9 @@ export default function Features2() {
 					<div className="col-lg-6 mb-30">
 						<div className="box-info-right wow fadeInUp">
 							<h3 className="heading-44-medium color-text mb-30">
-								Get to or from the airport
+								Professional Service
 							</h3>
-							<p className="text-16 color-text">
-								The price of tickets for low-cost airlines for a specific route
-								has a much larger spread than that of regular airlines. It
-								depends on the time to departure, demand and competition on the
-								route. Unlike regular airlines, low-cost airlines rarely offer
-								cheap tickets more than 3 months before departure.
-							</p>
+							<p className="text-16 color-text">{service.description}</p>
 						</div>
 					</div>
 				</div>
@@ -56,14 +34,12 @@ export default function Features2() {
 					<div className="col-lg-6 mb-30">
 						<div className="box-info-left wow fadeInUp">
 							<h3 className="heading-44-medium color-text mb-30">
-								Airport shuttle booking
+								Reliable Transportation
 							</h3>
 							<p className="text-16 color-text">
-								The price of tickets for low-cost airlines for a specific route
-								has a much larger spread than that of regular airlines. It
-								depends on the time to departure, demand and competition on the
-								route. Unlike regular airlines, low-cost airlines rarely offer
-								cheap tickets more than 3 months before departure.
+								Enjoy reliable and professional transportation services with our
+								experienced team. We prioritize your comfort and satisfaction
+								with every journey.
 							</p>
 						</div>
 					</div>
