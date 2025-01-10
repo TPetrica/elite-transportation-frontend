@@ -1,35 +1,11 @@
 import { faqs } from "@/data/faq";
-import { Collapse } from "bootstrap";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function Faq() {
 	const [activeIndex, setActiveIndex] = useState(null);
-	const [collapseInstances, setCollapseInstances] = useState([]);
-
-	useEffect(() => {
-		// Initialize all collapse elements
-		const instances = Array.from(
-			document.querySelectorAll(".accordion-collapse")
-		).map((element) => new Collapse(element, { toggle: false }));
-		setCollapseInstances(instances);
-	}, []);
 
 	const handleToggle = (index) => {
-		// If clicking the currently active item, just close it
-		if (activeIndex === index) {
-			collapseInstances[index]?.hide();
-			setActiveIndex(null);
-			return;
-		}
-
-		// Close the previously active item
-		if (activeIndex !== null) {
-			collapseInstances[activeIndex]?.hide();
-		}
-
-		// Open the clicked item
-		collapseInstances[index]?.show();
-		setActiveIndex(index);
+		setActiveIndex(activeIndex === index ? null : index);
 	};
 
 	return (
@@ -53,15 +29,14 @@ export default function Faq() {
 											type="button"
 											onClick={() => handleToggle(i)}
 											aria-expanded={activeIndex === i}
-											aria-controls={`collapse${i}`}
 										>
 											{elm.question}
 										</button>
 									</h5>
 									<div
-										id={`collapse${i}`}
-										className={`accordion-collapse collapse`}
-										aria-labelledby={`heading${i}`}
+										className={`accordion-collapse collapse ${
+											activeIndex === i ? "show" : ""
+										}`}
 									>
 										<div className="accordion-body">{elm.answer}</div>
 									</div>
