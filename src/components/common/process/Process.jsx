@@ -78,10 +78,7 @@ export default function Process() {
 		nextArrow: <NextArrow />,
 	};
 	return (
-		<section
-			className="section pt-120 pb-20 bg-primary bg-how-it-works"
-			style={{ maxHeight: "100vh" }}
-		>
+		<section className="section pt-120 pb-20 bg-primary bg-how-it-works">
 			<div className="container-sub">
 				<h2 className="heading-44-medium color-white mb-60 wow fadeInUp">
 					How It Works
