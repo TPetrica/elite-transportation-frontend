@@ -40,7 +40,7 @@ export default function Header1() {
 					<div className="header-left">
 						<div className="header-logo">
 							<Link className="d-flex" to="/">
-								<img alt="luxride" src="/assets/imgs/template/logo.svg" />
+								<img alt="luxride" src="/assets/imgs/template/logo-nobg.png" />
 							</Link>
 						</div>
 						<div className="header-nav">

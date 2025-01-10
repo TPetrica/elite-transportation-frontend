@@ -134,9 +134,9 @@ export default function PrivacyPolicy() {
 						<p className="mb-4">
 							Elite Transportation
 							<br />
-							Email: support@elitetransportationpc.com
+							Email: elitetransportationpc@gmail.com
 							<br />
-							Phone: 435-901-9158
+							Phone: +1 (435) 901-9158
 						</p>
 					</div>
 				</div>

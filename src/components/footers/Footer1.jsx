@@ -19,8 +19,9 @@ export default function Footer1() {
 								<div className="d-flex align-items-center justify-content-md-start justify-content-center">
 									<a className="mr-30" href="#">
 										<img
-											src="/assets/imgs/template/logo.svg"
+											src="/assets/imgs/template/logo-nobg.png"
 											alt="Elite Transportation"
+											style={{ maxWidth: "200px" }}
 										/>
 									</a>
 									<a
