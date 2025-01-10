@@ -1,13 +1,6 @@
 import { faqs } from "@/data/faq";
-import { useState } from "react";
 
 export default function Faq() {
-	const [activeIndex, setActiveIndex] = useState(null);
-
-	const handleToggle = (index) => {
-		setActiveIndex(activeIndex === index ? null : index);
-	};
-
 	return (
 		<section className="section pt-80 mb-30 bg-faqs">
 			<div className="container-sub">
@@ -24,19 +17,24 @@ export default function Faq() {
 									<h5 className="accordion-header" id={`heading${i}`}>
 										<button
 											className={`accordion-button text-heading-5 ${
-												activeIndex !== i ? "collapsed" : ""
+												i ? "collapsed" : ""
 											}`}
 											type="button"
-											onClick={() => handleToggle(i)}
-											aria-expanded={activeIndex === i}
+											data-bs-toggle="collapse"
+											data-bs-target={`#collapse${i}`}
+											aria-expanded={`${!i ? "true" : "false"}`}
+											aria-controls={`collapse${i}`}
 										>
 											{elm.question}
 										</button>
 									</h5>
 									<div
 										className={`accordion-collapse collapse ${
-											activeIndex === i ? "show" : ""
+											!i ? "show" : ""
 										}`}
+										id={`collapse${i}`}
+										aria-labelledby={`heading${i}`}
+										data-bs-parent="#accordionFAQ"
 									>
 										<div className="accordion-body">{elm.answer}</div>
 									</div>
@@ -49,3 +47,4 @@ export default function Faq() {
 		</section>
 	);
 }
+

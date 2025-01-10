@@ -53,10 +53,10 @@ export const links4 = [
 	// { id: 4, name: "Assistant", href: "#" },
 ];
 export const legalLinks = [
-	{ id: 1, name: "Terms", href: "/terms-and-conditions" },
+	{ id: 1, name: "Terms and conditions", href: "/terms-and-conditions" },
 	{ id: 2, name: "Privacy policy", href: "/privacy-policy" },
 	{ id: 3, name: "Cookie policy", href: "/cookie-policy" },
-	{ id: 3, name: "Legal notice", href: "/legal-notice" },
-	{ id: 4, name: "Accessibility", href: "/accessibility" },
+	// { id: 3, name: "Legal notice", href: "/legal-notice" },
+	// { id: 4, name: "Accessibility", href: "/accessibility" },
 ];
 
