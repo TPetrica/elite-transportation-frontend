@@ -36,7 +36,11 @@ function loadGoogleMapsScript(apiKey) {
 	return loadingPromise;
 }
 
-export function useGooglePlacesAutocomplete(apiKey, locationType) {
+export function useGooglePlacesAutocomplete(
+	apiKey,
+	locationType,
+	selectedService
+) {
 	const [suggestions, setSuggestions] = useState([]);
 	const [loading, setLoading] = useState(false);
 	const [searchInput, setSearchInput] = useState("");
@@ -92,13 +96,24 @@ export function useGooglePlacesAutocomplete(apiKey, locationType) {
 						input: searchInput,
 						componentRestrictions: { country: "us" },
 						sessionToken: sessionToken.current,
+						location: new window.google.maps.LatLng(40.7608, -111.891), // Center of SLC area
+						radius: 40000, // ~25 miles
+						strictBounds: true,
 					};
 
-					// Handle different location types
-					if (locationType === "pickup") {
-						request.types = ["establishment", "geocode"];
+					// Set types based on service type and location type
+					if (
+						selectedService?.id === "from-airport" &&
+						locationType === "pickup"
+					) {
+						request.types = ["airport"];
+					} else if (
+						selectedService?.id === "to-airport" &&
+						locationType === "dropoff"
+					) {
+						request.types = ["airport"];
 					} else {
-						request.types = ["geocode"];
+						request.types = ["establishment", "geocode"];
 					}
 
 					autocompleteService.current.getPlacePredictions(
@@ -116,15 +131,16 @@ export function useGooglePlacesAutocomplete(apiKey, locationType) {
 					);
 				});
 
-				const filteredResults =
-					locationType === "pickup"
-						? response.filter(
-								(place) =>
-									place.types.includes("airport") ||
-									place.types.includes("establishment") ||
-									place.types.includes("geocode")
-						  )
-						: response;
+				// Filter results for SLC/Park City area
+				const filteredResults = response.filter((place) => {
+					const description = place.description.toLowerCase();
+					return (
+						description.includes("salt lake") ||
+						description.includes("park city") ||
+						description.includes("slc") ||
+						description.includes("ut")
+					);
+				});
 
 				setSuggestions(filteredResults);
 			} catch (error) {
@@ -140,7 +156,7 @@ export function useGooglePlacesAutocomplete(apiKey, locationType) {
 		return () => {
 			clearTimeout(debounceTimeout);
 		};
-	}, [searchInput, locationType]);
+	}, [searchInput, locationType, selectedService]);
 
 	const getDetails = async (placeId) => {
 		if (!placesService.current) return null;

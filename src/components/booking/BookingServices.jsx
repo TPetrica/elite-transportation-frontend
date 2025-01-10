@@ -1,7 +1,9 @@
 import { useBooking } from "@/context/BookingContext";
+import { Modal } from "antd";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import SideBar from "./SideBar";
+import TipCalculator from "./TipCalculator";
 
 const services = [
 	{
@@ -9,9 +11,8 @@ const services = [
 		title: "Airport Transfer (1-2 Passengers)",
 		description: "Private SUV service perfect for individuals or couples",
 		pricing: {
-			summer: 175,
-			winter: 185,
-			gratuity: 0.2,
+			summer: 150,
+			winter: 160,
 		},
 		capacity: {
 			passengers: 2,
@@ -37,9 +38,8 @@ const services = [
 		title: "Airport Transfer (3-4 Passengers)",
 		description: "Private SUV service ideal for small groups and families",
 		pricing: {
-			summer: 190,
-			winter: 200,
-			gratuity: 0.2,
+			summer: 180,
+			winter: 190,
 		},
 		capacity: {
 			passengers: 4,
@@ -67,7 +67,6 @@ const services = [
 		pricing: {
 			basePrice: 100,
 			minimumHours: 2,
-			gratuity: 0.2,
 		},
 		capacity: {
 			passengers: 4,
@@ -94,8 +93,8 @@ const services = [
 		description:
 			"Ideal for groups up to 7 passengers with separate luggage vehicle",
 		pricing: {
-			basePrice: 300,
-			gratuity: 0.2,
+			summer: 365,
+			winter: 385,
 		},
 		capacity: {
 			passengers: 7,
@@ -120,17 +119,32 @@ const services = [
 
 export default function BookingServices() {
 	const navigate = useNavigate();
-	const { setSelectedService, distance, selectedDate, selectedTime } =
-		useBooking();
+	const {
+		setSelectedService,
+		distance,
+		selectedDate,
+		selectedTime,
+		pricing,
+		updatePricing,
+	} = useBooking();
+
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(null);
-	const [isWinter, setIsWinter] = useState(false); // You might want to determine this based on date
+	const [isModalVisible, setIsModalVisible] = useState(false);
+	const [selectedServiceData, setSelectedServiceData] = useState(null);
+	const [isWinter, setIsWinter] = useState(() => {
+		const month = new Date().getMonth();
+		return month >= 10 || month <= 3;
+	});
 
 	useEffect(() => {
 		if (!selectedDate || !selectedTime) {
 			navigate("/booking-time");
 			return;
 		}
+
+		const month = new Date(selectedDate).getMonth();
+		setIsWinter(month >= 10 || month <= 3);
 	}, [selectedDate, selectedTime, navigate]);
 
 	const getServicePrice = (service) => {
@@ -145,14 +159,33 @@ export default function BookingServices() {
 		}
 	};
 
+	const handleTipChange = (tipAmount) => {
+		updatePricing({
+			...pricing,
+			gratuity: tipAmount,
+			totalPrice:
+				pricing.basePrice + tipAmount + pricing.extrasTotal + pricing.nightFee,
+		});
+	};
+
 	const handleServiceSelect = async (service) => {
 		try {
+			setSelectedServiceData(service);
 			setSelectedService(service);
-			navigate("/booking-extra");
+			setIsModalVisible(true);
 		} catch (err) {
 			console.error("Error selecting service:", err);
 			setError("Failed to select service");
 		}
+	};
+
+	const handleModalOk = () => {
+		setIsModalVisible(false);
+		navigate("/booking-extra");
+	};
+
+	const handleModalCancel = () => {
+		setIsModalVisible(false);
 	};
 
 	if (loading) {
@@ -243,8 +276,8 @@ export default function BookingServices() {
 										</h4>
 									</div>
 									<div className="price-desc mb-20">
-										All prices include VAT, fees &{" "}
-										{service.pricing.gratuity * 100}% gratuity.
+										All prices include VAT and fees. Gratuity is optional but
+										appreciated.
 									</div>
 									<button
 										className="btn btn-primary w-100"
@@ -274,7 +307,27 @@ export default function BookingServices() {
 				</div>
 			</div>
 			<SideBar />
+
+			<Modal
+				title="Add Gratuity"
+				visible={isModalVisible}
+				onOk={handleModalOk}
+				onCancel={handleModalCancel}
+				width={600}
+				okText="Continue Booking"
+				cancelText="Skip"
+			>
+				{selectedServiceData && (
+					<TipCalculator
+						basePrice={
+							isWinter
+								? selectedServiceData.pricing.winter
+								: selectedServiceData.pricing.summer
+						}
+						onTipChange={handleTipChange}
+					/>
+				)}
+			</Modal>
 		</div>
 	);
 }
-

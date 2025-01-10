@@ -2,21 +2,25 @@ import { createContext, useContext, useReducer } from "react";
 
 const BookingContext = createContext(null);
 
-// Price constants
 const PRICES = {
 	SUV_1_2: {
-		summer: 175,
-		winter: 185,
+		summer: 150,
+		winter: 160,
 	},
-	SUV_3_4: {
-		summer: 190,
-		winter: 200,
+	SUV_3_5: {
+		summer: 180,
+		winter: 190,
 	},
 	GROUP: {
-		basePrice: 300,
+		summer: 365,
+		winter: 385,
 	},
 	HOURLY: {
-		baseRate: 100, // per hour, 2 hour minimum
+		baseRate: 100,
+	},
+	ADDITIONAL_FEES: {
+		nightService: 20,
+		meetAndGreet: 30,
 	},
 };
 
@@ -26,12 +30,14 @@ const initialState = {
 		coordinates: null,
 		date: null,
 		time: null,
-		flightNumber: null,
-		flightTime: null,
+		flightNumber: "",
+		flightTime: "",
+		isCustom: false,
 	},
 	dropoffDetails: {
 		address: "",
 		coordinates: null,
+		isCustom: false,
 	},
 	selectedDate: null,
 	selectedTime: null,
@@ -39,7 +45,14 @@ const initialState = {
 	selectedVehicle: null,
 	selectedExtras: [],
 	bookingNumber: null,
-	passengerDetails: null,
+	passengerDetails: {
+		passengers: 1,
+		firstName: "",
+		lastName: "",
+		email: "",
+		phone: "",
+		specialRequests: "",
+	},
 	distance: null,
 	duration: null,
 	pricing: {
@@ -48,55 +61,55 @@ const initialState = {
 		extrasTotal: 0,
 		nightFee: 0,
 		totalPrice: 0,
-		hours: 2, // Default minimum hours for hourly service
+		hours: 2,
 	},
-	isWinter: false, // You'll need to set this based on the date
+	isWinter: false,
 };
-
-const calculateGratuity = (basePrice) => basePrice * 0.2;
 
 const calculateNightFee = (time) => {
 	if (!time) return 0;
 	const hour = parseInt(time.split(":")[0], 10);
-	return hour >= 23 || hour < 7 ? 20 : 0;
+	return hour >= 23 || hour < 6 ? PRICES.ADDITIONAL_FEES.nightService : 0;
 };
 
 const calculateBasePrice = (
 	service,
-	numPassengers,
+	numPassengers = 1,
 	hours = 2,
 	isWinter = false
 ) => {
 	if (!service) return 0;
 
+	const passengerCount = parseInt(numPassengers) || 1;
+
 	switch (service.id) {
-		case "group":
-			return PRICES.GROUP.basePrice;
-
-		case "hourly":
-			return PRICES.HOURLY.baseRate * Math.max(2, hours); // Minimum 2 hours
-
-		case "round-trip":
-			// For round trip, calculate normal fare and double it
-			const singleTripPrice =
-				numPassengers <= 2
-					? isWinter
-						? PRICES.SUV_1_2.winter
-						: PRICES.SUV_1_2.summer
-					: isWinter
-					? PRICES.SUV_3_4.winter
-					: PRICES.SUV_3_4.summer;
-			return singleTripPrice * 2;
-
 		case "from-airport":
 		case "to-airport":
-			return numPassengers <= 2
+			return passengerCount <= 2
 				? isWinter
 					? PRICES.SUV_1_2.winter
 					: PRICES.SUV_1_2.summer
 				: isWinter
-				? PRICES.SUV_3_4.winter
-				: PRICES.SUV_3_4.summer;
+				? PRICES.SUV_3_5.winter
+				: PRICES.SUV_3_5.summer;
+
+		case "round-trip": {
+			const singleTripPrice =
+				passengerCount <= 2
+					? isWinter
+						? PRICES.SUV_1_2.winter
+						: PRICES.SUV_1_2.summer
+					: isWinter
+					? PRICES.SUV_3_5.winter
+					: PRICES.SUV_3_5.summer;
+			return singleTripPrice * 2;
+		}
+
+		case "hourly":
+			return PRICES.HOURLY.baseRate * Math.max(2, hours);
+
+		case "group":
+			return isWinter ? PRICES.GROUP.winter : PRICES.GROUP.summer;
 
 		default:
 			return 0;
@@ -118,23 +131,22 @@ const bookingReducer = (state, action) => {
 			const newPickupDetails = { ...state.pickupDetails, ...action.payload };
 			const nightFee = calculateNightFee(newPickupDetails.time);
 
-			// If date is changing, check if it's winter or summer
 			let isWinter = state.isWinter;
 			if (newPickupDetails.date) {
 				const month = new Date(newPickupDetails.date).getMonth();
-				isWinter = month >= 10 || month <= 3; // Winter: November through April
+				isWinter = month >= 10 || month <= 3;
 			}
 
 			const basePrice = calculateBasePrice(
 				state.selectedService,
-				state.passengerDetails?.passengers || 1,
+				state.passengerDetails.passengers,
 				state.pricing.hours,
 				isWinter
 			);
-			const gratuity = calculateGratuity(basePrice);
+
 			const totalPrice = calculateTotalPrice(
 				basePrice,
-				gratuity,
+				state.pricing.gratuity,
 				state.pricing.extrasTotal,
 				nightFee
 			);
@@ -146,7 +158,6 @@ const bookingReducer = (state, action) => {
 				pricing: {
 					...state.pricing,
 					basePrice,
-					gratuity,
 					nightFee,
 					totalPrice,
 				},
@@ -188,14 +199,14 @@ const bookingReducer = (state, action) => {
 		case "SET_SELECTED_SERVICE": {
 			const basePrice = calculateBasePrice(
 				action.payload,
-				state.passengerDetails?.passengers || 1,
+				state.passengerDetails.passengers,
 				state.pricing.hours,
 				state.isWinter
 			);
-			const gratuity = calculateGratuity(basePrice);
+
 			const totalPrice = calculateTotalPrice(
 				basePrice,
-				gratuity,
+				state.pricing.gratuity,
 				state.pricing.extrasTotal,
 				state.pricing.nightFee
 			);
@@ -206,24 +217,23 @@ const bookingReducer = (state, action) => {
 				pricing: {
 					...state.pricing,
 					basePrice,
-					gratuity,
 					totalPrice,
 				},
 			};
 		}
 
 		case "SET_SERVICE_HOURS": {
-			const hours = Math.max(2, action.payload); // Ensure minimum 2 hours
+			const hours = Math.max(2, action.payload);
 			const basePrice = calculateBasePrice(
 				state.selectedService,
-				state.passengerDetails?.passengers || 1,
+				state.passengerDetails.passengers,
 				hours,
 				state.isWinter
 			);
-			const gratuity = calculateGratuity(basePrice);
+
 			const totalPrice = calculateTotalPrice(
 				basePrice,
-				gratuity,
+				state.pricing.gratuity,
 				state.pricing.extrasTotal,
 				state.pricing.nightFee
 			);
@@ -234,34 +244,6 @@ const bookingReducer = (state, action) => {
 					...state.pricing,
 					hours,
 					basePrice,
-					gratuity,
-					totalPrice,
-				},
-			};
-		}
-
-		case "UPDATE_PRICING": {
-			const { numPassengers, hours } = action.payload;
-			const basePrice = calculateBasePrice(
-				state.selectedService,
-				numPassengers,
-				hours || state.pricing.hours,
-				state.isWinter
-			);
-			const gratuity = calculateGratuity(basePrice);
-			const totalPrice = calculateTotalPrice(
-				basePrice,
-				gratuity,
-				state.pricing.extrasTotal,
-				state.pricing.nightFee
-			);
-
-			return {
-				...state,
-				pricing: {
-					...state.pricing,
-					basePrice,
-					gratuity,
 					totalPrice,
 				},
 			};
@@ -269,7 +251,7 @@ const bookingReducer = (state, action) => {
 
 		case "SET_SELECTED_EXTRAS": {
 			const extrasTotal = action.payload.reduce(
-				(total, extra) => total + extra.price * (extra.quantity || 1),
+				(total, extra) => total + extra.price * extra.quantity,
 				0
 			);
 
@@ -292,29 +274,60 @@ const bookingReducer = (state, action) => {
 		}
 
 		case "SET_PASSENGER_DETAILS": {
+			const newPassengerDetails = {
+				...state.passengerDetails,
+				...action.payload,
+			};
+
+			// Recalculate base price when passenger count changes
 			const basePrice = calculateBasePrice(
 				state.selectedService,
-				parseInt(action.payload.passengers) || 1,
+				newPassengerDetails.passengers,
 				state.pricing.hours,
 				state.isWinter
 			);
-			const gratuity = calculateGratuity(basePrice);
+
 			const totalPrice = calculateTotalPrice(
 				basePrice,
-				gratuity,
+				state.pricing.gratuity,
 				state.pricing.extrasTotal,
 				state.pricing.nightFee
 			);
 
 			return {
 				...state,
-				passengerDetails: action.payload,
+				passengerDetails: newPassengerDetails,
 				pricing: {
 					...state.pricing,
 					basePrice,
-					gratuity,
 					totalPrice,
 				},
+			};
+		}
+
+		case "UPDATE_PRICING": {
+			const newPricing = { ...state.pricing };
+
+			if ("gratuity" in action.payload) {
+				newPricing.gratuity = action.payload.gratuity;
+			}
+			if ("extrasTotal" in action.payload) {
+				newPricing.extrasTotal = action.payload.extrasTotal;
+			}
+			if ("nightFee" in action.payload) {
+				newPricing.nightFee = action.payload.nightFee;
+			}
+
+			newPricing.totalPrice = calculateTotalPrice(
+				newPricing.basePrice,
+				newPricing.gratuity,
+				newPricing.extrasTotal,
+				newPricing.nightFee
+			);
+
+			return {
+				...state,
+				pricing: newPricing,
 			};
 		}
 
@@ -402,8 +415,8 @@ export const BookingProvider = ({ children }) => {
 		setPassengerDetails,
 		setDistanceAndDuration,
 		updatePricing,
-		resetBooking,
 		setBookingNumber,
+		resetBooking,
 	};
 
 	return (

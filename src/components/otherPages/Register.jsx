@@ -213,11 +213,10 @@ export default function Register() {
 									<div className="text-or-box">
 										<span className="text-or">OR</span>
 									</div>
-									<div className="mb-20">
+									{/* <div className="mb-20">
 										<button
 											className="btn btn-login-google w-100"
 											onClick={() => {
-												/* Implement Google signup */
 											}}
 											type="button"
 										>
@@ -228,7 +227,6 @@ export default function Register() {
 										<button
 											className="btn btn-login-facebook w-100"
 											onClick={() => {
-												/* Implement Facebook signup */
 											}}
 											type="button"
 										>
@@ -239,13 +237,12 @@ export default function Register() {
 										<button
 											className="btn btn-login-apple w-100"
 											onClick={() => {
-												/* Implement Apple signup */
 											}}
 											type="button"
 										>
 											Continue with Apple
 										</button>
-									</div>
+									</div> */}
 								</div>
 								<div className="mt-0 text-center">
 									<span className="text-14-medium color-text">
@@ -263,3 +260,4 @@ export default function Register() {
 		</section>
 	);
 }
+

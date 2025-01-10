@@ -49,6 +49,16 @@ export default function PassengerDetails() {
 	};
 
 	useEffect(() => {
+		// Initial price calculation based on existing passenger count
+		if (selectedService) {
+			updatePricing({
+				numPassengers: parseInt(formData.passengers) || 1,
+				hours: selectedService?.id === "hourly" ? 2 : undefined,
+			});
+		}
+	}, [selectedService]); // Run when selectedService changes
+
+	useEffect(() => {
 		if (!selectedService) {
 			navigate("/booking-time");
 			return;
@@ -116,6 +126,7 @@ export default function PassengerDetails() {
 			0,
 			Math.min(currentValue + change, maxValues[field])
 		);
+
 		setFormData((prev) => ({
 			...prev,
 			[field]: String(newValue),
@@ -123,6 +134,13 @@ export default function PassengerDetails() {
 
 		// Update pricing when passenger count changes
 		if (field === "passengers") {
+			// First update the passenger details in the context
+			setPassengerDetails({
+				...formData,
+				[field]: String(newValue),
+			});
+
+			// Then update the pricing based on the new passenger count
 			updatePricing({
 				numPassengers: newValue,
 				hours: selectedService?.id === "hourly" ? 2 : undefined,
@@ -440,3 +458,4 @@ export default function PassengerDetails() {
 		</div>
 	);
 }
+

@@ -172,6 +172,7 @@ export default function BookingTime() {
 			...pickupDetails,
 			address: location.address,
 			coordinates: location.coordinates,
+			isCustom: location.isCustom,
 		});
 	};
 
@@ -180,6 +181,7 @@ export default function BookingTime() {
 			...dropoffDetails,
 			address: location.address,
 			coordinates: location.coordinates,
+			isCustom: location.isCustom,
 		});
 	};
 
@@ -188,9 +190,18 @@ export default function BookingTime() {
 			return false;
 		}
 
-		return Boolean(
+		// For custom addresses, we only need the address field
+		const hasValidPickup =
 			pickupDetails?.address &&
-				dropoffDetails?.address &&
+			(pickupDetails?.coordinates || pickupDetails?.isCustom);
+
+		const hasValidDropoff =
+			dropoffDetails?.address &&
+			(dropoffDetails?.coordinates || dropoffDetails?.isCustom);
+
+		return Boolean(
+			hasValidPickup &&
+				hasValidDropoff &&
 				pickupDetails?.date &&
 				pickupDetails?.time
 		);
@@ -255,6 +266,7 @@ export default function BookingTime() {
 											onChange={handleFromLocationChange}
 											type="pickup"
 											placeholder="Enter pickup location"
+											selectedService={selectedService}
 										/>
 									</div>
 								</div>
@@ -267,6 +279,7 @@ export default function BookingTime() {
 											onChange={handleToLocationChange}
 											type="dropoff"
 											placeholder="Enter drop-off location"
+											selectedService={selectedService}
 										/>
 									</div>
 								</div>

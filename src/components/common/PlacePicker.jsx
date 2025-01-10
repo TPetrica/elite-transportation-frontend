@@ -38,42 +38,66 @@ const StyledSelect = styled(Select)`
 	}
 `;
 
-export default function PlacePicker({ value, onChange, type, placeholder }) {
+export default function PlacePicker({
+	value,
+	onChange,
+	type,
+	placeholder,
+	selectedService,
+}) {
 	const [searchTerm, setSearchTerm] = useState("");
-	const [internalValue, setInternalValue] = useState(
-		value?.address || value || ""
-	);
 	const { suggestions, loading, getDetails, setSearchInput } =
-		useGooglePlacesAutocomplete(import.meta.env.VITE_GOOGLE_MAPS_API_KEY, type);
-
-	// Update internal value when prop value changes
-	useEffect(() => {
-		setInternalValue(value?.address || value || "");
-	}, [value]);
+		useGooglePlacesAutocomplete(
+			import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+			type,
+			selectedService
+		);
 
 	const handleSearch = (newValue) => {
 		setSearchTerm(newValue);
 		setSearchInput(newValue);
-		setInternalValue(newValue);
-		if (newValue) {
-			onChange?.({
-				address: newValue,
-				coordinates: null,
-			});
-		}
+
+		// If service is airport-related, don't allow custom addresses
+		if (selectedService?.id === "from-airport" && type === "pickup") return;
+		if (selectedService?.id === "to-airport" && type === "dropoff") return;
+
+		// Update with custom address if user is typing
+		onChange?.({
+			address: newValue,
+			coordinates: null,
+			isCustom: true,
+		});
 	};
 
 	const handleChange = async (placeId, option) => {
-		if (!option) {
-			onChange?.({
-				address: placeId,
-				coordinates: null,
-			});
-			setInternalValue(placeId);
-			return;
-		}
-
 		try {
+			if (!option) {
+				onChange?.({
+					address: "",
+					coordinates: null,
+					isCustom: false,
+				});
+				setSearchTerm("");
+				return;
+			}
+
+			// If it's a custom input option and custom addresses are allowed for this service/type
+			const isAirportPickup =
+				selectedService?.id === "from-airport" && type === "pickup";
+			const isAirportDropoff =
+				selectedService?.id === "to-airport" && type === "dropoff";
+
+			if (option.isCustom && !isAirportPickup && !isAirportDropoff) {
+				onChange?.({
+					address: option.value,
+					coordinates: null,
+					isCustom: true,
+				});
+				setSearchTerm(option.value);
+				return;
+			}
+
+			// If it's a Google Places suggestion
 			const details = await getDetails(placeId);
 			if (details) {
 				onChange?.({
@@ -82,54 +106,101 @@ export default function PlacePicker({ value, onChange, type, placeholder }) {
 						lat: details.geometry.location.lat(),
 						lng: details.geometry.location.lng(),
 					},
+					isCustom: false,
 				});
-				setInternalValue(option.label);
 				setSearchTerm("");
-				setSearchInput("");
 			}
 		} catch (error) {
 			console.error("Error getting place details:", error);
+			onChange?.({
+				address: searchTerm,
+				coordinates: null,
+				isCustom: true,
+			});
 		}
 	};
 
-	const options = suggestions.map((suggestion) => ({
-		value: suggestion.place_id,
-		label: suggestion.description,
-		mainText: suggestion.structured_formatting.main_text,
-		secondaryText: suggestion.structured_formatting.secondary_text,
-		isAirport: suggestion.types.includes("airport"),
-	}));
+	useEffect(() => {
+		if (value) {
+			setSearchTerm(value);
+		}
+	}, [value]);
+
+	// Determine if custom addresses should be allowed
+	const isAirportPickup =
+		selectedService?.id === "from-airport" && type === "pickup";
+	const isAirportDropoff =
+		selectedService?.id === "to-airport" && type === "dropoff";
+	const allowCustomAddresses = !isAirportPickup && !isAirportDropoff;
+
+	// Combine Google suggestions with custom input option
+	const combinedOptions = [
+		// Add custom option if allowed and if it doesn't match existing suggestions
+		...(allowCustomAddresses &&
+		searchTerm &&
+		!suggestions.some(
+			(s) => s.description.toLowerCase() === searchTerm.toLowerCase()
+		)
+			? [
+					{
+						value: searchTerm,
+						label: searchTerm,
+						mainText: searchTerm,
+						secondaryText: "Custom Address",
+						isCustom: true,
+					},
+			  ]
+			: []),
+		...suggestions.map((suggestion) => ({
+			value: suggestion.place_id,
+			label: suggestion.description,
+			mainText: suggestion.structured_formatting.main_text,
+			secondaryText: suggestion.structured_formatting.secondary_text,
+			isAirport: suggestion.types.includes("airport"),
+			isCustom: false,
+		})),
+	];
+
+	// Customize placeholder based on service type
+	let customPlaceholder = placeholder;
+	if (isAirportPickup) {
+		customPlaceholder = "Select an airport for pickup";
+	} else if (isAirportDropoff) {
+		customPlaceholder = "Select an airport for dropoff";
+	}
 
 	return (
 		<Container>
 			<StyledSelect
 				showSearch
-				value={internalValue || undefined}
-				placeholder={
-					placeholder ||
-					`Enter ${type === "pickup" ? "pickup" : "drop-off"} location`
-				}
+				value={value || undefined}
+				placeholder={customPlaceholder}
 				defaultActiveFirstOption={false}
 				filterOption={false}
 				onSearch={handleSearch}
 				onChange={handleChange}
 				notFoundContent={null}
-				options={options}
+				options={combinedOptions}
 				searchValue={searchTerm}
 				loading={loading}
 				allowClear
 				onClear={() => {
-					setInternalValue("");
+					setSearchTerm("");
 					onChange?.({
 						address: "",
 						coordinates: null,
+						isCustom: false,
 					});
 				}}
 				suffixIcon={loading ? <LoadingOutlined /> : <EnvironmentOutlined />}
 				optionRender={(option) => (
 					<div style={{ display: "flex", alignItems: "center" }}>
 						<span style={{ marginRight: "12px" }}>
-							{option.data.isAirport ? "✈️" : "📍"}
+							{option.data.isAirport
+								? "✈️"
+								: option.data.isCustom
+								? "📝"
+								: "📍"}
 						</span>
 						<div>
 							<div style={{ fontWeight: 500 }}>{option.data.mainText}</div>
@@ -143,3 +214,4 @@ export default function PlacePicker({ value, onChange, type, placeholder }) {
 		</Container>
 	);
 }
+
