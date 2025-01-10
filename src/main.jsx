@@ -1,6 +1,4 @@
 import { AuthProvider } from "@/context/AuthContext.jsx";
-import "@popperjs/core";
-import "bootstrap";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
