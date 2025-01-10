@@ -1,6 +1,37 @@
 import { faqs } from "@/data/faq";
+import { Collapse } from "bootstrap";
+import { useEffect, useState } from "react";
 
 export default function Faq() {
+	const [activeIndex, setActiveIndex] = useState(null);
+	const [collapseInstances, setCollapseInstances] = useState([]);
+
+	useEffect(() => {
+		// Initialize all collapse elements
+		const instances = Array.from(
+			document.querySelectorAll(".accordion-collapse")
+		).map((element) => new Collapse(element, { toggle: false }));
+		setCollapseInstances(instances);
+	}, []);
+
+	const handleToggle = (index) => {
+		// If clicking the currently active item, just close it
+		if (activeIndex === index) {
+			collapseInstances[index]?.hide();
+			setActiveIndex(null);
+			return;
+		}
+
+		// Close the previously active item
+		if (activeIndex !== null) {
+			collapseInstances[activeIndex]?.hide();
+		}
+
+		// Open the clicked item
+		collapseInstances[index]?.show();
+		setActiveIndex(index);
+	};
+
 	return (
 		<section className="section pt-80 mb-30 bg-faqs">
 			<div className="container-sub">
@@ -17,24 +48,20 @@ export default function Faq() {
 									<h5 className="accordion-header" id={`heading${i}`}>
 										<button
 											className={`accordion-button text-heading-5 ${
-												i ? "collapsed" : ""
+												activeIndex !== i ? "collapsed" : ""
 											}`}
 											type="button"
-											data-bs-toggle="collapse"
-											data-bs-target={`#collapse${i}`}
-											aria-expanded={`${!i ? "true" : "false"}`}
+											onClick={() => handleToggle(i)}
+											aria-expanded={activeIndex === i}
 											aria-controls={`collapse${i}`}
 										>
 											{elm.question}
 										</button>
 									</h5>
 									<div
-										className={`accordion-collapse collapse ${
-											!i ? "show" : ""
-										}`}
 										id={`collapse${i}`}
+										className={`accordion-collapse collapse`}
 										aria-labelledby={`heading${i}`}
-										data-bs-parent="#accordionFAQ"
 									>
 										<div className="accordion-body">{elm.answer}</div>
 									</div>
@@ -47,4 +74,3 @@ export default function Faq() {
 		</section>
 	);
 }
-

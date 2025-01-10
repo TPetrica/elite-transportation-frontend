@@ -1,134 +1,136 @@
 export const faqs = [
 	{
 		id: 1,
-		question: "Do you provide a meet and greet service?",
+		question: "Do you offer a Meet and Greet service?",
 		answer:
-			"Yes, we offer this service for an additional $40. Your driver will meet you at baggage claim, assist with luggage, and guide you to your vehicle.",
+			"Yes, we provide a Meet and Greet service for an additional $30. Your driver will greet you at the baggage claim area with a sign displaying the primary passenger's last name, assist with luggage, and escort you to the vehicle.",
 	},
 	{
 		id: 2,
-		question: "What does the meet and greet service include?",
+		question: "What does the Meet and Greet service include?",
 		answer:
-			"Your driver will confirm your arrival details via text. After you exit the secured area, they will greet you with a sign displaying your last name, assist with your luggage, and escort you to the vehicle.",
+			"Our Meet and Greet Service includes assistance with baggage collection at the airline’s designated carousel, transportation of luggage to the vehicle, and ensuring a smooth start to your journey.",
 	},
 	{
 		id: 3,
-		question: "How do you handle passengers arriving on different flights?",
+		question: "How can I book a service, and what are the payment options?",
 		answer:
-			"Provide all flight numbers and contact information during booking. The driver will monitor the latest arriving flight and ensure the group travels together.",
+			"All bookings must be made at least 24 hours in advance via our website, phone, or email. We accept payments through credit card, debit card, and Venmo. Full payment or a deposit may be required at the time of booking.",
 	},
 	{
 		id: 4,
-		question: "Can we stop at a store during the ride to Park City?",
+		question: "What is your cancellation policy?",
 		answer:
-			"Yes, stops must be prearranged at booking and cost $10 each. A 10-minute wait is included, with additional time billed incrementally.",
+			"Cancellations made more than 48 hours before the trip are eligible for a 50% refund or can be rescheduled. Cancellations within 48 hours are non-refundable. Same-day reservations are subject to a 100% cancellation fee.",
 	},
 	{
 		id: 5,
-		question: "Do you offer local transportation services?",
+		question: "What is your no-show policy?",
 		answer:
-			"Yes, we provide local and point-to-point transportation, which must be booked in advance. Last-minute requests are subject to availability.",
+			"If no communication is received within 30 minutes of the scheduled pick-up time, the booking will be marked as a no-show, and no refund will be issued.",
 	},
 	{
 		id: 6,
-		question: "What is the seating capacity of your vehicles?",
+		question: "How do I contact the driver upon arrival at the airport?",
 		answer:
-			"SUVs accommodate up to 5 passengers with luggage. Vans seat 10 to 14 passengers, depending on the model. Excessive luggage may reduce seating capacity.",
+			"We will track your flight and contact you via text or email upon arrival. Once you've collected your luggage, please notify us. If you do not hear from us, call us directly at +1 (435) 901-9158.",
 	},
 	{
 		id: 7,
-		question: "How much luggage can each vehicle hold?",
+		question: "What should I do if my flight is delayed?",
 		answer:
-			"Typically, each person can bring one large and one medium bag. Additional luggage, such as skis or strollers, may require reserving a second vehicle.",
+			"Notify us as soon as possible if your flight is delayed. Wait charges may apply if the delay exceeds one hour after your flight's scheduled arrival time.",
 	},
 	{
 		id: 8,
-		question: "Are car seats available for children?",
+		question: "Do you provide child car seats?",
 		answer:
-			"Yes, we provide child car seats and boosters free of charge if requested during booking.",
+			"Yes, we offer rear-facing, forward-facing, and booster seats at no additional cost for Private SUV bookings. Please request them at least 24 hours in advance.",
 	},
 	{
 		id: 9,
 		question: "Are children included in the total passenger count?",
 		answer:
-			"Yes, by law, every passenger requires a seat belt, so children count toward the total capacity.",
+			"Yes, children are considered passengers and must have access to a seat belt, as required by law.",
 	},
 	{
 		id: 10,
-		question: "Do you offer shared rides?",
-		answer: "No, all our vehicles are privately reserved for your group only.",
+		question: "What happens if I need to change my reservation?",
+		answer:
+			"Changes to a reservation can be made up to 24 hours before the scheduled pick-up time. Changes made within 24 hours will be treated as a cancellation, and a new reservation will be required.",
 	},
 	{
 		id: 11,
-		question:
-			"What are the benefits of choosing private service over shared rides?",
+		question: "What are the baggage allowances for your vehicles?",
 		answer:
-			"Private service offers direct transportation without multiple stops or extended wait times. Our vehicles also provide superior comfort compared to standard shared vans.",
+			"Each passenger is allowed one large bag and one medium-sized bag. Excessive luggage, such as skis, snowboards, or strollers, may require reserving an additional vehicle.",
 	},
 	{
 		id: 12,
-		question: "How many skis can I bring?",
+		question: "What is the maximum capacity of your vehicles?",
 		answer:
-			"Our SUVs can hold up to 5 pairs of skis, and vans can hold up to 10 pairs.",
+			"Our SUVs can accommodate up to 4 passengers with luggage. Capacity depends on the number of bags each passenger brings.",
 	},
 	{
 		id: 13,
-		question: "Is smoking allowed in your vehicles?",
+		question: "Can I bring skis, snowboards, or oversized luggage?",
 		answer:
-			"No, smoking is prohibited to ensure the comfort of all passengers and drivers.",
+			"Yes, but oversized luggage may reduce the seating capacity of the vehicle. A second vehicle may be required for excessive items, subject to availability.",
 	},
 	{
 		id: 14,
-		question: "How early should we leave for our flight?",
+		question: "Do you offer shared rides?",
 		answer:
-			"We recommend leaving Park City 2.5 to 3 hours before your flight's scheduled departure.",
+			"No, all our vehicles are privately reserved for your group to ensure maximum comfort and convenience.",
 	},
 	{
 		id: 15,
-		question: "How long will we wait at the airport for our driver?",
+		question: "What factors can affect my transportation service?",
 		answer:
-			"Once you've collected your luggage, your driver should arrive within five minutes. Delays are possible during extreme winter weather.",
+			"Force Majeure events such as severe weather, road closures, traffic conditions, or other unforeseen circumstances may impact service. We will strive to minimize disruptions.",
 	},
 	{
 		id: 16,
-		question: "How do I find my driver at the airport?",
+		question: "What is the policy for baggage damage?",
 		answer:
-			"After collecting your luggage, call us at (888) 850-8333 for instructions on where to meet your driver.",
+			"If you believe your baggage was damaged due to our handling, please contact us within 24 hours. Note that we are not liable for ordinary wear and tear, poor-quality luggage, or over-packing.",
 	},
 	{
 		id: 17,
-		question: "Do you offer private vehicles?",
-		answer: "Yes, all our vehicles are exclusively private for your group.",
+		question: "What payment methods do you accept?",
+		answer:
+			"We accept payments via credit card, debit card, and Venmo. Full payment or a deposit may be required during booking.",
 	},
 	{
 		id: 18,
-		question: "Can I pay in cash upon arrival?",
+		question: "Can I pay in cash for my transportation service?",
 		answer:
-			"Yes, but please notify the dispatcher beforehand. Your credit card guarantees the reservation and will be pre-authorized the day before.",
+			"Yes, but please notify us in advance. Your credit card will still be used to guarantee the reservation and will be pre-authorized the day before.",
 	},
 	{
 		id: 19,
-		question: "What is your cancellation policy?",
+		question:
+			"What happens if I choose alternative transportation upon arrival?",
 		answer:
-			"Cancellations within 48 hours are non-refundable. Cancellations 48–72 hours before incur a 50% fee. Special policies apply during events like the Sundance Film Festival.",
+			"If you decide to use an alternative service without notifying us, your reservation will be considered non-refundable.",
 	},
 	{
 		id: 20,
-		question: "What happens if my flight is delayed?",
+		question: "Can I reschedule my departure time in case of bad weather?",
 		answer:
-			"We monitor your flight and adjust schedules accordingly. Please provide flight details for all passengers during booking.",
+			"Yes, we recommend adjusting your departure time to account for potential weather delays or high-traffic snow days. Notify us as soon as possible to make changes.",
 	},
 	{
 		id: 21,
-		question: "What if someone cancels last minute?",
+		question: "What happens during extreme weather conditions?",
 		answer:
-			"The full amount will be charged for cancellations made at the last minute or for no-shows.",
+			"During severe weather, we will do our best to adapt, but delays or cancellations may occur. We recommend staying informed and rescheduling if necessary.",
 	},
 	{
 		id: 22,
-		question: "Can I add an extra passenger to my reservation?",
+		question: "What happens if my reservation is affected by Force Majeure?",
 		answer:
-			"If the vehicle has capacity, we can accommodate additional passengers. Please call us to modify your reservation.",
+			"In the event of Force Majeure, such as severe weather or road closures, we will make every effort to minimize disruptions but are not liable for delays or cancellations.",
 	},
 ];
 
