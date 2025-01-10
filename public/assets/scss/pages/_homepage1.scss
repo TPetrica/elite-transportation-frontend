@@ -276,13 +276,16 @@
 	max-width: 439px;
 	margin: auto 0 auto auto;
 }
+.slick-track {
+	height: 100%;
+}
+
 .list-how.slider-nav-thumbnails {
 	list-style: none;
 	padding: 0px;
 	margin: 0px;
 	.slick-list {
 		.slick-track {
-			height: 100%;
 			li {
 				padding-bottom: 60px;
 				position: relative;
