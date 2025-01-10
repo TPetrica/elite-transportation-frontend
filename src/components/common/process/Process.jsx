@@ -80,7 +80,7 @@ export default function Process() {
 	return (
 		<section
 			className="section pt-120 pb-20 bg-primary bg-how-it-works"
-			style={{ maxWidth: "100vh" }}
+			style={{ maxHeight: "100vh" }}
 		>
 			<div className="container-sub">
 				<h2 className="heading-44-medium color-white mb-60 wow fadeInUp">
