@@ -8,19 +8,23 @@ export default defineConfig({
 	resolve: {
 		alias: {
 			"@": path.resolve(__dirname, "./src"),
+			"@popperjs/core": "@popperjs/core/dist/umd/popper.min.js",
 		},
 	},
 	build: {
 		rollupOptions: {
-			external: ["@popperjs/core"],
+			external: [], // Remove external as we want to bundle these dependencies
 			output: {
-				globals: {
-					"@popperjs/core": "Popper",
+				manualChunks: {
+					vendor: ["@popperjs/core", "bootstrap"],
 				},
 			},
 		},
+		commonjsOptions: {
+			include: [/bootstrap/, /@popperjs\/core/],
+		},
 	},
 	optimizeDeps: {
-		include: ["@popperjs/core"],
+		include: ["@popperjs/core", "bootstrap"],
 	},
 });
