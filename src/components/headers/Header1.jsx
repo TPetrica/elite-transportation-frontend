@@ -1,7 +1,6 @@
 import { useAuth } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Language from "./components/Language";
 import Nav from "./components/Nav";
 
 export default function Header1() {
@@ -63,32 +62,37 @@ export default function Header1() {
 									+1 (435) 901-9158
 								</a>
 							</div>
-							<div className="d-none d-xxl-inline-block box-dropdown-cart align-middle mr-10">
-								<Language />
+							{/* <div className="d-none d-xxl-inline-block box-dropdown-cart align-middle mr-10">
+                                <Language />
+                            </div> */}
+							<div className="box-button-login d-inline-block align-middle">
+								<Link className="btn btn-white hover-up" to="/booking-time">
+									Reservation
+								</Link>
 							</div>
-							{user ? (
-								<div className="box-button-login d-inline-block align-middle">
-									<button
-										className="btn btn-white hover-up"
-										onClick={handleLogout}
-									>
-										Log Out
-									</button>
-								</div>
-							) : (
-								<>
-									<div className="box-button-login d-inline-block mr-10 align-middle">
-										<Link className="btn btn-default hover-up" to="/login">
-											Log In
-										</Link>
-									</div>
-									<div className="box-button-login d-none2 d-inline-block align-middle">
-										<Link className="btn btn-white hover-up" to="/register">
-											Sign Up
-										</Link>
-									</div>
-								</>
-							)}
+							{/* {user ? (
+                                <div className="box-button-login d-inline-block align-middle">
+                                    <button
+                                        className="btn btn-white hover-up"
+                                        onClick={handleLogout}
+                                    >
+                                        Log Out
+                                    </button>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="box-button-login d-inline-block mr-10 align-middle">
+                                        <Link className="btn btn-default hover-up" to="/login">
+                                            Log In
+                                        </Link>
+                                    </div>
+                                    <div className="box-button-login d-none2 d-inline-block align-middle">
+                                        <Link className="btn btn-white hover-up" to="/register">
+                                            Sign Up
+                                        </Link>
+                                    </div>
+                                </>
+                            )} */}
 						</div>
 					</div>
 				</div>

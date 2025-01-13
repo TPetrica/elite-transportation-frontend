@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 
 // Public Pages
@@ -20,9 +20,7 @@ import PageNotFoundPage from "@/pages/page-not-found";
 import AboutPage2 from "@/pages/pages/about-2";
 import CommingSoonPage from "@/pages/pages/coming-soon";
 import ContactPage2 from "@/pages/pages/contact-2";
-import LoginPage from "@/pages/pages/login";
 import OurTeamPage from "@/pages/pages/our-team";
-import RegisterPage from "@/pages/pages/register";
 import TeamSinglePage from "@/pages/pages/team-single";
 import ServiceSinglePage from "@/pages/services/service-single";
 
@@ -68,8 +66,8 @@ const AppRoutes = () => {
 				<Route path="contact" element={<ContactPage2 />} />
 				<Route path="our-team" element={<OurTeamPage />} />
 				<Route path="team-single/:id" element={<TeamSinglePage />} />
-				<Route path="register" element={<RegisterPage />} />
-				<Route path="login" element={<LoginPage />} />
+				{/* <Route path="register" element={<RegisterPage />} />
+				<Route path="login" element={<LoginPage />} /> */}
 				<Route path="rates" element={<RatesPage />} />
 				<Route path="coming-soon" element={<CommingSoonPage />} />
 
@@ -88,6 +86,12 @@ const AppRoutes = () => {
 				{/* <Route path="blog-grid-2" element={<BlogsGridPage2 />} />
 				<Route path="blog-list" element={<BlogsListPage />} /> */}
 				<Route path="blog-single/:id" element={<BlogsSinglePage />} />
+
+				{/* Redirect from /reservation to /booking-time */}
+				<Route
+					path="reservation"
+					element={<Navigate to="/booking-time" replace />}
+				/>
 
 				{/* Protected Routes */}
 				<Route path="booking-time" element={<BookingTimePage />} />
