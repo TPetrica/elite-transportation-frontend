@@ -70,26 +70,26 @@ export const features5 = [
 	{
 		id: 1,
 		src: "/assets/imgs/page/homepage7/route.svg",
-		alt: "luxride",
+		alt: "Elite Transportation",
 		title: "Safety First",
 		description:
-			"Both you and your shipments will travel with professional drivers. Always with the highest quality standards.",
+			"Your safety is our top priority. Our professional drivers ensure a secure and comfortable journey for every passenger.",
 	},
 	{
 		id: 2,
 		src: "/assets/imgs/page/homepage7/price.svg",
-		alt: "luxride",
-		title: "Prices With No Surprises",
+		alt: "Elite Transportation",
+		title: "Transparent Pricing",
 		description:
-			"Both you and your shipments will travel with professional drivers. Always with the highest quality standards.",
+			"We believe in clear, upfront pricing with no hidden fees. Get a precise quote for your transportation needs.",
 	},
 	{
 		id: 3,
 		src: "/assets/imgs/page/homepage7/vehicle.svg",
-		alt: "luxride",
-		title: "Private Travel Solutions",
+		alt: "Elite Transportation",
+		title: "Premium Service",
 		description:
-			"Both you and your shipments will travel with professional drivers. Always with the highest quality standards.",
+			"Experience luxury transportation with our fleet of black SUVs and dedicated family-owned service approach.",
 	},
 ];
 export const features6 = [

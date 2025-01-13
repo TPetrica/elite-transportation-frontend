@@ -49,7 +49,7 @@ const TipCalculator = ({ basePrice }) => {
 			<Text>Base Price: ${basePrice.toFixed(2)}</Text>
 
 			<Row gutter={8} className="mt-4">
-				{[5, 15, 20].map((percent) => (
+				{[10, 15, 20].map((percent) => (
 					<Col span={8} key={percent}>
 						<Button
 							block

@@ -31,7 +31,7 @@ export default function Pricing() {
 						Transportation Rates
 					</h1>
 					<p className="lead text-muted">
-						Elite Transportation Between Park City and The Salt Lake
+						Elite Transportation Pricing Between Park City and The Salt Lake
 						International Airport
 					</p>
 					<div className="alert alert-info mt-3" role="alert">
