@@ -6,16 +6,6 @@ import Home from "@/pages";
 import BlogsGridPage1 from "@/pages/blogs/blog-grid";
 import BlogsSinglePage from "@/pages/blogs/blog-single";
 import FleetSinglePage from "@/pages/fleets/fleet-single";
-import HomePage1 from "@/pages/homes/home-1";
-import HomePage10 from "@/pages/homes/home-10";
-import HomePage2 from "@/pages/homes/home-2";
-import HomePage3 from "@/pages/homes/home-3";
-import HomePage4 from "@/pages/homes/home-4";
-import HomePage5 from "@/pages/homes/home-5";
-import HomePage6 from "@/pages/homes/home-6";
-import HomePage7 from "@/pages/homes/home-7";
-import HomePage8 from "@/pages/homes/home-8";
-import HomePage9 from "@/pages/homes/home-9";
 import PageNotFoundPage from "@/pages/page-not-found";
 import AboutPage2 from "@/pages/pages/about-2";
 import CommingSoonPage from "@/pages/pages/coming-soon";
@@ -25,6 +15,7 @@ import TeamSinglePage from "@/pages/pages/team-single";
 import ServiceSinglePage from "@/pages/services/service-single";
 
 // Protected Pages
+import FAQPage from "@/components/otherPages/faq/FaqPage";
 import BookingExtraPage from "@/pages/booking/booking-extra";
 import BookingPassengerPage from "@/pages/booking/booking-passenger";
 import BookingPaymentPage from "@/pages/booking/booking-payment";
@@ -44,7 +35,7 @@ const AppRoutes = () => {
 			<Route path="/">
 				{/* Public Routes */}
 				<Route index element={<Home />} />
-				<Route path="home-1" element={<HomePage1 />} />
+				{/* <Route path="home-1" element={<HomePage1 />} />
 				<Route path="home-2" element={<HomePage2 />} />
 				<Route path="home-3" element={<HomePage3 />} />
 				<Route path="home-4" element={<HomePage4 />} />
@@ -53,7 +44,7 @@ const AppRoutes = () => {
 				<Route path="home-7" element={<HomePage7 />} />
 				<Route path="home-8" element={<HomePage8 />} />
 				<Route path="home-9" element={<HomePage9 />} />
-				<Route path="home-10" element={<HomePage10 />} />
+				<Route path="home-10" element={<HomePage10 />} /> */}
 
 				<Route path="privacy-policy" element={<PrivacyPolicyPage />} />
 				<Route path="cookie-policy" element={<CookiePolicyPage />} />
@@ -61,6 +52,7 @@ const AppRoutes = () => {
 					path="terms-and-conditions"
 					element={<TermsAndConditionsPage />}
 				/>
+				<Route path="faq" element={<FAQPage />} />
 				<Route path="about-us" element={<AboutPage2 />} />
 				{/* <Route path="contact" element={<ContactPage1 />} /> */}
 				<Route path="contact" element={<ContactPage2 />} />

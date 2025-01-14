@@ -94,7 +94,7 @@ export default function BookingPayment() {
 				<div className="box-content-detail">
 					{error && <div className="alert alert-danger mb-30">{error}</div>}
 
-					{!user && (
+					{/* {!user && (
 						<div className="alert alert-info mb-30">
 							<p>Want to save your booking details and access them later?</p>
 							<div className="mt-3">
@@ -110,7 +110,7 @@ export default function BookingPayment() {
 								to your email
 							</p>
 						</div>
-					)}
+					)} */}
 
 					<BillingForm onSubmit={handlePayment} loading={loading} />
 				</div>

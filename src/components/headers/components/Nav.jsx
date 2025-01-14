@@ -30,6 +30,11 @@ export const menuItems = [
 		title: "Services",
 		link: "/services",
 	},
+	{
+		id: 4,
+		title: "FAQ",
+		link: "/faq",
+	},
 	// {
 	// 	id: 6,
 	// 	title: "Blog",

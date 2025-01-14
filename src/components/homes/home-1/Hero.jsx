@@ -137,6 +137,7 @@ export default function Hero() {
 								});
 							}}
 							type="pickup"
+							placeholder="Enter pickup location"
 						/>
 					</div>
 				</div>
@@ -155,6 +156,7 @@ export default function Hero() {
 								});
 							}}
 							type="dropoff"
+							placeholder="Enter drop-off location"
 						/>
 					</div>
 				</div>
@@ -173,3 +175,4 @@ export default function Hero() {
 		</section>
 	);
 }
+

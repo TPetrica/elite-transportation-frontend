@@ -54,6 +54,11 @@ export default function Header1() {
 							</div>
 						</div>
 						<div className="header-right">
+							<div className="box-button-login d-inline-block align-middle mr-20">
+								<Link className="btn btn-white hover-up" to="/booking-time">
+									Reservation
+								</Link>
+							</div>
 							<div className="d-none d-xxl-inline-block align-middle mr-10">
 								<a
 									className="text-14-medium call-phone color-white hover-up"
@@ -65,11 +70,11 @@ export default function Header1() {
 							{/* <div className="d-none d-xxl-inline-block box-dropdown-cart align-middle mr-10">
                                 <Language />
                             </div> */}
-							<div className="box-button-login d-inline-block align-middle">
+							{/* <div className="box-button-login d-inline-block align-middle">
 								<Link className="btn btn-white hover-up" to="/booking-time">
 									Reservation
 								</Link>
-							</div>
+							</div> */}
 							{/* {user ? (
                                 <div className="box-button-login d-inline-block align-middle">
                                     <button

@@ -25,8 +25,14 @@ export const menuItems = [
 		link: "/services",
 	},
 	{
+		id: 6,
+		title: "FAQ",
+		link: "/faq",
+	},
+	{
 		id: 7,
 		title: "Contact",
 		link: "/contact",
 	},
 ];
+

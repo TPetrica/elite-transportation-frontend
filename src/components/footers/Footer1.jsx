@@ -1,10 +1,4 @@
-import {
-	legalLinks,
-	links1,
-	links2,
-	links3,
-	socialMediaPlatforms,
-} from "@/data/footerLinks";
+import { legalLinks, links1, links2, links3 } from "@/data/footerLinks";
 
 import { Link } from "react-router-dom";
 
@@ -32,7 +26,7 @@ export default function Footer1() {
 									</a>
 								</div>
 							</div>
-							<div className="col-lg-6 col-md-6 text-md-end text-center mb-15 wow fadeInUp">
+							{/* <div className="col-lg-6 col-md-6 text-md-end text-center mb-15 wow fadeInUp">
 								<div className="d-flex align-items-center justify-content-md-end justify-content-center">
 									<span className="text-18-medium color-white mr-10">
 										Follow Us
@@ -41,7 +35,7 @@ export default function Footer1() {
 										<a key={i} className={elm.className} href={elm.href}></a>
 									))}
 								</div>
-							</div>
+							</div> */}
 						</div>
 					</div>
 					<div className="row mb-40">
