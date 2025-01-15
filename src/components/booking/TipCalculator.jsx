@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 const { Title, Text } = Typography;
 
-const TipCalculator = ({ basePrice }) => {
+const TipCalculator = () => {
 	const { pricing, updateTipSettings } = useBooking();
 	const [tipPercentage, setTipPercentage] = useState(
 		pricing.selectedTipPercentage !== null ? pricing.selectedTipPercentage : 20
@@ -12,10 +12,14 @@ const TipCalculator = ({ basePrice }) => {
 	const [customTip, setCustomTip] = useState(pricing.customTipAmount || "");
 	const [isCustom, setIsCustom] = useState(pricing.isCustomTip || false);
 
+	// Calculate total before tip
+	const totalBeforeTip =
+		pricing.basePrice + pricing.extrasTotal + pricing.nightFee;
+
 	const tipAmount = isCustom
 		? Number(customTip)
 		: tipPercentage
-		? basePrice * (tipPercentage / 100)
+		? totalBeforeTip * (tipPercentage / 100)
 		: 0;
 
 	// Initial render effect to set 20% if no previous selection exists
@@ -25,7 +29,7 @@ const TipCalculator = ({ basePrice }) => {
 				percentage: 20,
 				customAmount: "",
 				isCustom: false,
-				gratuity: basePrice * 0.2,
+				gratuity: totalBeforeTip * 0.2,
 			});
 		}
 	}, []);
@@ -38,7 +42,7 @@ const TipCalculator = ({ basePrice }) => {
 			isCustom,
 			gratuity: tipAmount,
 		});
-	}, [tipAmount, tipPercentage, customTip, isCustom]);
+	}, [tipAmount, tipPercentage, customTip, isCustom, totalBeforeTip]);
 
 	const handleTipSelect = (percentage) => {
 		setIsCustom(false);
@@ -55,10 +59,13 @@ const TipCalculator = ({ basePrice }) => {
 		}
 	};
 
+	// Display amounts with 2 decimal places
+	const formatAmount = (amount) => Number(amount).toFixed(2);
+
 	return (
 		<Card className="tip-calculator">
 			<Title level={4}>Gratuity Calculator</Title>
-			<Text>Base Price: ${basePrice.toFixed(2)}</Text>
+			<Text>Subtotal: ${formatAmount(totalBeforeTip)}</Text>
 
 			<Row gutter={8} className="mt-4">
 				{[10, 15, 20].map((percent) => (
@@ -95,9 +102,9 @@ const TipCalculator = ({ basePrice }) => {
 				}}
 			>
 				<Space direction="vertical" size="small">
-					<Text strong>Tip Amount: ${tipAmount.toFixed(2)}</Text>
+					<Text strong>Tip Amount: ${formatAmount(tipAmount)}</Text>
 					<Text strong>
-						Total with Tip: ${(basePrice + tipAmount).toFixed(2)}
+						Total with Tip: ${formatAmount(totalBeforeTip + tipAmount)}
 					</Text>
 				</Space>
 			</div>
@@ -106,3 +113,4 @@ const TipCalculator = ({ basePrice }) => {
 };
 
 export default TipCalculator;
+
