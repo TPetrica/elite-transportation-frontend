@@ -1,6 +1,7 @@
 import { useBooking } from "@/context/BookingContext";
 import { useFormFocus } from "@/hooks/useFormFocus";
 import ExtraService from "@/services/extra.service";
+import { Alert } from "antd";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SideBar from "./SideBar";
@@ -12,6 +13,8 @@ export default function BookingExtra() {
 		setSelectedExtras,
 		setPickupDetails,
 		selectedExtras,
+		pickupDetails,
+		updatePricing,
 	} = useBooking();
 
 	const [quantityItems, setQuantityItems] = useState([]);
@@ -21,6 +24,19 @@ export default function BookingExtra() {
 	const [error, setError] = useState(null);
 
 	useFormFocus();
+
+	const isNightTime = (time) => {
+		if (!time) return false;
+		const hour = parseInt(time.split(":")[0], 10);
+		return hour >= 23 || hour < 6;
+	};
+
+	useEffect(() => {
+		if (pickupDetails?.time) {
+			const nightFee = isNightTime(pickupDetails.time) ? 20 : 0;
+			updatePricing({ nightFee });
+		}
+	}, [pickupDetails?.time]);
 
 	useEffect(() => {
 		if (!selectedService) {
@@ -60,7 +76,13 @@ export default function BookingExtra() {
 			try {
 				const result = await ExtraService.getExtras();
 				if (result.success && result.data) {
-					const quantity = result.data
+					const filteredData = result.data.filter(
+						(extra) =>
+							!isNightTime(pickupDetails?.time) ||
+							extra.name.toLowerCase() !== "night service"
+					);
+
+					const quantity = filteredData
 						.filter((extra) => extra.maxQuantity > 1)
 						.map((item) => {
 							const previousSelection = selectedExtras.find(
@@ -77,7 +99,7 @@ export default function BookingExtra() {
 							};
 						});
 
-					const selection = result.data
+					const selection = filteredData
 						.filter((extra) => extra.maxQuantity === 1)
 						.map((item) => {
 							const previousSelection = selectedExtras.find(
@@ -165,6 +187,16 @@ export default function BookingExtra() {
 					<h3 className="heading-24-medium color-text mb-30 wow fadeInUp">
 						Extra Options
 					</h3>
+
+					{isNightTime(pickupDetails?.time) && (
+						<Alert
+							className="mb-4 wow fadeInUp"
+							message="Night Service Fee Applied"
+							description="A night service fee of $20 is automatically applied for rides between 11:00 PM and 6:00 AM."
+							type="info"
+							showIcon
+						/>
+					)}
 
 					{selectedService?.id.includes("airport-transfer") && (
 						<div
@@ -302,4 +334,3 @@ export default function BookingExtra() {
 		</div>
 	);
 }
-

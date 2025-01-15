@@ -235,22 +235,34 @@ export default function BillingForm({ onSubmit, loading }) {
 							onChange={(e) => setAcceptedTerms(e.target.checked)}
 						/>
 						<span>
-							I accept the Terms & Conditions - Booking Conditions and Privacy
-							Policy *
+							I accept the{" "}
+							<a
+								href="/terms-and-conditions"
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								Terms & Conditions
+							</a>{" "}
+							-{" "}
+							<a
+								href="/booking-conditions"
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								Booking Conditions
+							</a>{" "}
+							and{" "}
+							<a
+								href="/privacy-policy"
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								Privacy Policy
+							</a>{" "}
+							*
 						</span>
 					</label>
 					{errors.terms && <div className="error-message">{errors.terms}</div>}
-				</div>
-
-				<div className="mb-15">
-					<label className="checkbox-label">
-						<input
-							type="checkbox"
-							checked={subscribeNewsletter}
-							onChange={(e) => setSubscribeNewsletter(e.target.checked)}
-						/>
-						<span>Subscribe to newsletter (Travel tips and special deals)</span>
-					</label>
 				</div>
 			</div>
 
@@ -281,3 +293,4 @@ export default function BillingForm({ onSubmit, loading }) {
 		</form>
 	);
 }
+

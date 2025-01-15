@@ -5,30 +5,45 @@ import { useEffect, useState } from "react";
 const { Title, Text } = Typography;
 
 const TipCalculator = ({ basePrice }) => {
-	const { pricing, updatePricing } = useBooking();
-	const [tipPercentage, setTipPercentage] = useState(20);
-	const [customTip, setCustomTip] = useState("");
-	const [isCustom, setIsCustom] = useState(false);
+	const { pricing, updateTipSettings } = useBooking();
+	const [tipPercentage, setTipPercentage] = useState(
+		pricing.selectedTipPercentage !== null ? pricing.selectedTipPercentage : 20
+	);
+	const [customTip, setCustomTip] = useState(pricing.customTipAmount || "");
+	const [isCustom, setIsCustom] = useState(pricing.isCustomTip || false);
 
 	const tipAmount = isCustom
 		? Number(customTip)
-		: basePrice * (tipPercentage / 100);
+		: tipPercentage
+		? basePrice * (tipPercentage / 100)
+		: 0;
 
+	// Initial render effect to set 20% if no previous selection exists
 	useEffect(() => {
-		// Update the context whenever tipAmount changes
-		updatePricing({
+		if (!pricing.selectedTipPercentage && !pricing.isCustomTip) {
+			updateTipSettings({
+				percentage: 20,
+				customAmount: "",
+				isCustom: false,
+				gratuity: basePrice * 0.2,
+			});
+		}
+	}, []);
+
+	// Update pricing when values change
+	useEffect(() => {
+		updateTipSettings({
+			percentage: tipPercentage,
+			customAmount: customTip,
+			isCustom,
 			gratuity: tipAmount,
 		});
-	}, [tipAmount, updatePricing]);
+	}, [tipAmount, tipPercentage, customTip, isCustom]);
 
 	const handleTipSelect = (percentage) => {
 		setIsCustom(false);
 		setTipPercentage(percentage);
 		setCustomTip("");
-		const newTipAmount = basePrice * (percentage / 100);
-		updatePricing({
-			gratuity: newTipAmount,
-		});
 	};
 
 	const handleCustomTipChange = (e) => {
@@ -36,10 +51,7 @@ const TipCalculator = ({ basePrice }) => {
 		if (value === "" || /^\d+(\.\d{0,2})?$/.test(value)) {
 			setCustomTip(value);
 			setIsCustom(true);
-			const newTipAmount = value ? Number(value) : 0;
-			updatePricing({
-				gratuity: newTipAmount,
-			});
+			setTipPercentage(null);
 		}
 	};
 
@@ -70,6 +82,7 @@ const TipCalculator = ({ basePrice }) => {
 						placeholder="Custom amount"
 						value={isCustom ? customTip : ""}
 						onChange={handleCustomTipChange}
+						addonBefore="$"
 					/>
 				</Col>
 			</Row>
@@ -93,4 +106,3 @@ const TipCalculator = ({ basePrice }) => {
 };
 
 export default TipCalculator;
-

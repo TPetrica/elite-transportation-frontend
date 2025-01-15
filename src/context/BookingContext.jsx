@@ -62,6 +62,9 @@ const initialState = {
 		nightFee: 0,
 		totalPrice: 0,
 		hours: 2,
+		selectedTipPercentage: null,
+		customTipAmount: "",
+		isCustomTip: false,
 	},
 	isWinter: false,
 };
@@ -192,6 +195,29 @@ const bookingReducer = (state, action) => {
 					...state.pricing,
 					nightFee,
 					totalPrice,
+				},
+			};
+		}
+
+		case "UPDATE_TIP_SETTINGS": {
+			const newPricing = {
+				...state.pricing,
+				selectedTipPercentage: action.payload.percentage,
+				customTipAmount: action.payload.customAmount,
+				isCustomTip: action.payload.isCustom,
+				gratuity: action.payload.gratuity,
+			};
+
+			return {
+				...state,
+				pricing: {
+					...newPricing,
+					totalPrice: calculateTotalPrice(
+						newPricing.basePrice,
+						newPricing.gratuity,
+						newPricing.extrasTotal,
+						newPricing.nightFee
+					),
 				},
 			};
 		}
@@ -402,6 +428,9 @@ export const BookingProvider = ({ children }) => {
 	const resetBooking = () => {
 		dispatch({ type: "RESET_BOOKING" });
 	};
+	const updateTipSettings = (settings) => {
+		dispatch({ type: "UPDATE_TIP_SETTINGS", payload: settings });
+	};
 
 	const value = {
 		...state,
@@ -417,6 +446,7 @@ export const BookingProvider = ({ children }) => {
 		updatePricing,
 		setBookingNumber,
 		resetBooking,
+		updateTipSettings,
 	};
 
 	return (
