@@ -20,7 +20,7 @@ export default function AboutPage2() {
 			<Header1 /> <MobailHeader1 />
 			<main className="main">
 				<Banner2 />
-				<Process />
+				{/* <Process /> */}
 				<Features2 />
 				{/* <Partners /> */}
 				{/* <Features3 /> */}

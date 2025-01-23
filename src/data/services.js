@@ -42,7 +42,7 @@ export const services = [
 		longDescription:
 			"Specialized group transportation services with luxury vans and professional drivers. Ideal for corporate groups, weddings, or special events.",
 		features: [
-			"Up to 14 passengers",
+			"Up to 7 passengers",
 			"Luggage accommodation",
 			"Professional chauffeur",
 			"Group rates available",

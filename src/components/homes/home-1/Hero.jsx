@@ -10,35 +10,40 @@ import { Swiper, SwiperSlide } from "swiper/react";
 const banners = [
 	{
 		id: 1,
-		url: "/assets/imgs/page/homepage1/banner4.png",
-		title: "Embark on an Unforgettable Journey",
-		text: "Discover the World with Our Expert Guides",
+		url: "/assets/imgs/page/homepage1/car4.webp",
+		title: "Premium Park City Transportation",
+		text: "Luxury SUV Service for All Your Travel Needs",
+		position: "bottom center"
 	},
 	{
 		id: 2,
-		url: "/assets/imgs/page/homepage1/banner4.png",
-		title: "Adventure Awaits",
-		text: "Find Your Perfect Escape",
+		url: "/assets/imgs/page/homepage1/car1.webp",
+		title: "Airport Transfers",
+		text: "Safe Rides to SLC International Airport",
+		position: "bottom center"
 	},
 	{
 		id: 3,
-		url: "/assets/imgs/page/homepage1/banner4.png",
-		title: "Luxury Redefined",
-		text: "Travel in Style and Comfort",
+		url: "/assets/imgs/page/homepage1/car2.webp", 
+		title: "Local Excellence",
+		text: "Your Trusted Park City Transport Partner",
+		position: "center center"
 	},
 	{
 		id: 4,
-		url: "/assets/imgs/page/homepage1/banner4.png",
-		title: "Serenity at Its Best",
-		text: "Relax in the World's Most Beautiful Locations",
+		url: "/assets/imgs/page/homepage1/car3.webp",
+		title: "Mountain Travel Made Easy",
+		text: "Resort & Ski Area Transportation",
+		position: "center center"
 	},
 	{
 		id: 5,
-		url: "/assets/imgs/page/homepage1/banner4.png",
-		title: "Taste the Adventure",
-		text: "Culinary Tours to Excite Your Palate",
-	},
-];
+		url: "/assets/imgs/template/logo.jpeg",
+		title: "Group Transportation",
+		text: "Corporate & Event Services in Utah",
+		position: "center center"
+	}
+ ];
 
 export default function Hero() {
 	const navigate = useNavigate();
@@ -88,6 +93,7 @@ export default function Hero() {
 								className="box-cover-image boxBgImage"
 								style={{
 									backgroundImage: `url(${elm.url})`,
+									backgroundPosition: elm.position
 								}}
 							></div>
 							<div className="box-banner-info">
@@ -175,4 +181,3 @@ export default function Hero() {
 		</section>
 	);
 }
-
