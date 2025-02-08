@@ -66,7 +66,7 @@ const services = [
 		description: "Flexible hourly service for any occasion, 2-hour minimum",
 		pricing: {
 			basePrice: 100,
-			minimumHours: 2,
+			minimumHours: 1,
 		},
 		capacity: {
 			passengers: 4,

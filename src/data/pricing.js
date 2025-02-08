@@ -52,7 +52,7 @@ export const hourlyRates = [
 		vehicle: "Private SUV",
 		capacity: "1-5 people",
 		rate: 100,
-		duration: "2 hour minimum",
+		duration: "1 hour minimum",
 		includes: "Professional chauffeur and luxury vehicle",
 		note: "During the Christmas Holiday and the Sundance Film Festival all as-directed reservations require a 3-hour minimum.",
 	},
@@ -104,7 +104,7 @@ export const serviceTypes = [
 	},
 	{
 		type: "Hourly",
-		details: "2 hour minimum - $100/h",
+		details: "1 hour minimum - $100/h",
 	},
 ];
 

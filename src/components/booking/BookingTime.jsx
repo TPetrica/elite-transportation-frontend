@@ -1,348 +1,319 @@
-import PlacePicker from "@/components/common/PlacePicker";
-import { useBooking } from "@/context/BookingContext";
-import calendarService from "@/services/calendar.service";
-import moment from "moment";
-import { useEffect, useState } from "react";
-import DatePicker from "react-multi-date-picker";
-import { useNavigate } from "react-router-dom";
-import SideBar from "./SideBar";
+import PlacePicker from '@/components/common/PlacePicker'
+import { useBooking } from '@/context/BookingContext'
+import calendarService from '@/services/calendar.service'
+import moment from 'moment'
+import { useEffect, useState } from 'react'
+import DatePicker from 'react-multi-date-picker'
+import { useNavigate } from 'react-router-dom'
+import SideBar from './SideBar'
 
 const services = [
-	{
-		id: "from-airport",
-		title: "From Airport",
-		description: "Airport pickup with flight tracking",
-	},
-	{
-		id: "to-airport",
-		title: "To Airport",
-		description: "Airport dropoff service",
-	},
-	{
-		id: "round-trip",
-		title: "Round Trip",
-		description: "Two-way transportation service",
-	},
-	{
-		id: "hourly",
-		title: "Hourly Service",
-		description: "2 hour minimum - $100/h",
-	},
-	{
-		id: "group",
-		title: "Group Transportation",
-		description: "Up to 7 passengers",
-	},
-];
+  {
+    id: 'from-airport',
+    title: 'From Airport (1-4 Passengers)',
+    description: 'Airport pickup with flight tracking - $120',
+  },
+  {
+    id: 'to-airport',
+    title: 'To Airport (1-4 Passengers)',
+    description: 'Airport dropoff service - $120',
+  },
+  {
+    id: 'canyons',
+    title: 'Cottonwood Canyons Transfer',
+    description: 'To/From Snowbird/Alta/Solitude/Brighton/Sundance - $130',
+  },
+  {
+    id: 'per-person',
+    title: 'Per Person Service',
+    description: '$65 per person (minimum 2 persons)',
+  },
+  {
+    id: 'hourly',
+    title: 'Hourly Service',
+    description: '$100 per hour',
+  },
+  {
+    id: 'group',
+    title: 'Group Transportation (5+ passengers)',
+    description: 'Please inquire for pricing and availability',
+  },
+]
 
 export default function BookingTime() {
-	const navigate = useNavigate();
-	const {
-		setPickupDetails,
-		setDropoffDetails,
-		pickupDetails,
-		dropoffDetails,
-		selectedDate,
-		selectedTime,
-		setSelectedDate,
-		setSelectedTime,
-		setDistanceAndDuration,
-		setSelectedService,
-		selectedService,
-	} = useBooking();
+  const navigate = useNavigate()
+  const {
+    setPickupDetails,
+    setDropoffDetails,
+    pickupDetails,
+    dropoffDetails,
+    selectedDate,
+    selectedTime,
+    setSelectedDate,
+    setSelectedTime,
+    setDistanceAndDuration,
+    setSelectedService,
+    selectedService,
+  } = useBooking()
 
-	const [error, setError] = useState("");
-	const [availableTimeSlots, setAvailableTimeSlots] = useState([]);
-	const [isLoading, setIsLoading] = useState(false);
-	const [flightNumber, setFlightNumber] = useState("");
-	const [flightTime, setFlightTime] = useState("");
+  const [error, setError] = useState('')
+  const [availableTimeSlots, setAvailableTimeSlots] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
 
-	useEffect(() => {
-		const calculateDistance = async () => {
-			if (
-				pickupDetails?.coordinates &&
-				dropoffDetails?.coordinates &&
-				window.google
-			) {
-				const service = new window.google.maps.DistanceMatrixService();
+  useEffect(() => {
+    const calculateDistance = async () => {
+      if (pickupDetails?.coordinates && dropoffDetails?.coordinates && window.google) {
+        const service = new window.google.maps.DistanceMatrixService()
 
-				try {
-					const response = await service.getDistanceMatrix({
-						origins: [pickupDetails.coordinates],
-						destinations: [dropoffDetails.coordinates],
-						travelMode: "DRIVING",
-						unitSystem: window.google.maps.UnitSystem.METRIC,
-					});
+        try {
+          const response = await service.getDistanceMatrix({
+            origins: [pickupDetails.coordinates],
+            destinations: [dropoffDetails.coordinates],
+            travelMode: 'DRIVING',
+            unitSystem: window.google.maps.UnitSystem.METRIC,
+          })
 
-					if (response.rows[0]?.elements[0]?.status === "OK") {
-						const distanceValue = response.rows[0].elements[0].distance;
-						const durationValue = response.rows[0].elements[0].duration;
+          if (response.rows[0]?.elements[0]?.status === 'OK') {
+            const distanceValue = response.rows[0].elements[0].distance
+            const durationValue = response.rows[0].elements[0].duration
 
-						setDistanceAndDuration({
-							distance: {
-								km: Math.round(distanceValue.value / 1000),
-								miles: Math.round(distanceValue.value / 1609.34),
-							},
-							duration: durationValue.text,
-						});
-					}
-				} catch (error) {
-					console.error("Error calculating distance:", error);
-					setError("Error calculating distance. Please try again.");
-				}
-			}
-		};
+            setDistanceAndDuration({
+              distance: {
+                km: Math.round(distanceValue.value / 1000),
+                miles: Math.round(distanceValue.value / 1609.34),
+              },
+              duration: durationValue.text,
+            })
+          }
+        } catch (error) {
+          console.error('Error calculating distance:', error)
+          setError('Error calculating distance. Please try again.')
+        }
+      }
+    }
 
-		calculateDistance();
-	}, [pickupDetails?.coordinates, dropoffDetails?.coordinates]);
+    calculateDistance()
+  }, [pickupDetails?.coordinates, dropoffDetails?.coordinates])
 
-	useEffect(() => {
-		const fetchAvailableTimeSlots = async () => {
-			if (!selectedDate) return;
+  useEffect(() => {
+    const fetchAvailableTimeSlots = async () => {
+      if (!selectedDate) return
 
-			setIsLoading(true);
-			setError("");
+      setIsLoading(true)
+      setError('')
 
-			const result = await calendarService.getAvailableTimeSlots(selectedDate);
+      const result = await calendarService.getAvailableTimeSlots(selectedDate)
 
-			if (result.success) {
-				const formattedSlots = calendarService.formatAvailableSlots(
-					result.data
-				);
-				setAvailableTimeSlots(formattedSlots);
-			} else {
-				setError(result.error || "Error fetching available times");
-			}
+      if (result.success) {
+        const formattedSlots = calendarService.formatAvailableSlots(result.data)
+        setAvailableTimeSlots(formattedSlots)
+      } else {
+        setError(result.error || 'Error fetching available times')
+      }
 
-			setIsLoading(false);
-		};
+      setIsLoading(false)
+    }
 
-		fetchAvailableTimeSlots();
-	}, [selectedDate]);
+    fetchAvailableTimeSlots()
+  }, [selectedDate])
 
-	const handleServiceSelect = (event) => {
-		const service = services.find((s) => s.id === event.target.value);
-		setSelectedService(service);
-	};
+  const handleServiceSelect = event => {
+    const service = services.find(s => s.id === event.target.value)
 
-	const handleDateSelect = (date) => {
-		const momentDate = moment(date.toDate());
-		setSelectedDate(momentDate);
-		setSelectedTime(null);
-		setPickupDetails({
-			...pickupDetails,
-			date: momentDate.format("YYYY-MM-DD"),
-		});
-	};
+    if (service?.id === 'group') {
+      window.location.href = '/contact?inquiry=group'
+      return
+    }
 
-	const handleTimeSelect = async (time) => {
-		setError("");
+    setSelectedService(service)
+  }
 
-		try {
-			const result = await calendarService.checkAvailability(
-				selectedDate,
-				time
-			);
+  const handleDateSelect = date => {
+    const momentDate = moment(date.toDate())
+    setSelectedDate(momentDate)
+    setSelectedTime(null)
+    setPickupDetails({
+      ...pickupDetails,
+      date: momentDate.format('YYYY-MM-DD'),
+    })
+  }
 
-			if (result.success && result.data) {
-				setSelectedTime(time);
-				setPickupDetails({
-					...pickupDetails,
-					time: time,
-				});
-			} else {
-				setError("This time slot is no longer available");
-				const slotsResult = await calendarService.getAvailableTimeSlots(
-					selectedDate
-				);
-				if (slotsResult.success) {
-					setAvailableTimeSlots(
-						calendarService.formatAvailableSlots(slotsResult.data)
-					);
-				}
-			}
-		} catch (error) {
-			console.error("Error selecting time:", error);
-			setError("Failed to verify time slot availability");
-		}
-	};
+  const handleTimeSelect = async time => {
+    setError('')
 
-	const handleFromLocationChange = (location) => {
-		setPickupDetails({
-			...pickupDetails,
-			address: location.address,
-			coordinates: location.coordinates,
-			isCustom: location.isCustom,
-		});
-	};
+    try {
+      const result = await calendarService.checkAvailability(selectedDate, time)
 
-	const handleToLocationChange = (location) => {
-		setDropoffDetails({
-			...dropoffDetails,
-			address: location.address,
-			coordinates: location.coordinates,
-			isCustom: location.isCustom,
-		});
-	};
+      if (result.success && result.data) {
+        setSelectedTime(time)
+        setPickupDetails({
+          ...pickupDetails,
+          time: time,
+        })
+      } else {
+        setError('This time slot is no longer available')
+        const slotsResult = await calendarService.getAvailableTimeSlots(selectedDate)
+        if (slotsResult.success) {
+          setAvailableTimeSlots(calendarService.formatAvailableSlots(slotsResult.data))
+        }
+      }
+    } catch (error) {
+      console.error('Error selecting time:', error)
+      setError('Failed to verify time slot availability')
+    }
+  }
 
-	const canProceed = () => {
-		if (!selectedService) {
-			return false;
-		}
+  const handleFromLocationChange = location => {
+    setPickupDetails({
+      ...pickupDetails,
+      address: location.address,
+      coordinates: location.coordinates,
+      isCustom: location.isCustom,
+    })
+  }
 
-		// For custom addresses, we only need the address field
-		const hasValidPickup =
-			pickupDetails?.address &&
-			(pickupDetails?.coordinates || pickupDetails?.isCustom);
+  const handleToLocationChange = location => {
+    setDropoffDetails({
+      ...dropoffDetails,
+      address: location.address,
+      coordinates: location.coordinates,
+      isCustom: location.isCustom,
+    })
+  }
 
-		const hasValidDropoff =
-			dropoffDetails?.address &&
-			(dropoffDetails?.coordinates || dropoffDetails?.isCustom);
+  const canProceed = () => {
+    if (!selectedService) return false
 
-		return Boolean(
-			hasValidPickup &&
-				hasValidDropoff &&
-				pickupDetails?.date &&
-				pickupDetails?.time
-		);
-	};
+    const hasValidPickup =
+      pickupDetails?.address && (pickupDetails?.coordinates || pickupDetails?.isCustom)
 
-	const handleContinue = async () => {
-		if (!canProceed()) {
-			setError("Please fill in all required fields");
-			return;
-		}
+    const hasValidDropoff =
+      dropoffDetails?.address && (dropoffDetails?.coordinates || dropoffDetails?.isCustom)
 
-		try {
-			const result = await calendarService.checkAvailability(
-				pickupDetails.date,
-				pickupDetails.time
-			);
+    return Boolean(hasValidPickup && hasValidDropoff && pickupDetails?.date && pickupDetails?.time)
+  }
 
-			if (!result.success || !result.data) {
-				setError(
-					"Selected time slot is no longer available. Please choose another time."
-				);
-				return;
-			}
+  const handleContinue = async () => {
+    if (!canProceed()) {
+      setError('Please fill in all required fields')
+      return
+    }
 
-			navigate("/booking-extra");
-		} catch (error) {
-			console.error("Error proceeding to next step:", error);
-			setError("Failed to verify time slot availability");
-		}
-	};
+    try {
+      const result = await calendarService.checkAvailability(pickupDetails.date, pickupDetails.time)
 
-	return (
-		<div className="box-row-tab mt-50 mb-50 booking-page">
-			<div className="box-tab-left">
-				<div className="box-content-detail">
-					<div className="box-booking-form">
-						<div className="booking-grid">
-							{/* Service Type Selection */}
-							<div className="form-field">
-								<span className="field-label">Select Service Type</span>
-								<select
-									className="form-control"
-									value={selectedService?.id || ""}
-									onChange={handleServiceSelect}
-								>
-									<option value="">Select a service</option>
-									{services.map((service) => (
-										<option key={service.id} value={service.id}>
-											{service.title}
-										</option>
-									))}
-								</select>
-							</div>
+      if (!result.success || !result.data) {
+        setError('Selected time slot is no longer available. Please choose another time.')
+        return
+      }
 
-							<div className="location-section">
-								<div className="form-field">
-									<span className="field-label">Pickup Location</span>
-									<div className="input-with-icon">
-										<i className="icon-from"></i>
-										<PlacePicker
-											value={pickupDetails?.address}
-											onChange={handleFromLocationChange}
-											type="pickup"
-											placeholder="Enter pickup location"
-											selectedService={selectedService}
-										/>
-									</div>
-								</div>
-								<div className="form-field">
-									<span className="field-label">Drop-off Location</span>
-									<div className="input-with-icon">
-										<i className="icon-to"></i>
-										<PlacePicker
-											value={dropoffDetails?.address}
-											onChange={handleToLocationChange}
-											type="dropoff"
-											placeholder="Enter drop-off location"
-											selectedService={selectedService}
-										/>
-									</div>
-								</div>
-							</div>
+      navigate('/booking-extra')
+    } catch (error) {
+      console.error('Error proceeding to next step:', error)
+      setError('Failed to verify time slot availability')
+    }
+  }
 
-							<div className="datetime-section">
-								<div className="calendar-section">
-									<span className="field-label">Select Date</span>
-									<DatePicker
-										value={selectedDate ? selectedDate.toDate() : null}
-										onChange={handleDateSelect}
-										format="MMMM DD YYYY"
-										minDate={new Date()}
-										className="custom-datepicker"
-										placeholder="Select the date"
-									/>
-								</div>
+  return (
+    <div className="box-row-tab mt-50 mb-50 booking-page">
+      <div className="box-tab-left">
+        <div className="box-content-detail">
+          <div className="box-booking-form">
+            <div className="booking-grid">
+              <div className="form-field">
+                <span className="field-label">Select Service Type</span>
+                <select
+                  className="form-control"
+                  value={selectedService?.id || ''}
+                  onChange={handleServiceSelect}
+                >
+                  <option value="">Select a service</option>
+                  {services.map(service => (
+                    <option key={service.id} value={service.id}>
+                      {service.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-								<div className="time-slots">
-									<h5>Available Times</h5>
-									{isLoading ? (
-										<div className="loading">Loading available times...</div>
-									) : availableTimeSlots.length > 0 ? (
-										<div className="slots-grid">
-											{availableTimeSlots.map((slot) => (
-												<button
-													key={slot.time}
-													className={`time-slot ${
-														selectedTime === slot.time ? "selected" : ""
-													}`}
-													onClick={() => handleTimeSelect(slot.time)}
-												>
-													{slot.formattedTime}
-												</button>
-											))}
-										</div>
-									) : (
-										<div className="no-slots">
-											No available time slots for this date
-										</div>
-									)}
-								</div>
-							</div>
-						</div>
+              <div className="location-section">
+                <div className="form-field">
+                  <span className="field-label">Pickup Location</span>
+                  <div className="input-with-icon">
+                    <i className="icon-from"></i>
+                    <PlacePicker
+                      value={pickupDetails?.address}
+                      onChange={handleFromLocationChange}
+                      type="pickup"
+                      placeholder="Enter pickup location"
+                      selectedService={selectedService}
+                    />
+                  </div>
+                </div>
+                <div className="form-field">
+                  <span className="field-label">Drop-off Location</span>
+                  <div className="input-with-icon">
+                    <i className="icon-to"></i>
+                    <PlacePicker
+                      value={dropoffDetails?.address}
+                      onChange={handleToLocationChange}
+                      type="dropoff"
+                      placeholder="Enter drop-off location"
+                      selectedService={selectedService}
+                    />
+                  </div>
+                </div>
+              </div>
 
-						{error && (
-							<div className="error-message">
-								<span>{error}</span>
-							</div>
-						)}
+              <div className="datetime-section">
+                <div className="calendar-section">
+                  <span className="field-label">Select Date</span>
+                  <DatePicker
+                    value={selectedDate ? selectedDate.toDate() : null}
+                    onChange={handleDateSelect}
+                    format="MMMM DD YYYY"
+                    minDate={new Date()}
+                    className="custom-datepicker"
+                    placeholder="Select the date"
+                  />
+                </div>
 
-						<button
-							className="continue-btn"
-							onClick={handleContinue}
-							disabled={!canProceed()}
-						>
-							Continue to Vehicle Selection
-						</button>
-					</div>
-				</div>
-			</div>
-			<SideBar />
-		</div>
-	);
+                <div className="time-slots">
+                  <h5>Available Times</h5>
+                  {isLoading ? (
+                    <div className="loading">Loading available times...</div>
+                  ) : availableTimeSlots.length > 0 ? (
+                    <div className="slots-grid">
+                      {availableTimeSlots.map(slot => (
+                        <button
+                          key={slot.time}
+                          className={`time-slot ${selectedTime === slot.time ? 'selected' : ''}`}
+                          onClick={() => handleTimeSelect(slot.time)}
+                        >
+                          {slot.formattedTime}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="no-slots">No available time slots for this date</div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {error && (
+              <div className="error-message">
+                <span>{error}</span>
+              </div>
+            )}
+
+            <button className="continue-btn" onClick={handleContinue} disabled={!canProceed()}>
+              Continue to Vehicle Selection
+            </button>
+          </div>
+        </div>
+      </div>
+      <SideBar />
+    </div>
+  )
 }
-
