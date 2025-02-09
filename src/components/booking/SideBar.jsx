@@ -282,6 +282,10 @@ export default function SideBar() {
     if (!isNaN(gratuity)) {
       updatePricing({
         gratuity: gratuity,
+        // Include these additional fields to maintain the tip state
+        selectedTipPercentage: gratuity === 0 ? 0 : (gratuity / pricing.basePrice) * 100,
+        customTipAmount: '',
+        isCustomTip: false,
       })
     }
   }

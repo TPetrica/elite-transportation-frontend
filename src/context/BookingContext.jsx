@@ -4,9 +4,9 @@ const BookingContext = createContext(null)
 
 const PRICES = {
   SUV: {
-    base: 100,
-    gasSurcharge: 10,
-    winterSurcharge: 10,
+    base: 120,
+    gasSurcharge: 0,
+    winterSurcharge: 0,
   },
   CANYONS: {
     base: 130,
@@ -33,11 +33,13 @@ const initialState = {
     flightNumber: '',
     flightTime: '',
     isCustom: false,
+    isCottonwood: false,
   },
   dropoffDetails: {
     address: '',
     coordinates: null,
     isCustom: false,
+    isCottonwood: false,
   },
   selectedDate: null,
   selectedTime: null,
@@ -69,9 +71,8 @@ const initialState = {
 }
 
 const calculatePrice = {
-  standard: isWinter => {
-    const price = PRICES.SUV.base + PRICES.SUV.gasSurcharge
-    return isWinter ? price + PRICES.SUV.winterSurcharge : price
+  standard: () => {
+    return PRICES.SUV.base
   },
   canyons: () => PRICES.CANYONS.base,
   perPerson: passengers => {
@@ -82,15 +83,20 @@ const calculatePrice = {
   group: () => 0, // Group pricing requires inquiry
 }
 
-const calculateBasePrice = (service, numPassengers = 1, hours = 1, isWinter = false) => {
+const calculateBasePrice = (service, numPassengers = 1, hours = 1, isCottonwood = false) => {
   if (!service) return 0
 
   const passengerCount = parseInt(numPassengers) || 1
 
+  // If either pickup or dropoff is in Cottonwood area, use Canyons pricing
+  if (isCottonwood) {
+    return calculatePrice.canyons()
+  }
+
   switch (service.id) {
     case 'from-airport':
     case 'to-airport':
-      return calculatePrice.standard(isWinter)
+      return calculatePrice.standard()
     case 'canyons':
       return calculatePrice.canyons()
     case 'per-person':
@@ -119,13 +125,21 @@ const updatePricingState = (
   basePrice,
   gratuity = state.pricing.gratuity,
   extrasTotal = state.pricing.extrasTotal,
-  nightFee = state.pricing.nightFee
+  nightFee = state.pricing.nightFee,
+  tipSettings = {
+    selectedTipPercentage: state.pricing.selectedTipPercentage,
+    customTipAmount: state.pricing.customTipAmount,
+    isCustomTip: state.pricing.isCustomTip,
+  }
 ) => ({
   ...state.pricing,
   basePrice,
   gratuity,
   extrasTotal,
   nightFee,
+  selectedTipPercentage: tipSettings.selectedTipPercentage,
+  customTipAmount: tipSettings.customTipAmount,
+  isCustomTip: tipSettings.isCustomTip,
   totalPrice: calculateTotalPrice(basePrice, gratuity, extrasTotal, nightFee),
 })
 
@@ -134,31 +148,51 @@ const bookingReducer = (state, action) => {
     case 'SET_PICKUP_DETAILS': {
       const newPickupDetails = { ...state.pickupDetails, ...action.payload }
       const nightFee = calculateNightFee(newPickupDetails.time)
-      const isWinter = newPickupDetails.date
-        ? new Date(newPickupDetails.date).getMonth() >= 10 ||
-          new Date(newPickupDetails.date).getMonth() <= 3
-        : state.isWinter
+      const isCottonwood = newPickupDetails.isCottonwood || state.dropoffDetails.isCottonwood
 
       const basePrice = calculateBasePrice(
         state.selectedService,
         state.passengerDetails.passengers,
         state.pricing.hours,
-        isWinter
+        isCottonwood
       )
+
+      // Recalculate gratuity based on new base price
+      let gratuity = state.pricing.gratuity
+      if (state.pricing.selectedTipPercentage) {
+        gratuity = (basePrice * state.pricing.selectedTipPercentage) / 100
+      }
 
       return {
         ...state,
         pickupDetails: newPickupDetails,
-        isWinter,
-        pricing: updatePricingState(state, basePrice, undefined, undefined, nightFee),
+        pricing: updatePricingState(state, basePrice, gratuity, undefined, nightFee),
       }
     }
 
-    case 'SET_DROPOFF_DETAILS':
+    case 'SET_DROPOFF_DETAILS': {
+      const newDropoffDetails = { ...state.dropoffDetails, ...action.payload }
+      const isCottonwood = newDropoffDetails.isCottonwood || state.pickupDetails.isCottonwood
+
+      const basePrice = calculateBasePrice(
+        state.selectedService,
+        state.passengerDetails.passengers,
+        state.pricing.hours,
+        isCottonwood
+      )
+
+      // Recalculate gratuity based on new base price
+      let gratuity = state.pricing.gratuity
+      if (state.pricing.selectedTipPercentage) {
+        gratuity = (basePrice * state.pricing.selectedTipPercentage) / 100
+      }
+
       return {
         ...state,
-        dropoffDetails: { ...state.dropoffDetails, ...action.payload },
+        dropoffDetails: newDropoffDetails,
+        pricing: updatePricingState(state, basePrice, gratuity),
       }
+    }
 
     case 'SET_SELECTED_DATE':
       return {
@@ -176,33 +210,47 @@ const bookingReducer = (state, action) => {
     }
 
     case 'SET_SELECTED_SERVICE': {
+      const isCottonwood = state.pickupDetails.isCottonwood || state.dropoffDetails.isCottonwood
       const basePrice = calculateBasePrice(
         action.payload,
         state.passengerDetails.passengers,
         state.pricing.hours,
-        state.isWinter
+        isCottonwood
       )
+
+      // Recalculate gratuity based on new base price
+      let gratuity = state.pricing.gratuity
+      if (state.pricing.selectedTipPercentage) {
+        gratuity = (basePrice * state.pricing.selectedTipPercentage) / 100
+      }
 
       return {
         ...state,
         selectedService: action.payload,
-        pricing: updatePricingState(state, basePrice),
+        pricing: updatePricingState(state, basePrice, gratuity),
       }
     }
 
     case 'SET_SERVICE_HOURS': {
       const hours = action.payload
+      const isCottonwood = state.pickupDetails.isCottonwood || state.dropoffDetails.isCottonwood
       const basePrice = calculateBasePrice(
         state.selectedService,
         state.passengerDetails.passengers,
         hours,
-        state.isWinter
+        isCottonwood
       )
+
+      // Recalculate gratuity based on new base price
+      let gratuity = state.pricing.gratuity
+      if (state.pricing.selectedTipPercentage) {
+        gratuity = (basePrice * state.pricing.selectedTipPercentage) / 100
+      }
 
       return {
         ...state,
         pricing: {
-          ...updatePricingState(state, basePrice),
+          ...updatePricingState(state, basePrice, gratuity),
           hours,
         },
       }
@@ -227,37 +275,43 @@ const bookingReducer = (state, action) => {
         ...action.payload,
       }
 
+      const isCottonwood = state.pickupDetails.isCottonwood || state.dropoffDetails.isCottonwood
       const basePrice = calculateBasePrice(
         state.selectedService,
         newPassengerDetails.passengers,
         state.pricing.hours,
-        state.isWinter
+        isCottonwood
       )
+
+      // Recalculate gratuity based on new base price
+      let gratuity = state.pricing.gratuity
+      if (state.pricing.selectedTipPercentage) {
+        gratuity = (basePrice * state.pricing.selectedTipPercentage) / 100
+      }
 
       return {
         ...state,
         passengerDetails: newPassengerDetails,
-        pricing: updatePricingState(state, basePrice),
+        pricing: updatePricingState(state, basePrice, gratuity),
       }
     }
 
-    case 'UPDATE_PRICING':
     case 'UPDATE_TIP_SETTINGS': {
-      const updates =
-        action.type === 'UPDATE_TIP_SETTINGS'
-          ? { gratuity: action.payload.gratuity }
-          : action.payload
+      const { gratuity, percentage, customAmount, isCustom } = action.payload
 
       return {
         ...state,
         pricing: {
           ...state.pricing,
-          ...updates,
+          gratuity,
+          selectedTipPercentage: percentage,
+          customTipAmount: customAmount,
+          isCustomTip: isCustom,
           totalPrice: calculateTotalPrice(
             state.pricing.basePrice,
-            updates.gratuity ?? state.pricing.gratuity,
-            updates.extrasTotal ?? state.pricing.extrasTotal,
-            updates.nightFee ?? state.pricing.nightFee
+            gratuity,
+            state.pricing.extrasTotal,
+            state.pricing.nightFee
           ),
         },
       }

@@ -20,7 +20,7 @@ const services = [
   },
   {
     id: 'canyons',
-    title: 'Cottonwood Canyons Transfer',
+    title: 'Cottonwood Canyons Transfer (1-4 Passengers)',
     description: 'To/From Snowbird/Alta/Solitude/Brighton/Sundance - $130',
   },
   {
@@ -36,7 +36,8 @@ const services = [
   {
     id: 'group',
     title: 'Group Transportation (5+ passengers)',
-    description: 'Please inquire for pricing and availability',
+    description: 'Group - please inquire for pricing and availability',
+    requiresInquiry: true,
   },
 ]
 
@@ -119,12 +120,6 @@ export default function BookingTime() {
 
   const handleServiceSelect = event => {
     const service = services.find(s => s.id === event.target.value)
-
-    if (service?.id === 'group') {
-      window.location.href = '/contact?inquiry=group'
-      return
-    }
-
     setSelectedService(service)
   }
 
@@ -164,25 +159,46 @@ export default function BookingTime() {
   }
 
   const handleFromLocationChange = location => {
+    // Check if either location is in Cottonwood Canyons
+    const isCottonwoodService = location.isCottonwood || dropoffDetails?.isCottonwood
+
+    // If either location is in Cottonwood Canyons, automatically set the service type
+    if (isCottonwoodService && (!selectedService || selectedService.id !== 'canyons')) {
+      const canyonsService = services.find(s => s.id === 'canyons')
+      setSelectedService(canyonsService)
+    }
+
     setPickupDetails({
       ...pickupDetails,
       address: location.address,
       coordinates: location.coordinates,
       isCustom: location.isCustom,
+      isCottonwood: location.isCottonwood,
     })
   }
 
   const handleToLocationChange = location => {
+    // Check if either location is in Cottonwood Canyons
+    const isCottonwoodService = location.isCottonwood || pickupDetails?.isCottonwood
+
+    // If either location is in Cottonwood Canyons, automatically set the service type
+    if (isCottonwoodService && (!selectedService || selectedService.id !== 'canyons')) {
+      const canyonsService = services.find(s => s.id === 'canyons')
+      setSelectedService(canyonsService)
+    }
+
     setDropoffDetails({
       ...dropoffDetails,
       address: location.address,
       coordinates: location.coordinates,
       isCustom: location.isCustom,
+      isCottonwood: location.isCottonwood,
     })
   }
 
   const canProceed = () => {
     if (!selectedService) return false
+    if (selectedService.requiresInquiry) return false
 
     const hasValidPickup =
       pickupDetails?.address && (pickupDetails?.coordinates || pickupDetails?.isCustom)
@@ -226,6 +242,7 @@ export default function BookingTime() {
                   className="form-control"
                   value={selectedService?.id || ''}
                   onChange={handleServiceSelect}
+                  disabled={pickupDetails?.isCottonwood || dropoffDetails?.isCottonwood}
                 >
                   <option value="">Select a service</option>
                   {services.map(service => (
@@ -234,6 +251,19 @@ export default function BookingTime() {
                     </option>
                   ))}
                 </select>
+                {selectedService?.requiresInquiry && (
+                  <div className="inquiry-section">
+                    <p className="inquiry-text">
+                      Please contact us for a custom quote for group transportation.
+                    </p>
+                    <button
+                      onClick={() => navigate('/contact?inquiry=group')}
+                      className="btn btn-brand-2 contact-btn"
+                    >
+                      Contact for Quote
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="location-section">
@@ -265,40 +295,42 @@ export default function BookingTime() {
                 </div>
               </div>
 
-              <div className="datetime-section">
-                <div className="calendar-section">
-                  <span className="field-label">Select Date</span>
-                  <DatePicker
-                    value={selectedDate ? selectedDate.toDate() : null}
-                    onChange={handleDateSelect}
-                    format="MMMM DD YYYY"
-                    minDate={new Date()}
-                    className="custom-datepicker"
-                    placeholder="Select the date"
-                  />
-                </div>
+              {!selectedService?.requiresInquiry && (
+                <div className="datetime-section">
+                  <div className="calendar-section">
+                    <span className="field-label">Select Date</span>
+                    <DatePicker
+                      value={selectedDate ? selectedDate.toDate() : null}
+                      onChange={handleDateSelect}
+                      format="MMMM DD YYYY"
+                      minDate={new Date()}
+                      className="custom-datepicker"
+                      placeholder="Select the date"
+                    />
+                  </div>
 
-                <div className="time-slots">
-                  <h5>Available Times</h5>
-                  {isLoading ? (
-                    <div className="loading">Loading available times...</div>
-                  ) : availableTimeSlots.length > 0 ? (
-                    <div className="slots-grid">
-                      {availableTimeSlots.map(slot => (
-                        <button
-                          key={slot.time}
-                          className={`time-slot ${selectedTime === slot.time ? 'selected' : ''}`}
-                          onClick={() => handleTimeSelect(slot.time)}
-                        >
-                          {slot.formattedTime}
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="no-slots">No available time slots for this date</div>
-                  )}
+                  <div className="time-slots">
+                    <h5>Available Times</h5>
+                    {isLoading ? (
+                      <div className="loading">Loading available times...</div>
+                    ) : availableTimeSlots.length > 0 ? (
+                      <div className="slots-grid">
+                        {availableTimeSlots.map(slot => (
+                          <button
+                            key={slot.time}
+                            className={`time-slot ${selectedTime === slot.time ? 'selected' : ''}`}
+                            onClick={() => handleTimeSelect(slot.time)}
+                          >
+                            {slot.formattedTime}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="no-slots">No available time slots for this date</div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {error && (
@@ -307,9 +339,15 @@ export default function BookingTime() {
               </div>
             )}
 
-            <button className="continue-btn" onClick={handleContinue} disabled={!canProceed()}>
-              Continue to Vehicle Selection
-            </button>
+            {!selectedService?.requiresInquiry && (
+              <button
+                className="btn btn-brand-1 continue-btn"
+                onClick={handleContinue}
+                disabled={!canProceed()}
+              >
+                Continue to Vehicle Selection
+              </button>
+            )}
           </div>
         </div>
       </div>
