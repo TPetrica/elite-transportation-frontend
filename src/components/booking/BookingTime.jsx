@@ -381,7 +381,7 @@ export default function BookingTime() {
                   <div className="calendar-section">
                     <span className="field-label">Select Date</span>
                     <DatePicker
-                      value={selectedDate ? selectedDate.format('YYYY-MM-DD') : null}
+                      // value={selectedDate ? selectedDate.format('YYYY-MM-DD') : null}
                       onChange={handleDateSelect}
                       format="MMMM DD YYYY"
                       minDate={new Date()}

@@ -1,10 +1,9 @@
 import { useGooglePlacesAutocomplete } from '@/hooks/useGooglePlacesAutocomplete'
 import { EnvironmentOutlined, LoadingOutlined } from '@ant-design/icons'
 import { Select } from 'antd'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import styled from 'styled-components'
 
-// Define Cottonwood locations
 const COTTONWOOD_LOCATIONS = ['Snowbird', 'Alta', 'Solitude', 'Brighton', 'Sundance']
 
 const Container = styled.div`
@@ -41,31 +40,78 @@ const StyledSelect = styled(Select)`
   }
 `
 
+const loadGoogleMapsScript = () => {
+  return new Promise((resolve, reject) => {
+    if (window.google) {
+      resolve(window.google)
+      return
+    }
+
+    const script = document.createElement('script')
+    script.src = `https://maps.googleapis.com/maps/api/js?key=\${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places&v=weekly`
+    script.async = true
+    script.defer = true
+    script.onload = () => resolve(window.google)
+    script.onerror = reject
+    document.head.appendChild(script)
+  })
+}
+
 export default function PlacePicker({ value, onChange, type, placeholder, selectedService }) {
   const [searchTerm, setSearchTerm] = useState('')
+  const [isGoogleLoaded, setIsGoogleLoaded] = useState(false)
+
+  useEffect(() => {
+    let isMounted = true
+
+    const initGoogle = async () => {
+      try {
+        await loadGoogleMapsScript()
+        if (isMounted) {
+          setIsGoogleLoaded(true)
+        }
+      } catch (error) {
+        console.error('Error loading Google Maps:', error)
+      }
+    }
+
+    if (!window.google) {
+      initGoogle()
+    } else {
+      setIsGoogleLoaded(true)
+    }
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
   const { suggestions, loading, getDetails, setSearchInput } = useGooglePlacesAutocomplete(
     import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
     type,
-    selectedService
+    selectedService,
+    isGoogleLoaded
   )
 
-  // Function to check if a location is in Cottonwood Canyons
-  const isCottonwoodLocation = address => {
-    if (!address) return false
-    return COTTONWOOD_LOCATIONS.some(location =>
-      address.toLowerCase().includes(location.toLowerCase())
-    )
-  }
+  const isCottonwoodLocation = useMemo(
+    () => address => {
+      if (!address) return false
+      return COTTONWOOD_LOCATIONS.some(location =>
+        address.toLowerCase().includes(location.toLowerCase())
+      )
+    },
+    []
+  )
 
   const handleSearch = newValue => {
+    if (!isGoogleLoaded) return
+
     setSearchTerm(newValue)
     setSearchInput(newValue)
 
-    // If service is airport-related, don't allow custom addresses
     if (selectedService?.id === 'from-airport' && type === 'pickup') return
     if (selectedService?.id === 'to-airport' && type === 'dropoff') return
 
-    // Update with custom address if user is typing
     onChange?.({
       address: newValue,
       coordinates: null,
@@ -75,6 +121,8 @@ export default function PlacePicker({ value, onChange, type, placeholder, select
   }
 
   const handleChange = async (placeId, option) => {
+    if (!isGoogleLoaded) return
+
     try {
       if (!option) {
         onChange?.({
@@ -87,7 +135,6 @@ export default function PlacePicker({ value, onChange, type, placeholder, select
         return
       }
 
-      // If it's a custom input option and custom addresses are allowed for this service/type
       const isAirportPickup = selectedService?.id === 'from-airport' && type === 'pickup'
       const isAirportDropoff = selectedService?.id === 'to-airport' && type === 'dropoff'
 
@@ -103,7 +150,6 @@ export default function PlacePicker({ value, onChange, type, placeholder, select
         return
       }
 
-      // If it's a Google Places suggestion
       const details = await getDetails(placeId)
       if (details) {
         const formattedAddress = option.label
@@ -138,43 +184,54 @@ export default function PlacePicker({ value, onChange, type, placeholder, select
     }
   }, [value])
 
-  // Determine if custom addresses should be allowed
   const isAirportPickup = selectedService?.id === 'from-airport' && type === 'pickup'
   const isAirportDropoff = selectedService?.id === 'to-airport' && type === 'dropoff'
   const allowCustomAddresses = !isAirportPickup && !isAirportDropoff
 
-  // Combine Google suggestions with custom input option
-  const combinedOptions = [
-    // Add custom option if allowed and if it doesn't match existing suggestions
-    ...(allowCustomAddresses &&
-    searchTerm &&
-    !suggestions.some(s => s.description.toLowerCase() === searchTerm.toLowerCase())
-      ? [
-          {
-            value: searchTerm,
-            label: searchTerm,
-            mainText: searchTerm,
-            secondaryText: 'Custom Address',
-            isCustom: true,
-          },
-        ]
-      : []),
-    ...suggestions.map(suggestion => ({
-      value: suggestion.place_id,
-      label: suggestion.description,
-      mainText: suggestion.structured_formatting.main_text,
-      secondaryText: suggestion.structured_formatting.secondary_text,
-      isAirport: suggestion.types.includes('airport'),
-      isCustom: false,
-    })),
-  ]
+  const combinedOptions = useMemo(
+    () => [
+      ...(allowCustomAddresses &&
+      searchTerm &&
+      !suggestions.some(s => s.description.toLowerCase() === searchTerm.toLowerCase())
+        ? [
+            {
+              value: searchTerm,
+              label: searchTerm,
+              mainText: searchTerm,
+              secondaryText: 'Custom Address',
+              isCustom: true,
+            },
+          ]
+        : []),
+      ...suggestions.map(suggestion => ({
+        value: suggestion.place_id,
+        label: suggestion.description,
+        mainText: suggestion.structured_formatting.main_text,
+        secondaryText: suggestion.structured_formatting.secondary_text,
+        isAirport: suggestion.types.includes('airport'),
+        isCustom: false,
+      })),
+    ],
+    [allowCustomAddresses, searchTerm, suggestions]
+  )
 
-  // Customize placeholder based on service type
   let customPlaceholder = placeholder
   if (isAirportPickup) {
     customPlaceholder = 'Select an airport for pickup'
   } else if (isAirportDropoff) {
     customPlaceholder = 'Select an airport for dropoff'
+  }
+
+  if (!isGoogleLoaded) {
+    return (
+      <Container>
+        <StyledSelect
+          placeholder="Loading Google Maps..."
+          disabled
+          suffixIcon={<LoadingOutlined />}
+        />
+      </Container>
+    )
   }
 
   return (
