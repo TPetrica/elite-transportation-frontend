@@ -49,7 +49,7 @@ const PriceBreakdown = ({ service, isWinter, hours, passengers }) => {
       ]
       break
     case 'canyons':
-      breakdown = [{ label: 'Fixed rate', amount: 130 }]
+      breakdown = [{ label: 'Fixed rate', amount: 150 }]
       break
     case 'per-person':
       const effectivePassengers = Math.max(2, passengers)

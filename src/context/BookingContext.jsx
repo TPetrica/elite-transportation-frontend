@@ -9,11 +9,12 @@ const PRICES = {
     winterSurcharge: 0,
   },
   CANYONS: {
-    base: 130,
+    base: 150,
   },
   PER_PERSON: {
     base: 65,
     minPersons: 2,
+    affiliateMinPersons: 1, // New: Minimum persons for affiliate bookings
   },
   HOURLY: {
     base: 100,
@@ -68,6 +69,7 @@ const initialState = {
     isCustomTip: false,
   },
   isWinter: false,
+  isAffiliate: false, // New: Flag to track if this is an affiliate booking
 }
 
 const calculatePrice = {
@@ -75,15 +77,24 @@ const calculatePrice = {
     return PRICES.SUV.base
   },
   canyons: () => PRICES.CANYONS.base,
-  perPerson: passengers => {
-    const effectivePassengers = Math.max(passengers, PRICES.PER_PERSON.minPersons)
+  perPerson: (passengers, isAffiliate = false) => {
+    const minPersons = isAffiliate
+      ? PRICES.PER_PERSON.affiliateMinPersons
+      : PRICES.PER_PERSON.minPersons
+    const effectivePassengers = Math.max(passengers, minPersons)
     return effectivePassengers * PRICES.PER_PERSON.base
   },
   hourly: hours => PRICES.HOURLY.base * hours,
   group: () => 0, // Group pricing requires inquiry
 }
 
-const calculateBasePrice = (service, numPassengers = 1, hours = 1, isCottonwood = false) => {
+const calculateBasePrice = (
+  service,
+  numPassengers = 1,
+  hours = 1,
+  isCottonwood = false,
+  isAffiliate = false
+) => {
   if (!service) return 0
 
   const passengerCount = parseInt(numPassengers) || 1
@@ -100,7 +111,7 @@ const calculateBasePrice = (service, numPassengers = 1, hours = 1, isCottonwood 
     case 'canyons':
       return calculatePrice.canyons()
     case 'per-person':
-      return calculatePrice.perPerson(passengerCount)
+      return calculatePrice.perPerson(passengerCount, isAffiliate)
     case 'hourly':
       return calculatePrice.hourly(hours)
     case 'group':
@@ -113,7 +124,7 @@ const calculateBasePrice = (service, numPassengers = 1, hours = 1, isCottonwood 
 const calculateNightFee = time => {
   if (!time) return 0
   const hour = parseInt(time.split(':')[0], 10)
-  return hour >= 23 || hour < 6 ? PRICES.ADDITIONAL_FEES.nightService : 0
+  return hour >= 23 || hour < 7 ? PRICES.ADDITIONAL_FEES.nightService : 0
 }
 
 const calculateTotalPrice = (basePrice = 0, gratuity = 0, extrasTotal = 0, nightFee = 0) => {
@@ -145,6 +156,13 @@ const updatePricingState = (
 
 const bookingReducer = (state, action) => {
   switch (action.type) {
+    case 'SET_AFFILIATE_MODE': {
+      return {
+        ...state,
+        isAffiliate: action.payload,
+      }
+    }
+
     case 'SET_PICKUP_DETAILS': {
       const newPickupDetails = { ...state.pickupDetails, ...action.payload }
       const nightFee = calculateNightFee(newPickupDetails.time)
@@ -154,10 +172,10 @@ const bookingReducer = (state, action) => {
         state.selectedService,
         state.passengerDetails.passengers,
         state.pricing.hours,
-        isCottonwood
+        isCottonwood,
+        state.isAffiliate
       )
 
-      // Recalculate gratuity based on new base price
       let gratuity = state.pricing.gratuity
       if (state.pricing.selectedTipPercentage) {
         gratuity = (basePrice * state.pricing.selectedTipPercentage) / 100
@@ -178,10 +196,10 @@ const bookingReducer = (state, action) => {
         state.selectedService,
         state.passengerDetails.passengers,
         state.pricing.hours,
-        isCottonwood
+        isCottonwood,
+        state.isAffiliate
       )
 
-      // Recalculate gratuity based on new base price
       let gratuity = state.pricing.gratuity
       if (state.pricing.selectedTipPercentage) {
         gratuity = (basePrice * state.pricing.selectedTipPercentage) / 100
@@ -215,10 +233,10 @@ const bookingReducer = (state, action) => {
         action.payload,
         state.passengerDetails.passengers,
         state.pricing.hours,
-        isCottonwood
+        isCottonwood,
+        state.isAffiliate
       )
 
-      // Recalculate gratuity based on new base price
       let gratuity = state.pricing.gratuity
       if (state.pricing.selectedTipPercentage) {
         gratuity = (basePrice * state.pricing.selectedTipPercentage) / 100
@@ -238,10 +256,10 @@ const bookingReducer = (state, action) => {
         state.selectedService,
         state.passengerDetails.passengers,
         hours,
-        isCottonwood
+        isCottonwood,
+        state.isAffiliate
       )
 
-      // Recalculate gratuity based on new base price
       let gratuity = state.pricing.gratuity
       if (state.pricing.selectedTipPercentage) {
         gratuity = (basePrice * state.pricing.selectedTipPercentage) / 100
@@ -280,10 +298,10 @@ const bookingReducer = (state, action) => {
         state.selectedService,
         newPassengerDetails.passengers,
         state.pricing.hours,
-        isCottonwood
+        isCottonwood,
+        state.isAffiliate
       )
 
-      // Recalculate gratuity based on new base price
       let gratuity = state.pricing.gratuity
       if (state.pricing.selectedTipPercentage) {
         gratuity = (basePrice * state.pricing.selectedTipPercentage) / 100
@@ -331,7 +349,10 @@ const bookingReducer = (state, action) => {
       }
 
     case 'RESET_BOOKING':
-      return initialState
+      return {
+        ...initialState,
+        isAffiliate: state.isAffiliate, // Preserve affiliate status on reset
+      }
 
     default:
       return state
@@ -358,6 +379,7 @@ export const BookingProvider = ({ children }) => {
     setBookingNumber: dispatchAction('SET_BOOKING_NUMBER'),
     resetBooking: () => dispatch({ type: 'RESET_BOOKING' }),
     updateTipSettings: dispatchAction('UPDATE_TIP_SETTINGS'),
+    setAffiliateMode: dispatchAction('SET_AFFILIATE_MODE'),
   }
 
   return <BookingContext.Provider value={value}>{children}</BookingContext.Provider>

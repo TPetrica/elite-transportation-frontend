@@ -1,48 +1,69 @@
 import PlacePicker from '@/components/common/PlacePicker'
 import { useBooking } from '@/context/BookingContext'
 import calendarService from '@/services/calendar.service'
+import { Alert } from 'antd'
 import moment from 'moment'
 import { useEffect, useState } from 'react'
 import DatePicker from 'react-multi-date-picker'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import SideBar from './SideBar'
 
-const services = [
-  {
-    id: 'from-airport',
-    title: 'From Airport (1-4 Passengers)',
-    description: 'Airport pickup with flight tracking - $120',
-  },
-  {
-    id: 'to-airport',
-    title: 'To Airport (1-4 Passengers)',
-    description: 'Airport dropoff service - $120',
-  },
-  {
-    id: 'canyons',
-    title: 'Cottonwood Canyons Transfer (1-4 Passengers)',
-    description: 'To/From Snowbird/Alta/Solitude/Brighton/Sundance - $130',
-  },
-  {
+// Get services based on affiliate status
+const getServices = isAffiliate => {
+  const baseServices = [
+    {
+      id: 'from-airport',
+      title: 'From Airport (1-4 Passengers)',
+      description: 'Airport pickup with flight tracking - $120',
+      maxPassengers: 4,
+    },
+    {
+      id: 'to-airport',
+      title: 'To Airport (1-4 Passengers)',
+      description: 'Airport dropoff service - $120',
+      maxPassengers: 4,
+    },
+    {
+      id: 'canyons',
+      title: 'Cottonwood Canyons Transfer (1-4 Passengers)',
+      description: 'To/From Snowbird/Alta/Solitude/Brighton/Sundance - $150',
+      maxPassengers: 4,
+    },
+    {
+      id: 'hourly',
+      title: 'Hourly Service',
+      description: '$100 per hour',
+      maxPassengers: 4,
+    },
+  ]
+
+  // Add per-person service with different configurations based on affiliate status
+  const perPersonService = {
     id: 'per-person',
     title: 'Per Person Service',
-    description: '$65 per person (minimum 2 persons)',
-  },
-  {
-    id: 'hourly',
-    title: 'Hourly Service',
-    description: '$100 per hour',
-  },
-  {
+    description: isAffiliate ? '$65 per person' : '$65 per person (minimum 2 persons - $130)',
+    maxPassengers: 4,
+  }
+
+  // Add group service only for non-affiliate bookings
+  const groupService = {
     id: 'group',
     title: 'Group Transportation (5+ passengers)',
     description: 'Group - please inquire for pricing and availability',
     requiresInquiry: true,
-  },
-]
+  }
+
+  const services = [...baseServices, perPersonService]
+  if (!isAffiliate) {
+    services.push(groupService)
+  }
+
+  return services
+}
 
 export default function BookingTime() {
   const navigate = useNavigate()
+  const location = useLocation()
   const {
     setPickupDetails,
     setDropoffDetails,
@@ -55,11 +76,21 @@ export default function BookingTime() {
     setDistanceAndDuration,
     setSelectedService,
     selectedService,
+    setAffiliateMode,
+    isAffiliate,
   } = useBooking()
 
   const [error, setError] = useState('')
   const [availableTimeSlots, setAvailableTimeSlots] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const [showPassengerWarning, setShowPassengerWarning] = useState(false)
+
+  // Check for affiliate status from URL on component mount
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const isAffiliateBooking = params.get('affiliate') === 'true'
+    setAffiliateMode(isAffiliateBooking)
+  }, [location, setAffiliateMode])
 
   useEffect(() => {
     const calculateDistance = async () => {
@@ -103,24 +134,39 @@ export default function BookingTime() {
       setIsLoading(true)
       setError('')
 
-      const result = await calendarService.getAvailableTimeSlots(selectedDate)
+      try {
+        const result = await calendarService.getAvailableTimeSlots(selectedDate)
 
-      if (result.success) {
-        const formattedSlots = calendarService.formatAvailableSlots(result.data)
-        setAvailableTimeSlots(formattedSlots)
-      } else {
-        setError(result.error || 'Error fetching available times')
+        if (result.success) {
+          const formattedSlots = calendarService.formatAvailableSlots(result.data)
+          setAvailableTimeSlots(formattedSlots)
+        } else {
+          setError(result.error || 'Error fetching available times')
+        }
+      } catch (error) {
+        console.error('Error fetching time slots:', error)
+        setError('Failed to fetch available time slots')
+      } finally {
+        setIsLoading(false)
       }
-
-      setIsLoading(false)
     }
 
     fetchAvailableTimeSlots()
   }, [selectedDate])
 
   const handleServiceSelect = event => {
-    const service = services.find(s => s.id === event.target.value)
-    setSelectedService(service)
+    const serviceId = event.target.value
+    const service = getServices(isAffiliate).find(s => s.id === serviceId)
+
+    if (service) {
+      setSelectedService(service)
+      setShowPassengerWarning(false)
+
+      // Show warning for services with passenger limits
+      if (service.maxPassengers) {
+        setShowPassengerWarning(true)
+      }
+    }
   }
 
   const handleDateSelect = date => {
@@ -140,11 +186,19 @@ export default function BookingTime() {
       const result = await calendarService.checkAvailability(selectedDate, time)
 
       if (result.success && result.data) {
+        const hour = parseInt(time.split(':')[0], 10)
+        const isNightService = hour >= 23 || hour < 7
+
         setSelectedTime(time)
         setPickupDetails({
           ...pickupDetails,
           time: time,
         })
+
+        // Show night service warning if applicable
+        if (isNightService) {
+          setError('Night service fee of $20 will be applied for services between 11 PM and 7 AM')
+        }
       } else {
         setError('This time slot is no longer available')
         const slotsResult = await calendarService.getAvailableTimeSlots(selectedDate)
@@ -159,12 +213,10 @@ export default function BookingTime() {
   }
 
   const handleFromLocationChange = location => {
-    // Check if either location is in Cottonwood Canyons
     const isCottonwoodService = location.isCottonwood || dropoffDetails?.isCottonwood
 
-    // If either location is in Cottonwood Canyons, automatically set the service type
     if (isCottonwoodService && (!selectedService || selectedService.id !== 'canyons')) {
-      const canyonsService = services.find(s => s.id === 'canyons')
+      const canyonsService = getServices(isAffiliate).find(s => s.id === 'canyons')
       setSelectedService(canyonsService)
     }
 
@@ -178,12 +230,10 @@ export default function BookingTime() {
   }
 
   const handleToLocationChange = location => {
-    // Check if either location is in Cottonwood Canyons
     const isCottonwoodService = location.isCottonwood || pickupDetails?.isCottonwood
 
-    // If either location is in Cottonwood Canyons, automatically set the service type
     if (isCottonwoodService && (!selectedService || selectedService.id !== 'canyons')) {
-      const canyonsService = services.find(s => s.id === 'canyons')
+      const canyonsService = getServices(isAffiliate).find(s => s.id === 'canyons')
       setSelectedService(canyonsService)
     }
 
@@ -202,7 +252,6 @@ export default function BookingTime() {
 
     const hasValidPickup =
       pickupDetails?.address && (pickupDetails?.coordinates || pickupDetails?.isCustom)
-
     const hasValidDropoff =
       dropoffDetails?.address && (dropoffDetails?.coordinates || dropoffDetails?.isCustom)
 
@@ -230,6 +279,8 @@ export default function BookingTime() {
     }
   }
 
+  const services = getServices(isAffiliate)
+
   return (
     <div className="box-row-tab mt-50 mb-50 booking-page">
       <div className="box-tab-left">
@@ -251,14 +302,29 @@ export default function BookingTime() {
                     </option>
                   ))}
                 </select>
+                {selectedService?.description && (
+                  <div className="service-description mt-2 text-sm text-gray-600">
+                    {selectedService.description}
+                  </div>
+                )}
+                {showPassengerWarning && selectedService?.maxPassengers && (
+                  <Alert
+                    className="mt-4"
+                    message={`This service is limited to ${selectedService.maxPassengers} passengers. For larger groups, please contact us for a custom quote.`}
+                    type="info"
+                    showIcon
+                  />
+                )}
                 {selectedService?.requiresInquiry && (
-                  <div className="inquiry-section">
-                    <p className="inquiry-text">
-                      Please contact us for a custom quote for group transportation.
-                    </p>
+                  <div className="inquiry-section mt-4">
+                    <Alert
+                      message="Please contact us for a custom quote for group transportation."
+                      type="info"
+                      showIcon
+                    />
                     <button
                       onClick={() => navigate('/contact?inquiry=group')}
-                      className="btn btn-brand-2 contact-btn"
+                      className="btn btn-brand-2 contact-btn mt-4"
                     >
                       Contact for Quote
                     </button>
@@ -333,15 +399,11 @@ export default function BookingTime() {
               )}
             </div>
 
-            {error && (
-              <div className="error-message">
-                <span>{error}</span>
-              </div>
-            )}
+            {error && <Alert className="mt-4" message={error} type="error" showIcon />}
 
             {!selectedService?.requiresInquiry && (
               <button
-                className="btn btn-brand-1 continue-btn"
+                className="btn btn-brand-1 continue-btn mt-6"
                 onClick={handleContinue}
                 disabled={!canProceed()}
               >
