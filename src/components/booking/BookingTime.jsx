@@ -8,8 +8,18 @@ import DatePicker from 'react-multi-date-picker'
 import { useNavigate, useLocation } from 'react-router-dom'
 import SideBar from './SideBar'
 
-// Get services based on affiliate status
 const getServices = isAffiliate => {
+  if (isAffiliate) {
+    return [
+      {
+        id: 'per-person',
+        title: 'Per Person Service',
+        description: '$65 per person',
+        maxPassengers: 4,
+      },
+    ]
+  }
+
   const baseServices = [
     {
       id: 'from-airport',
@@ -37,15 +47,13 @@ const getServices = isAffiliate => {
     },
   ]
 
-  // Add per-person service with different configurations based on affiliate status
   const perPersonService = {
     id: 'per-person',
     title: 'Per Person Service',
-    description: isAffiliate ? '$65 per person' : '$65 per person (minimum 2 persons - $130)',
+    description: '$65 per person (minimum 2 persons - $130)',
     maxPassengers: 4,
   }
 
-  // Add group service only for non-affiliate bookings
   const groupService = {
     id: 'group',
     title: 'Group Transportation (5+ passengers)',
@@ -53,12 +61,7 @@ const getServices = isAffiliate => {
     requiresInquiry: true,
   }
 
-  const services = [...baseServices, perPersonService]
-  if (!isAffiliate) {
-    services.push(groupService)
-  }
-
-  return services
+  return [...baseServices, perPersonService, groupService]
 }
 
 export default function BookingTime() {
@@ -85,12 +88,17 @@ export default function BookingTime() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassengerWarning, setShowPassengerWarning] = useState(false)
 
-  // Check for affiliate status from URL on component mount
   useEffect(() => {
     const params = new URLSearchParams(location.search)
-    const isAffiliateBooking = params.get('affiliate') === 'true'
-    setAffiliateMode(isAffiliateBooking)
-  }, [location, setAffiliateMode])
+    const affiliateCode = params.get('affiliate')
+    if (affiliateCode) {
+      setAffiliateMode(affiliateCode)
+
+      // For affiliate bookings, automatically select the per-person service
+      const services = getServices(true)
+      setSelectedService(services[0])
+    }
+  }, [location, setAffiliateMode, setSelectedService])
 
   useEffect(() => {
     const calculateDistance = async () => {
@@ -162,7 +170,6 @@ export default function BookingTime() {
       setSelectedService(service)
       setShowPassengerWarning(false)
 
-      // Show warning for services with passenger limits
       if (service.maxPassengers) {
         setShowPassengerWarning(true)
       }
@@ -170,7 +177,14 @@ export default function BookingTime() {
   }
 
   const handleDateSelect = date => {
-    const momentDate = moment(date.toDate())
+    if (!date) return
+
+    const momentDate = moment({
+      year: date.year,
+      month: date.month.number - 1,
+      day: date.day,
+    })
+
     setSelectedDate(momentDate)
     setSelectedTime(null)
     setPickupDetails({
@@ -195,7 +209,6 @@ export default function BookingTime() {
           time: time,
         })
 
-        // Show night service warning if applicable
         if (isNightService) {
           setError('Night service fee of $20 will be applied for services between 11 PM and 7 AM')
         }
@@ -293,7 +306,9 @@ export default function BookingTime() {
                   className="form-control"
                   value={selectedService?.id || ''}
                   onChange={handleServiceSelect}
-                  disabled={pickupDetails?.isCottonwood || dropoffDetails?.isCottonwood}
+                  disabled={
+                    pickupDetails?.isCottonwood || dropoffDetails?.isCottonwood || isAffiliate
+                  }
                 >
                   <option value="">Select a service</option>
                   {services.map(service => (
@@ -366,12 +381,15 @@ export default function BookingTime() {
                   <div className="calendar-section">
                     <span className="field-label">Select Date</span>
                     <DatePicker
-                      value={selectedDate ? selectedDate.toDate() : null}
+                      value={selectedDate ? selectedDate.format('YYYY-MM-DD') : null}
                       onChange={handleDateSelect}
                       format="MMMM DD YYYY"
                       minDate={new Date()}
+                      maxDate={new Date().setFullYear(new Date().getFullYear() + 1)}
                       className="custom-datepicker"
                       placeholder="Select the date"
+                      editable={false}
+                      calendarPosition="bottom-center"
                     />
                   </div>
 

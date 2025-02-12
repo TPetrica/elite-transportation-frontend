@@ -1,4 +1,5 @@
 import { createContext, useContext, useReducer } from 'react'
+import moment from 'moment'
 
 const BookingContext = createContext(null)
 
@@ -14,7 +15,7 @@ const PRICES = {
   PER_PERSON: {
     base: 65,
     minPersons: 2,
-    affiliateMinPersons: 1, // New: Minimum persons for affiliate bookings
+    affiliateMinPersons: 1,
   },
   HOURLY: {
     base: 100,
@@ -69,7 +70,8 @@ const initialState = {
     isCustomTip: false,
   },
   isWinter: false,
-  isAffiliate: false, // New: Flag to track if this is an affiliate booking
+  isAffiliate: false,
+  affiliateCode: '',
 }
 
 const calculatePrice = {
@@ -85,7 +87,7 @@ const calculatePrice = {
     return effectivePassengers * PRICES.PER_PERSON.base
   },
   hourly: hours => PRICES.HOURLY.base * hours,
-  group: () => 0, // Group pricing requires inquiry
+  group: () => 0,
 }
 
 const calculateBasePrice = (
@@ -99,7 +101,6 @@ const calculateBasePrice = (
 
   const passengerCount = parseInt(numPassengers) || 1
 
-  // If either pickup or dropoff is in Cottonwood area, use Canyons pricing
   if (isCottonwood) {
     return calculatePrice.canyons()
   }
@@ -159,7 +160,8 @@ const bookingReducer = (state, action) => {
     case 'SET_AFFILIATE_MODE': {
       return {
         ...state,
-        isAffiliate: action.payload,
+        isAffiliate: true,
+        affiliateCode: action.payload,
       }
     }
 
@@ -212,11 +214,19 @@ const bookingReducer = (state, action) => {
       }
     }
 
-    case 'SET_SELECTED_DATE':
+    case 'SET_SELECTED_DATE': {
+      if (!action.payload) {
+        return {
+          ...state,
+          selectedDate: null,
+        }
+      }
+
       return {
         ...state,
-        selectedDate: action.payload,
+        selectedDate: moment(action.payload),
       }
+    }
 
     case 'SET_SELECTED_TIME': {
       const nightFee = calculateNightFee(action.payload)
@@ -351,7 +361,8 @@ const bookingReducer = (state, action) => {
     case 'RESET_BOOKING':
       return {
         ...initialState,
-        isAffiliate: state.isAffiliate, // Preserve affiliate status on reset
+        isAffiliate: state.isAffiliate,
+        affiliateCode: state.affiliateCode,
       }
 
     default:
