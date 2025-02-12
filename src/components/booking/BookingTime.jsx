@@ -91,7 +91,7 @@ export default function BookingTime() {
   useEffect(() => {
     const params = new URLSearchParams(location.search)
     const affiliateCode = params.get('affiliate')
-    if (affiliateCode) {
+    if (affiliateCode === 'PCH') {
       setAffiliateMode(affiliateCode)
 
       // For affiliate bookings, automatically select the per-person service
