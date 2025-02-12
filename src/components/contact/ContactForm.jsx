@@ -1,20 +1,18 @@
-import { activeInputFocus } from "@/utlis/activeInputFocus";
-import { useEffect } from "react";
+import { activeInputFocus } from '@/utils/activeInputFocus'
+import { useEffect } from 'react'
 
 export default function ContactForm() {
   useEffect(() => {
     // Focus event
-    activeInputFocus();
-  }, []);
+    activeInputFocus()
+  }, [])
   return (
     <section className="section mt-120 mb-120">
       <div className="container-sub">
         <div className="mw-770">
-          <h2 className="heading-44-medium mb-60 text-center wow fadeInUp">
-            Leave us your info
-          </h2>
+          <h2 className="heading-44-medium mb-60 text-center wow fadeInUp">Leave us your info</h2>
           <div className="form-contact form-comment wow fadeInUp">
-            <form onSubmit={(e) => e.preventDefault()}>
+            <form onSubmit={e => e.preventDefault()}>
               <div className="row">
                 <div className="col-lg-6 col-md-6">
                   <div className="form-group">
@@ -34,12 +32,7 @@ export default function ContactForm() {
                     <label className="form-label" htmlFor="email">
                       Email
                     </label>
-                    <input
-                      className="form-control"
-                      id="email"
-                      type="text"
-                      placeholder=""
-                    />
+                    <input className="form-control" id="email" type="text" placeholder="" />
                   </div>
                 </div>
                 <div className="col-lg-12">
@@ -47,12 +40,7 @@ export default function ContactForm() {
                     <label className="form-label" htmlFor="subject">
                       Subject
                     </label>
-                    <input
-                      className="form-control"
-                      id="subject"
-                      type="text"
-                      placeholder=""
-                    />
+                    <input className="form-control" id="subject" type="text" placeholder="" />
                   </div>
                 </div>
                 <div className="col-lg-12">
@@ -89,5 +77,5 @@ export default function ContactForm() {
         </div>
       </div>
     </section>
-  );
+  )
 }

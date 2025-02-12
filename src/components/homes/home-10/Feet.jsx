@@ -1,21 +1,21 @@
-import { cars } from "@/data/cars";
-import { addLeftPaddingSwiper } from "@/utlis/addSwiperPadding";
+import { cars } from '@/data/cars'
+import { addLeftPaddingSwiper } from '@/utils/addSwiperPadding'
 
-import { Link } from "react-router-dom";
-import { useEffect } from "react";
+import { Link } from 'react-router-dom'
+import { useEffect } from 'react'
 
-import { Autoplay, Navigation } from "swiper/modules";
-import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Navigation } from 'swiper/modules'
+import { Swiper, SwiperSlide } from 'swiper/react'
 
 export default function Feet() {
   useEffect(() => {
-    addLeftPaddingSwiper();
+    addLeftPaddingSwiper()
     //add padding to .swiper-padding according to .swiper-title
-    window.addEventListener("resize", addLeftPaddingSwiper);
+    window.addEventListener('resize', addLeftPaddingSwiper)
     return () => {
-      window.removeEventListener("resize", addLeftPaddingSwiper);
-    };
-  }, []);
+      window.removeEventListener('resize', addLeftPaddingSwiper)
+    }
+  }, [])
   const settings = {
     spaceBetween: 30,
     slidesPerView: 4,
@@ -23,8 +23,8 @@ export default function Feet() {
     // initialSlide: 1,
     loop: true,
     navigation: {
-      nextEl: ".snbn25",
-      prevEl: ".snbp25",
+      nextEl: '.snbn25',
+      prevEl: '.snbp25',
     },
     modules: [Navigation, Autoplay],
 
@@ -55,21 +55,16 @@ export default function Feet() {
         slidesPerView: 1,
       },
     },
-  };
+  }
   return (
     <section className="section pt-90 pb-120">
       <div className="container-sub">
         <div className="row align-items-center">
           <div className="col-lg-6 col-7">
-            <h2 className="heading-44-medium title-fleet wow fadeInUp">
-              Our Fleet
-            </h2>
+            <h2 className="heading-44-medium title-fleet wow fadeInUp">Our Fleet</h2>
           </div>
           <div className="col-lg-6 col-5 text-end">
-            <Link
-              className="text-16-medium color-primary wow fadeInUp"
-              to="/fleet-list"
-            >
+            <Link className="text-16-medium color-primary wow fadeInUp" to="/fleet-list">
               More Fleet
               <svg
                 className="icon-16"
@@ -93,7 +88,7 @@ export default function Feet() {
       <div className="box-slide-fleet fleet-style-2  mt-50">
         <div className="box-swiper">
           <Swiper
-            style={{ maxWidth: "100vw", overflow: "hidden" }}
+            style={{ maxWidth: '100vw', overflow: 'hidden' }}
             {...settings}
             className="swiper-container swiper-group-4-fleet pb-0"
           >
@@ -102,13 +97,9 @@ export default function Feet() {
                 <div className="cardFleet wow fadeInUp">
                   <div className="cardInfo">
                     <Link to={`/fleet-single/${elm.id}`}>
-                      <h3 className="text-20-medium color-text mb-10">
-                        {elm.title}
-                      </h3>
+                      <h3 className="text-20-medium color-text mb-10">{elm.title}</h3>
                     </Link>
-                    <p className="text-14 color-text mb-30">
-                      {elm.description}
-                    </p>
+                    <p className="text-14 color-text mb-30">{elm.description}</p>
                   </div>
                   <div className="cardImage mb-30">
                     <Link to={`/fleet-single/${elm.id}`}>
@@ -170,5 +161,5 @@ export default function Feet() {
         </div>
       </div>
     </section>
-  );
+  )
 }

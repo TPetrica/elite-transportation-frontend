@@ -1,20 +1,20 @@
-import { services } from "@/data/services";
-import { addLeftPaddingSwiper } from "@/utlis/addSwiperPadding";
+import { services } from '@/data/services'
+import { addLeftPaddingSwiper } from '@/utils/addSwiperPadding'
 
-import { Link } from "react-router-dom";
-import { useEffect } from "react";
-import { Autoplay, Navigation } from "swiper/modules";
-import { Swiper, SwiperSlide } from "swiper/react";
+import { Link } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Autoplay, Navigation } from 'swiper/modules'
+import { Swiper, SwiperSlide } from 'swiper/react'
 
 export default function Service() {
   useEffect(() => {
-    addLeftPaddingSwiper();
+    addLeftPaddingSwiper()
     //add padding to .swiper-padding according to .swiper-title
-    window.addEventListener("resize", addLeftPaddingSwiper);
+    window.addEventListener('resize', addLeftPaddingSwiper)
     return () => {
-      window.removeEventListener("resize", addLeftPaddingSwiper);
-    };
-  }, []);
+      window.removeEventListener('resize', addLeftPaddingSwiper)
+    }
+  }, [])
   const settings = {
     spaceBetween: 30,
     slidesPerView: 4,
@@ -22,8 +22,8 @@ export default function Service() {
     // initialSlide: 1,
     loop: true,
     navigation: {
-      nextEl: ".snbn7",
-      prevEl: ".snbp7",
+      nextEl: '.snbn7',
+      prevEl: '.snbp7',
     },
     modules: [Navigation, Autoplay],
     autoplay: {
@@ -50,7 +50,7 @@ export default function Service() {
         slidesPerView: 1,
       },
     },
-  };
+  }
 
   return (
     <section className="section pt-120 pb-120 bg-our-service-2">
@@ -88,25 +88,15 @@ export default function Service() {
       </div>
       <div className="box-slide-fleet swiper-padding mt-50">
         <div className="box-swiper">
-          <Swiper
-            {...settings}
-            className="swiper-container swiper-group-4-service pb-0"
-          >
+          <Swiper {...settings} className="swiper-container swiper-group-4-service pb-0">
             {services.map((elm, i) => (
               <SwiperSlide key={i} className="swiper-slide">
                 <div className="cardService wow fadeInUp">
                   <div className="cardInfo">
-                    <h3 className="cardTitle text-20-medium color-white mb-10">
-                      {elm.title}
-                    </h3>
+                    <h3 className="cardTitle text-20-medium color-white mb-10">{elm.title}</h3>
                     <div className="box-inner-info">
-                      <p className="cardDesc text-14 color-white mb-30">
-                        {elm.description}
-                      </p>
-                      <Link
-                        className="cardLink btn btn-arrow-up"
-                        to={`/service-single/${elm.id}`}
-                      >
+                      <p className="cardDesc text-14 color-white mb-30">{elm.description}</p>
+                      <Link className="cardLink btn btn-arrow-up" to={`/service-single/${elm.id}`}>
                         <svg
                           className="icon-16"
                           fill="none"
@@ -170,5 +160,5 @@ export default function Service() {
         </div>
       </div>
     </section>
-  );
+  )
 }

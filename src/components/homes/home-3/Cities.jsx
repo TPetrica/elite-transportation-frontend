@@ -1,20 +1,20 @@
-import { citiesData } from "@/data/cities";
-import { addLeftPaddingSwiper } from "@/utlis/addSwiperPadding";
+import { citiesData } from '@/data/cities'
+import { addLeftPaddingSwiper } from '@/utils/addSwiperPadding'
 
-import { useEffect } from "react";
+import { useEffect } from 'react'
 
-import { Autoplay, Navigation } from "swiper/modules";
-import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Navigation } from 'swiper/modules'
+import { Swiper, SwiperSlide } from 'swiper/react'
 
 export default function Cities() {
   useEffect(() => {
-    addLeftPaddingSwiper();
+    addLeftPaddingSwiper()
 
-    window.addEventListener("resize", addLeftPaddingSwiper);
+    window.addEventListener('resize', addLeftPaddingSwiper)
     return () => {
-      window.removeEventListener("resize", addLeftPaddingSwiper);
-    };
-  }, []);
+      window.removeEventListener('resize', addLeftPaddingSwiper)
+    }
+  }, [])
   const settings = {
     spaceBetween: 30,
     slidesPerView: 5,
@@ -22,8 +22,8 @@ export default function Cities() {
     // initialSlide: 1,
     loop: true,
     navigation: {
-      nextEl: ".snbn5",
-      prevEl: ".snbp5",
+      nextEl: '.snbn5',
+      prevEl: '.snbp5',
     },
     modules: [Navigation, Autoplay],
 
@@ -51,16 +51,14 @@ export default function Cities() {
         slidesPerView: 1,
       },
     },
-  };
+  }
 
   return (
     <section className="section pt-120">
       <div className="container-sub">
         <div className="row align-items-center">
           <div className="col-lg-6 col-sm-7 col-7">
-            <h2 className="heading-44-medium title-fleet wow fadeInUp">
-              Top Cities
-            </h2>
+            <h2 className="heading-44-medium title-fleet wow fadeInUp">Top Cities</h2>
           </div>
           <div className="col-lg-6 col-sm-5 col-5 text-end">
             <a
@@ -89,10 +87,7 @@ export default function Cities() {
       </div>
       <div className="box-slide-fleet  mt-50">
         <div className="box-swiper">
-          <Swiper
-            {...settings}
-            className="swiper-container swiper-group-5-cities pb-0"
-          >
+          <Swiper {...settings} className="swiper-container swiper-group-5-cities pb-0">
             {citiesData.map((elm, i) => (
               <SwiperSlide key={i} className="swiper-slide">
                 <div className="cardCities wow fadeInUp">
@@ -149,5 +144,5 @@ export default function Cities() {
         </div>
       </div>
     </section>
-  );
+  )
 }

@@ -1,42 +1,40 @@
-import { services5 } from "@/data/services";
-import { addLeftPaddingSwiper } from "@/utlis/addSwiperPadding";
+import { services5 } from '@/data/services'
+import { addLeftPaddingSwiper } from '@/utils/addSwiperPadding'
 
-import { Link } from "react-router-dom";
-import { useEffect } from "react";
-import { Autoplay, Navigation } from "swiper/modules";
-import { Swiper, SwiperSlide } from "swiper/react";
+import { Link } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Autoplay, Navigation } from 'swiper/modules'
+import { Swiper, SwiperSlide } from 'swiper/react'
 
 export default function Services() {
   useEffect(() => {
-    addLeftPaddingSwiper();
+    addLeftPaddingSwiper()
     //add padding to .swiper-padding according to .swiper-title
-    window.addEventListener("resize", addLeftPaddingSwiper);
+    window.addEventListener('resize', addLeftPaddingSwiper)
     return () => {
-      window.removeEventListener("resize", addLeftPaddingSwiper);
-    };
-  }, []);
+      window.removeEventListener('resize', addLeftPaddingSwiper)
+    }
+  }, [])
   const settings = {
-    slidesPerView: "auto",
+    slidesPerView: 'auto',
     spaceBetween: 70,
     loop: true,
     navigation: {
-      nextEl: ".snbn26",
-      prevEl: ".snbp26",
+      nextEl: '.snbn26',
+      prevEl: '.snbp26',
     },
     modules: [Autoplay, Navigation],
 
     autoplay: {
       delay: 1000000,
     },
-  };
+  }
   return (
     <section className="section bg-our-service-home-10">
       <div className="container-sub">
         <div className="row align-items-center">
           <div className="col-lg-6 col-sm-7 col-7">
-            <h2 className="color-text heading-44-medium title-fleet wow fadeInUp">
-              Our Services
-            </h2>
+            <h2 className="color-text heading-44-medium title-fleet wow fadeInUp">Our Services</h2>
           </div>
           <div className="col-lg-6 col-sm-5 col-5 text-end">
             <Link
@@ -66,7 +64,7 @@ export default function Services() {
       <div className="box-slide-fleet  mt-60">
         <div className="box-swiper">
           <Swiper
-            style={{ maxWidth: "100vw", overflow: "hidden" }}
+            style={{ maxWidth: '100vw', overflow: 'hidden' }}
             {...settings}
             className="swiper-container swiper-group-auto swiper-services-auto pb-45"
           >
@@ -79,15 +77,10 @@ export default function Services() {
                     </Link>
                   </div>
                   <div className="cardInfo">
-                    <h3 className="cardTitle heading-44-medium color-text mb-30">
-                      {elm.title}
-                    </h3>
+                    <h3 className="cardTitle heading-44-medium color-text mb-30">{elm.title}</h3>
                     <p className="text-16 color-text">{elm.description}</p>
                     <div className="mt-30">
-                      <Link
-                        className="btn btn-secondary"
-                        to={`/service-single/${elm.id}`}
-                      >
+                      <Link className="btn btn-secondary" to={`/service-single/${elm.id}`}>
                         More Detail
                         <svg
                           className="icon-16 ml-5"
@@ -148,5 +141,5 @@ export default function Services() {
         </div>
       </div>
     </section>
-  );
+  )
 }
