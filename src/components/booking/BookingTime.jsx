@@ -88,6 +88,8 @@ export default function BookingTime() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassengerWarning, setShowPassengerWarning] = useState(false)
 
+  console.log('availableTimeSlots', availableTimeSlots)
+
   useEffect(() => {
     const params = new URLSearchParams(location.search)
     const affiliateCode = params.get('affiliate')
@@ -405,7 +407,7 @@ export default function BookingTime() {
                             className={`time-slot ${selectedTime === slot.time ? 'selected' : ''}`}
                             onClick={() => handleTimeSelect(slot.time)}
                           >
-                            {slot.formattedTime}
+                            {slot.time}
                           </button>
                         ))}
                       </div>
