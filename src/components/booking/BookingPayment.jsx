@@ -10,6 +10,7 @@ import BillingForm from './BillingForm'
 export default function BookingPayment() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  // Include isAffiliate and affiliateCode from the context
   const {
     pricing,
     pickupDetails,
@@ -18,6 +19,8 @@ export default function BookingPayment() {
     passengerDetails,
     distance,
     duration,
+    isAffiliate,
+    affiliateCode,
   } = useBooking()
 
   const [loading, setLoading] = useState(false)
@@ -25,19 +28,18 @@ export default function BookingPayment() {
   const [showAuthModal, setShowAuthModal] = useState(false)
 
   useEffect(() => {
-    if (!passengerDetails) {
-      navigate('/booking-passenger')
+    if (!passengerDetails || !pickupDetails || !dropoffDetails || !selectedService) {
+      navigate('/booking')
       return
     }
   }, [])
 
   const mapServiceTypeForBackend = serviceId => {
-    // Map the frontend service IDs to backend-expected values
     const serviceMap = {
       'from-airport': 'from-airport',
       'to-airport': 'to-airport',
-      canyons: 'to-airport', // Map canyons to a standard service type
-      'per-person': 'hourly',
+      canyons: 'canyons', // Fixed: Use canyons service type
+      'per-person': 'per-person', // Fixed: Use per-person service type
       hourly: 'hourly',
       group: 'group',
     }
@@ -64,7 +66,6 @@ export default function BookingPayment() {
         specialRequirements: passengerDetails.specialRequirements || '',
       }
 
-      // Create a clean copy of pickup/dropoff details without isCottonwood
       const cleanPickupDetails = {
         address: pickupDetails.address,
         coordinates: pickupDetails.coordinates,
@@ -88,27 +89,29 @@ export default function BookingPayment() {
           pickup: cleanPickupDetails,
           dropoff: cleanDropoffDetails,
           distance: {
-            km: parseInt(distance.km),
-            miles: parseInt(distance.miles),
+            km: parseInt(distance?.km || 0),
+            miles: parseInt(distance?.miles || 0),
           },
           duration,
           service: mapServiceTypeForBackend(selectedService.id),
           passengerDetails: cleanPassengerDetails,
           email: passengerDetails.email || '',
+          affiliate: isAffiliate ? true : false,
+          affiliateCode: affiliateCode || '',
         },
       }
 
       const result = await PaymentService.createCheckoutSession(payload)
 
       if (!result.success) {
-        throw new Error(result.error)
+        throw new Error(result.error || 'Error processing payment')
       }
 
       if (result.data.url) {
         window.location.href = result.data.url
       }
     } catch (err) {
-      setError(err.message)
+      setError(err.message || 'An error occurred during payment processing')
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } finally {
       setLoading(false)
@@ -120,12 +123,10 @@ export default function BookingPayment() {
       <div className="box-tab-left">
         <div className="box-content-detail">
           {error && <div className="alert alert-danger mb-30">{error}</div>}
-
           <BillingForm onSubmit={handlePayment} loading={loading} />
         </div>
       </div>
       <SideBar />
-
       <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </div>
   )

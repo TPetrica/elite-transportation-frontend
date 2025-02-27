@@ -5,6 +5,29 @@ import { useEffect, useState, useMemo } from 'react'
 import styled from 'styled-components'
 
 const COTTONWOOD_LOCATIONS = ['Snowbird', 'Alta', 'Solitude', 'Brighton', 'Sundance']
+const ALLOWED_REGIONS = ['Salt Lake City', 'Park City', 'Cottonwood', 'Utah', 'UT', 'SLC']
+
+// Fixed locations for affiliate bookings
+const AFFILIATE_LOCATIONS = [
+  {
+    value: 'slc-airport',
+    address: 'Salt Lake City International Airport, Salt Lake City, UT, USA',
+    label: 'Salt Lake City International Airport',
+    mainText: 'Salt Lake City International Airport',
+    secondaryText: 'Salt Lake City, UT, USA',
+    isAirport: true,
+    isCustom: false,
+  },
+  {
+    value: 'park-city-hostel',
+    address: 'Park City Hostel, Park City, UT, USA',
+    label: 'Park City Hostel',
+    mainText: 'Park City Hostel',
+    secondaryText: 'Park City, UT, USA',
+    isAirport: false,
+    isCustom: false,
+  },
+]
 
 const Container = styled.div`
   width: 100%;
@@ -57,9 +80,18 @@ const loadGoogleMapsScript = () => {
   })
 }
 
-export default function PlacePicker({ value, onChange, type, placeholder, selectedService }) {
+export default function PlacePicker({
+  value,
+  onChange,
+  type,
+  placeholder,
+  selectedService,
+  isAffiliate,
+  disabled = false,
+}) {
   const [searchTerm, setSearchTerm] = useState('')
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false)
+  const [forceValue, setForceValue] = useState(null)
 
   useEffect(() => {
     let isMounted = true
@@ -86,12 +118,22 @@ export default function PlacePicker({ value, onChange, type, placeholder, select
     }
   }, [])
 
+  const isInAllowedRegion = address => {
+    if (!address) return false
+    const addressLower = address.toLowerCase()
+    return ALLOWED_REGIONS.some(region => addressLower.includes(region.toLowerCase()))
+  }
+
   const { suggestions, loading, getDetails, setSearchInput } = useGooglePlacesAutocomplete(
-    import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
     type,
     selectedService,
     isGoogleLoaded
   )
+
+  // Filter suggestions to only show locations in allowed regions
+  const filteredSuggestions = useMemo(() => {
+    return suggestions.filter(suggestion => isInAllowedRegion(suggestion.description))
+  }, [suggestions])
 
   const isCottonwoodLocation = useMemo(
     () => address => {
@@ -104,7 +146,7 @@ export default function PlacePicker({ value, onChange, type, placeholder, select
   )
 
   const handleSearch = newValue => {
-    if (!isGoogleLoaded) return
+    if (!isGoogleLoaded || disabled) return
 
     setSearchTerm(newValue)
     setSearchInput(newValue)
@@ -120,8 +162,22 @@ export default function PlacePicker({ value, onChange, type, placeholder, select
     })
   }
 
+  // Modified to fix the deletion issue when clicking away from the select
+  const handleFocus = () => {
+    if (value) {
+      setForceValue(value)
+    }
+  }
+
+  const handleBlur = () => {
+    // When the select loses focus and we have a forced value, reset the search term
+    if (forceValue) {
+      setSearchTerm(forceValue)
+    }
+  }
+
   const handleChange = async (placeId, option) => {
-    if (!isGoogleLoaded) return
+    if (!isGoogleLoaded || disabled) return
 
     try {
       if (!option) {
@@ -132,6 +188,21 @@ export default function PlacePicker({ value, onChange, type, placeholder, select
           isCottonwood: false,
         })
         setSearchTerm('')
+        setForceValue(null)
+        return
+      }
+
+      // For affiliate mode, handle special location objects
+      if (isAffiliate && option.isAffiliateLocation) {
+        const newValue = {
+          address: option.address,
+          coordinates: option.coordinates || null,
+          isCustom: false,
+          isCottonwood: false,
+        }
+        onChange?.(newValue)
+        setSearchTerm(option.address)
+        setForceValue(option.address)
         return
       }
 
@@ -140,13 +211,15 @@ export default function PlacePicker({ value, onChange, type, placeholder, select
 
       if (option.isCustom && !isAirportPickup && !isAirportDropoff) {
         const isCottonwood = isCottonwoodLocation(option.value)
-        onChange?.({
+        const newValue = {
           address: option.value,
           coordinates: null,
           isCustom: true,
           isCottonwood,
-        })
+        }
+        onChange?.(newValue)
         setSearchTerm(option.value)
+        setForceValue(option.value)
         return
       }
 
@@ -154,8 +227,7 @@ export default function PlacePicker({ value, onChange, type, placeholder, select
       if (details) {
         const formattedAddress = option.label
         const isCottonwood = isCottonwoodLocation(formattedAddress)
-
-        onChange?.({
+        const newValue = {
           address: formattedAddress,
           coordinates: {
             lat: details.geometry.location.lat(),
@@ -163,24 +235,33 @@ export default function PlacePicker({ value, onChange, type, placeholder, select
           },
           isCustom: false,
           isCottonwood,
-        })
-        setSearchTerm('')
+        }
+        onChange?.(newValue)
+        setSearchTerm(formattedAddress)
+        setForceValue(formattedAddress)
       }
     } catch (error) {
       console.error('Error getting place details:', error)
       const isCottonwood = isCottonwoodLocation(searchTerm)
-      onChange?.({
+      const newValue = {
         address: searchTerm,
         coordinates: null,
         isCustom: true,
         isCottonwood,
-      })
+      }
+      onChange?.(newValue)
+      setForceValue(searchTerm)
     }
   }
 
+  // Update the search term when the value prop changes externally
   useEffect(() => {
     if (value) {
       setSearchTerm(value)
+      setForceValue(value)
+    } else {
+      setSearchTerm('')
+      setForceValue(null)
     }
   }, [value])
 
@@ -188,11 +269,25 @@ export default function PlacePicker({ value, onChange, type, placeholder, select
   const isAirportDropoff = selectedService?.id === 'to-airport' && type === 'dropoff'
   const allowCustomAddresses = !isAirportPickup && !isAirportDropoff
 
-  const combinedOptions = useMemo(
+  // For affiliate mode, use restricted options
+  const affiliateOptions = useMemo(() => {
+    return AFFILIATE_LOCATIONS.map(location => ({
+      ...location,
+      isAffiliateLocation: true,
+      coordinates:
+        location.value === 'slc-airport'
+          ? { lat: 40.7899, lng: -111.9791 }
+          : { lat: 40.6609, lng: -111.4988 },
+    }))
+  }, [])
+
+  // Standard options based on search results
+  const standardOptions = useMemo(
     () => [
       ...(allowCustomAddresses &&
       searchTerm &&
-      !suggestions.some(s => s.description.toLowerCase() === searchTerm.toLowerCase())
+      isInAllowedRegion(searchTerm) &&
+      !filteredSuggestions.some(s => s.description.toLowerCase() === searchTerm.toLowerCase())
         ? [
             {
               value: searchTerm,
@@ -203,7 +298,7 @@ export default function PlacePicker({ value, onChange, type, placeholder, select
             },
           ]
         : []),
-      ...suggestions.map(suggestion => ({
+      ...filteredSuggestions.map(suggestion => ({
         value: suggestion.place_id,
         label: suggestion.description,
         mainText: suggestion.structured_formatting.main_text,
@@ -212,14 +307,18 @@ export default function PlacePicker({ value, onChange, type, placeholder, select
         isCustom: false,
       })),
     ],
-    [allowCustomAddresses, searchTerm, suggestions]
+    [allowCustomAddresses, searchTerm, filteredSuggestions]
   )
+
+  const options = isAffiliate ? affiliateOptions : standardOptions
 
   let customPlaceholder = placeholder
   if (isAirportPickup) {
     customPlaceholder = 'Select an airport for pickup'
   } else if (isAirportDropoff) {
     customPlaceholder = 'Select an airport for dropoff'
+  } else if (isAffiliate) {
+    customPlaceholder = type === 'pickup' ? 'Select pickup location' : 'Select dropoff location'
   }
 
   if (!isGoogleLoaded) {
@@ -238,19 +337,22 @@ export default function PlacePicker({ value, onChange, type, placeholder, select
     <Container>
       <StyledSelect
         showSearch
-        value={value || undefined}
+        value={forceValue || searchTerm || undefined}
         placeholder={customPlaceholder}
         defaultActiveFirstOption={false}
-        filterOption={false}
+        filterOption={isAffiliate}
         onSearch={handleSearch}
         onChange={handleChange}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         notFoundContent={null}
-        options={combinedOptions}
-        searchValue={searchTerm}
+        options={options}
         loading={loading}
+        disabled={disabled}
         allowClear
         onClear={() => {
           setSearchTerm('')
+          setForceValue(null)
           onChange?.({
             address: '',
             coordinates: null,

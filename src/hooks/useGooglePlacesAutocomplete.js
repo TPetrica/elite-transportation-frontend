@@ -1,18 +1,20 @@
 import { useEffect, useRef, useState } from 'react'
 import { useGoogleMaps } from './useGoogleMaps'
 
-export function useGooglePlacesAutocomplete(locationType, selectedService) {
+export function useGooglePlacesAutocomplete(locationType, selectedService, isGoogleLoaded = false) {
   const [suggestions, setSuggestions] = useState([])
   const [loading, setLoading] = useState(false)
   const [searchInput, setSearchInput] = useState('')
 
-  const { isLoaded } = useGoogleMaps()
+  const { isLoaded: mapsLoaded } = useGoogleMaps()
+  const isApiLoaded = isGoogleLoaded || mapsLoaded
+
   const autocompleteService = useRef(null)
   const placesService = useRef(null)
   const sessionToken = useRef(null)
 
   useEffect(() => {
-    if (!isLoaded) return
+    if (!isApiLoaded) return
 
     try {
       if (!autocompleteService.current) {
@@ -31,10 +33,10 @@ export function useGooglePlacesAutocomplete(locationType, selectedService) {
     } catch (error) {
       console.error('Error initializing services:', error)
     }
-  }, [isLoaded])
+  }, [isApiLoaded])
 
   useEffect(() => {
-    if (!searchInput || !isLoaded || !autocompleteService.current) {
+    if (!searchInput || !isApiLoaded || !autocompleteService.current) {
       setSuggestions([])
       return
     }
@@ -46,16 +48,22 @@ export function useGooglePlacesAutocomplete(locationType, selectedService) {
           input: searchInput,
           componentRestrictions: { country: 'us' },
           sessionToken: sessionToken.current,
+          // Restrict to Salt Lake City / Park City area
           location: new window.google.maps.LatLng(40.7608, -111.891),
-          radius: 40000,
+          radius: 40000, // 40km radius - covers Salt Lake City and Park City
           strictBounds: true,
         }
 
+        // For "from-airport" pickup, restrict to only airports
         if (selectedService?.id === 'from-airport' && locationType === 'pickup') {
           request.types = ['airport']
-        } else if (selectedService?.id === 'to-airport' && locationType === 'dropoff') {
+        }
+        // For "to-airport" dropoff, restrict to only airports
+        else if (selectedService?.id === 'to-airport' && locationType === 'dropoff') {
           request.types = ['airport']
-        } else {
+        }
+        // Otherwise, allow establishments and addresses
+        else {
           request.types = ['establishment', 'geocode']
         }
 
@@ -70,13 +78,21 @@ export function useGooglePlacesAutocomplete(locationType, selectedService) {
         })
 
         if (results) {
+          // Further restrict to SLC/Park City area even if Google returned other places
           const filteredResults = results.filter(place => {
             const description = place.description.toLowerCase()
             return (
               description.includes('salt lake') ||
               description.includes('park city') ||
               description.includes('slc') ||
-              description.includes('ut')
+              description.includes('cottonwood') ||
+              description.includes('snowbird') ||
+              description.includes('alta') ||
+              description.includes('solitude') ||
+              description.includes('brighton') ||
+              description.includes('sundance') ||
+              (description.includes('ut') &&
+                (description.includes('salt lake') || description.includes('park city')))
             )
           })
           setSuggestions(filteredResults)
@@ -90,10 +106,10 @@ export function useGooglePlacesAutocomplete(locationType, selectedService) {
     }, 300)
 
     return () => clearTimeout(searchTimeout)
-  }, [searchInput, locationType, selectedService, isLoaded])
+  }, [searchInput, locationType, selectedService, isApiLoaded])
 
   const getDetails = async placeId => {
-    if (!placesService.current || !isLoaded) return null
+    if (!placesService.current || !isApiLoaded) return null
 
     try {
       return await new Promise((resolve, reject) => {
@@ -123,6 +139,6 @@ export function useGooglePlacesAutocomplete(locationType, selectedService) {
     loading,
     getDetails,
     setSearchInput,
-    isLoaded,
+    isLoaded: isApiLoaded,
   }
 }

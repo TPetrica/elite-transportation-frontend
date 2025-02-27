@@ -8,6 +8,22 @@ import DatePicker from 'react-multi-date-picker'
 import { useNavigate, useLocation } from 'react-router-dom'
 import SideBar from './SideBar'
 
+// Fixed locations for affiliate bookings
+const AFFILIATE_LOCATIONS = {
+  AIRPORT: {
+    address: 'Salt Lake City International Airport, Salt Lake City, UT, USA',
+    coordinates: { lat: 40.7899, lng: -111.9791 },
+    isCustom: false,
+    isCottonwood: false,
+  },
+  HOSTEL: {
+    address: 'Park City Hostel, Park City, UT, USA',
+    coordinates: { lat: 40.6609, lng: -111.4988 },
+    isCustom: false,
+    isCottonwood: false,
+  },
+}
+
 const getServices = isAffiliate => {
   if (isAffiliate) {
     return [
@@ -81,6 +97,7 @@ export default function BookingTime() {
     selectedService,
     setAffiliateMode,
     isAffiliate,
+    resetBooking,
   } = useBooking()
 
   const [error, setError] = useState('')
@@ -88,11 +105,18 @@ export default function BookingTime() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassengerWarning, setShowPassengerWarning] = useState(false)
 
-  console.log('availableTimeSlots', availableTimeSlots)
-
+  // Check URL for affiliate code
   useEffect(() => {
     const params = new URLSearchParams(location.search)
     const affiliateCode = params.get('affiliate')
+
+    // If URL doesn't have affiliate code but state is in affiliate mode, reset the booking state
+    if (!affiliateCode && isAffiliate) {
+      resetBooking()
+      return
+    }
+
+    // If URL has affiliate code, set affiliate mode
     if (affiliateCode === 'PCH') {
       setAffiliateMode(affiliateCode)
 
@@ -100,8 +124,9 @@ export default function BookingTime() {
       const services = getServices(true)
       setSelectedService(services[0])
     }
-  }, [location, setAffiliateMode, setSelectedService])
+  }, [location, setAffiliateMode, setSelectedService, isAffiliate, resetBooking])
 
+  // Calculate distance between pickup and dropoff locations
   useEffect(() => {
     const calculateDistance = async () => {
       if (pickupDetails?.coordinates && dropoffDetails?.coordinates && window.google) {
@@ -137,6 +162,7 @@ export default function BookingTime() {
     calculateDistance()
   }, [pickupDetails?.coordinates, dropoffDetails?.coordinates])
 
+  // Fetch available time slots when date is selected
   useEffect(() => {
     const fetchAvailableTimeSlots = async () => {
       if (!selectedDate) return
@@ -145,7 +171,10 @@ export default function BookingTime() {
       setError('')
 
       try {
-        const result = await calendarService.getAvailableTimeSlots(selectedDate)
+        // Fixed: Ensure we're sending the date as a string in YYYY-MM-DD format
+        const result = await calendarService.getAvailableTimeSlots(
+          selectedDate.format('YYYY-MM-DD')
+        )
 
         if (result.success) {
           const formattedSlots = calendarService.formatAvailableSlots(result.data)
@@ -172,6 +201,31 @@ export default function BookingTime() {
       setSelectedService(service)
       setShowPassengerWarning(false)
 
+      // Clear locations when switching between airport and non-airport services
+      const previousServiceId = selectedService?.id || ''
+
+      // If switching to from-airport, clear the pickup location
+      if (service.id === 'from-airport' && previousServiceId !== 'from-airport') {
+        setPickupDetails({
+          ...pickupDetails,
+          address: '',
+          coordinates: null,
+          isCustom: false,
+          isCottonwood: false,
+        })
+      }
+
+      // If switching to to-airport, clear the dropoff location
+      if (service.id === 'to-airport' && previousServiceId !== 'to-airport') {
+        setDropoffDetails({
+          ...dropoffDetails,
+          address: '',
+          coordinates: null,
+          isCustom: false,
+          isCottonwood: false,
+        })
+      }
+
       if (service.maxPassengers) {
         setShowPassengerWarning(true)
       }
@@ -181,6 +235,7 @@ export default function BookingTime() {
   const handleDateSelect = date => {
     if (!date) return
 
+    // Fixed: Create a moment object without any timezone adjustments
     const momentDate = moment({
       year: date.year,
       month: date.month.number - 1,
@@ -199,7 +254,11 @@ export default function BookingTime() {
     setError('')
 
     try {
-      const result = await calendarService.checkAvailability(selectedDate, time)
+      // Fixed: Pass the date as string format to avoid timezone issues
+      const result = await calendarService.checkAvailability(
+        selectedDate.format('YYYY-MM-DD'),
+        time
+      )
 
       if (result.success && result.data) {
         const hour = parseInt(time.split(':')[0], 10)
@@ -216,7 +275,9 @@ export default function BookingTime() {
         }
       } else {
         setError('This time slot is no longer available')
-        const slotsResult = await calendarService.getAvailableTimeSlots(selectedDate)
+        const slotsResult = await calendarService.getAvailableTimeSlots(
+          selectedDate.format('YYYY-MM-DD')
+        )
         if (slotsResult.success) {
           setAvailableTimeSlots(calendarService.formatAvailableSlots(slotsResult.data))
         }
@@ -230,6 +291,24 @@ export default function BookingTime() {
   const handleFromLocationChange = location => {
     const isCottonwoodService = location.isCottonwood || dropoffDetails?.isCottonwood
 
+    // Special handling for affiliate bookings
+    if (isAffiliate) {
+      if (location.address === AFFILIATE_LOCATIONS.AIRPORT.address) {
+        // If pickup is airport, set dropoff to hostel
+        setDropoffDetails({
+          ...dropoffDetails,
+          ...AFFILIATE_LOCATIONS.HOSTEL,
+        })
+      } else if (location.address === AFFILIATE_LOCATIONS.HOSTEL.address) {
+        // If pickup is hostel, set dropoff to airport
+        setDropoffDetails({
+          ...dropoffDetails,
+          ...AFFILIATE_LOCATIONS.AIRPORT,
+        })
+      }
+    }
+
+    // If any location is in Cottonwood Canyons, automatically select Cottonwood service
     if (isCottonwoodService && (!selectedService || selectedService.id !== 'canyons')) {
       const canyonsService = getServices(isAffiliate).find(s => s.id === 'canyons')
       setSelectedService(canyonsService)
@@ -247,6 +326,24 @@ export default function BookingTime() {
   const handleToLocationChange = location => {
     const isCottonwoodService = location.isCottonwood || pickupDetails?.isCottonwood
 
+    // Special handling for affiliate bookings
+    if (isAffiliate) {
+      if (location.address === AFFILIATE_LOCATIONS.AIRPORT.address) {
+        // If dropoff is airport, set pickup to hostel
+        setPickupDetails({
+          ...pickupDetails,
+          ...AFFILIATE_LOCATIONS.HOSTEL,
+        })
+      } else if (location.address === AFFILIATE_LOCATIONS.HOSTEL.address) {
+        // If dropoff is hostel, set pickup to airport
+        setPickupDetails({
+          ...pickupDetails,
+          ...AFFILIATE_LOCATIONS.AIRPORT,
+        })
+      }
+    }
+
+    // If any location is in Cottonwood Canyons, automatically select Cottonwood service
     if (isCottonwoodService && (!selectedService || selectedService.id !== 'canyons')) {
       const canyonsService = getServices(isAffiliate).find(s => s.id === 'canyons')
       setSelectedService(canyonsService)
@@ -280,6 +377,7 @@ export default function BookingTime() {
     }
 
     try {
+      // Fixed: Pass the date as string to avoid timezone issues
       const result = await calendarService.checkAvailability(pickupDetails.date, pickupDetails.time)
 
       if (!result.success || !result.data) {
@@ -296,6 +394,9 @@ export default function BookingTime() {
 
   const services = getServices(isAffiliate)
 
+  // Determine if PlacePickers should be disabled
+  const disableLocationPickers = !selectedService && !isAffiliate
+
   return (
     <div className="box-row-tab mt-50 mb-50 booking-page">
       <div className="box-tab-left">
@@ -304,27 +405,42 @@ export default function BookingTime() {
             <div className="booking-grid">
               <div className="form-field">
                 <span className="field-label">Select Service Type</span>
-                <select
-                  className="form-control"
-                  value={selectedService?.id || ''}
-                  onChange={handleServiceSelect}
-                  disabled={
-                    pickupDetails?.isCottonwood || dropoffDetails?.isCottonwood || isAffiliate
-                  }
-                >
-                  <option value="">Select a service</option>
-                  {services.map(service => (
-                    <option key={service.id} value={service.id}>
-                      {service.title}
-                    </option>
-                  ))}
-                </select>
-                {selectedService?.description && (
+                {isAffiliate ? (
+                  <>
+                    <select
+                      className="form-control"
+                      value={selectedService?.id || ''}
+                      disabled={true}
+                    >
+                      <option value="per-person">Per Person Service</option>
+                    </select>
+                    <div className="service-description mt-2 text-sm text-gray-600">
+                      {selectedService?.description}
+                    </div>
+                  </>
+                ) : (
+                  <select
+                    className="form-control"
+                    value={selectedService?.id || ''}
+                    onChange={handleServiceSelect}
+                    disabled={pickupDetails?.isCottonwood || dropoffDetails?.isCottonwood}
+                  >
+                    <option value="">Select a service</option>
+                    {services.map(service => (
+                      <option key={service.id} value={service.id}>
+                        {service.title}
+                      </option>
+                    ))}
+                  </select>
+                )}
+
+                {!isAffiliate && selectedService?.description && (
                   <div className="service-description mt-2 text-sm text-gray-600">
                     {selectedService.description}
                   </div>
                 )}
-                {showPassengerWarning && selectedService?.maxPassengers && (
+
+                {showPassengerWarning && selectedService?.maxPassengers && !isAffiliate && (
                   <Alert
                     className="mt-4"
                     message={`This service is limited to ${selectedService.maxPassengers} passengers. For larger groups, please contact us for a custom quote.`}
@@ -332,7 +448,8 @@ export default function BookingTime() {
                     showIcon
                   />
                 )}
-                {selectedService?.requiresInquiry && (
+
+                {selectedService?.requiresInquiry && !isAffiliate && (
                   <div className="inquiry-section mt-4">
                     <Alert
                       message="Please contact us for a custom quote for group transportation."
@@ -358,11 +475,16 @@ export default function BookingTime() {
                       value={pickupDetails?.address}
                       onChange={handleFromLocationChange}
                       type="pickup"
-                      placeholder="Enter pickup location"
+                      placeholder={
+                        disableLocationPickers ? 'Select a service first' : 'Enter pickup location'
+                      }
                       selectedService={selectedService}
+                      isAffiliate={isAffiliate}
+                      disabled={disableLocationPickers}
                     />
                   </div>
                 </div>
+
                 <div className="form-field">
                   <span className="field-label">Drop-off Location</span>
                   <div className="input-with-icon">
@@ -371,8 +493,14 @@ export default function BookingTime() {
                       value={dropoffDetails?.address}
                       onChange={handleToLocationChange}
                       type="dropoff"
-                      placeholder="Enter drop-off location"
+                      placeholder={
+                        disableLocationPickers
+                          ? 'Select a service first'
+                          : 'Enter drop-off location'
+                      }
                       selectedService={selectedService}
+                      isAffiliate={isAffiliate}
+                      disabled={disableLocationPickers}
                     />
                   </div>
                 </div>
@@ -383,7 +511,6 @@ export default function BookingTime() {
                   <div className="calendar-section">
                     <span className="field-label">Select Date</span>
                     <DatePicker
-                      // value={selectedDate ? selectedDate.format('YYYY-MM-DD') : null}
                       onChange={handleDateSelect}
                       format="MMMM DD YYYY"
                       minDate={new Date()}
