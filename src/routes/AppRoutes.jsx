@@ -14,6 +14,10 @@ import OurTeamPage from '@/pages/pages/our-team'
 import TeamSinglePage from '@/pages/pages/team-single'
 import ServiceSinglePage from '@/pages/services/service-single'
 
+// Auth Pages
+import LoginPage from '@/pages/auth/login'
+import ForgotPasswordPage from '@/pages/auth/forgot-password'
+
 // Protected Pages
 import FAQPage from '@/components/otherPages/faq/FaqPage'
 import BookingExtraPage from '@/pages/booking/booking-extra'
@@ -28,9 +32,17 @@ import RatesPage from '@/pages/pages/rates'
 import TermsAndConditionsPage from '@/pages/pages/terms'
 import ServiceGridPage1 from '@/pages/services/service-grid'
 import GuestBookingRoute from '@/routes/GuestBookingRoute'
+
+// Dashboard
 import DashboardLayout from '@/routes/DashboardLayout'
 import DashboardHome from '@/pages/dashboard'
 import Services from '@/pages/dashboard/services'
+import BookingsPage from '@/pages/dashboard/bookings'
+import EditBookingPage from '@/pages/dashboard/bookings/EditBookingPage'
+import ExtraServicePage from '@/pages/dashboard/extras'
+import SchedulePage from '@/pages/dashboard/schedule'
+import VehiclesPage from '@/pages/dashboard/vehicles'
+import SettingsPage from '@/pages/dashboard/settings'
 
 const AppRoutes = () => {
   return (
@@ -38,63 +50,52 @@ const AppRoutes = () => {
       <Route path="/">
         {/* Public Routes */}
         <Route index element={<Home />} />
-        {/* <Route path="home-1" element={<HomePage1 />} />
-				<Route path="home-2" element={<HomePage2 />} />
-				<Route path="home-3" element={<HomePage3 />} />
-				<Route path="home-4" element={<HomePage4 />} />
-				<Route path="home-5" element={<HomePage5 />} />
-				<Route path="home-6" element={<HomePage6 />} />
-				<Route path="home-7" element={<HomePage7 />} />
-				<Route path="home-8" element={<HomePage8 />} />
-				<Route path="home-9" element={<HomePage9 />} />
-				<Route path="home-10" element={<HomePage10 />} /> */}
 
-        <Route path="/dashboard" element={<DashboardLayout />}>
+        {/* Auth Routes */}
+        <Route path="login" element={<LoginPage />} />
+        <Route path="forgot-password" element={<ForgotPasswordPage />} />
+
+        {/* Dashboard Routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<DashboardHome />} />
           <Route path="services" element={<Services />} />
-          {/* <Route path="bookings" element={<Bookings />} />
-          <Route path="extras" element={<Extras />} />
-          <Route path="schedule" element={<Schedule />} />
-          <Route path="vehicles" element={<Vehicles />} />
-          <Route path="settings" element={<Settings />} /> */}
+          <Route path="bookings" element={<BookingsPage />} />
+          <Route path="bookings/edit/:bookingId" element={<EditBookingPage />} />
+          <Route path="extras" element={<ExtraServicePage />} />
+          <Route path="schedule" element={<SchedulePage />} />
+          <Route path="vehicles" element={<VehiclesPage />} />
+          <Route path="settings" element={<SettingsPage />} />
         </Route>
 
+        {/* Public Content Pages */}
         <Route path="privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="cookie-policy" element={<CookiePolicyPage />} />
         <Route path="terms-and-conditions" element={<TermsAndConditionsPage />} />
         <Route path="faq" element={<FAQPage />} />
         <Route path="about-us" element={<AboutPage2 />} />
-        {/* <Route path="contact" element={<ContactPage1 />} /> */}
         <Route path="contact" element={<ContactPage2 />} />
         <Route path="our-team" element={<OurTeamPage />} />
         <Route path="team-single/:id" element={<TeamSinglePage />} />
-        {/* <Route path="register" element={<RegisterPage />} />
-				<Route path="login" element={<LoginPage />} /> */}
         <Route path="rates" element={<RatesPage />} />
         <Route path="coming-soon" element={<CommingSoonPage />} />
-
-        {/* <Route path="fleet-list" element={<FleetListPage1 />} />
-				<Route path="fleet-list-2" element={<FleetListPage2 />} />
-				<Route path="fleet-list-3" element={<FleetListPage3 />} />
-				<Route path="fleet-list-4" element={<FleetListPage4 />} /> */}
         <Route path="fleet" element={<FleetSinglePage />} />
-
         <Route path="services" element={<ServiceGridPage1 />} />
-        {/* <Route path="service-grid-2" element={<ServiceGridPage2 />} />
-        <Route path="service-grid-3" element={<ServiceGridPage3 />} /> */}
         <Route path="service-single/:id" element={<ServiceSinglePage />} />
-
         <Route path="blog" element={<BlogsGridPage1 />} />
-        {/* <Route path="blog-grid-2" element={<BlogsGridPage2 />} />
-				<Route path="blog-list" element={<BlogsListPage />} /> */}
         <Route path="blog-single/:id" element={<BlogsSinglePage />} />
 
         {/* Redirect from /reservation to /booking-time */}
         <Route path="reservation" element={<Navigate to="/booking-time" replace />} />
 
-        {/* Protected Routes */}
+        {/* Booking Routes */}
         <Route path="booking-time" element={<BookingTimePage />} />
-        {/* <Route path="booking-service" element={<BookingVehiclePage />} /> */}
         <Route path="booking-extra" element={<BookingExtraPage />} />
         <Route path="booking-passenger" element={<BookingPassengerPage />} />
         <Route path="booking-payment" element={<BookingPaymentPage />} />
@@ -106,6 +107,9 @@ const AppRoutes = () => {
             </GuestBookingRoute>
           }
         />
+
+        {/* Invoice Routes */}
+        <Route path="invoice/:bookingNumber" element={<InvoicePage />} />
         <Route
           path="invoice"
           element={

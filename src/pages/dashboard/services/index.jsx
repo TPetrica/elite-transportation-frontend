@@ -1,4 +1,3 @@
-// src/pages/dashboard/services/index.jsx
 import React, { useState, useEffect } from 'react'
 import {
   Table,
@@ -12,9 +11,11 @@ import {
   message,
   Switch,
   Card,
+  Empty,
 } from 'antd'
 import { PlusCircle, Edit, Trash2 } from 'lucide-react'
-import axios from 'axios'
+import ApiService from '@/services/api.service'
+import ServiceFormModal from './ServiceFormModal'
 
 const { Option } = Select
 
@@ -30,13 +31,32 @@ const Services = () => {
     try {
       setLoading(true)
       const [servicesRes, vehiclesRes] = await Promise.all([
-        axios.get('/api/services'),
-        axios.get('/api/vehicles'),
+        ApiService.get('/services'),
+        ApiService.get('/vehicles'),
       ])
-      setServices(servicesRes.data)
-      setVehicles(vehiclesRes.data)
+
+      // Ensure services is an array before setting state
+      const servicesData = Array.isArray(servicesRes.data)
+        ? servicesRes.data
+        : Array.isArray(servicesRes.data.results)
+          ? servicesRes.data.results
+          : []
+
+      // Ensure vehicles is an array
+      const vehiclesData = Array.isArray(vehiclesRes.data)
+        ? vehiclesRes.data
+        : Array.isArray(vehiclesRes.data.results)
+          ? vehiclesRes.data.results
+          : []
+
+      setServices(servicesData)
+      setVehicles(vehiclesData)
     } catch (error) {
+      console.error('Failed to fetch services:', error)
       message.error('Failed to fetch services')
+      // Set empty arrays to prevent errors
+      setServices([])
+      setVehicles([])
     } finally {
       setLoading(false)
     }
@@ -56,13 +76,15 @@ const Services = () => {
       title: 'Service Type',
       dataIndex: 'id',
       key: 'id',
-      render: text => <span className="tw-capitalize">{text.replace(/-/g, ' ')}</span>,
+      render: text =>
+        text ? <span className="tw-capitalize">{text.replace(/-/g, ' ')}</span> : 'N/A',
     },
     {
       title: 'Base Price',
       dataIndex: 'basePrice',
       key: 'basePrice',
-      render: price => `$${price.toFixed(2)}`,
+      render: price =>
+        price !== undefined && price !== null ? `$${parseFloat(price).toFixed(2)}` : 'N/A',
     },
     {
       title: 'Vehicle',
@@ -74,7 +96,7 @@ const Services = () => {
       title: 'Status',
       dataIndex: 'isActive',
       key: 'isActive',
-      render: isActive => <Switch checked={isActive} disabled />,
+      render: isActive => <Switch checked={!!isActive} disabled />,
     },
     {
       title: 'Actions',
@@ -108,22 +130,32 @@ const Services = () => {
   }
 
   const handleDelete = async id => {
-    try {
-      await axios.delete(`/api/services/${id}`)
-      message.success('Service deleted successfully')
-      fetchServices()
-    } catch (error) {
-      message.error('Failed to delete service')
-    }
+    Modal.confirm({
+      title: 'Are you sure you want to delete this service?',
+      content: 'This action cannot be undone.',
+      okText: 'Yes, Delete',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        try {
+          await ApiService.delete(`/services/${id}`)
+          message.success('Service deleted successfully')
+          fetchServices()
+        } catch (error) {
+          console.error('Failed to delete service:', error)
+          message.error('Failed to delete service')
+        }
+      },
+    })
   }
 
-  const handleSubmit = async values => {
+  const handleFormSubmit = async values => {
     try {
       if (editingId) {
-        await axios.put(`/api/services/${editingId}`, values)
+        await ApiService.put(`/services/${editingId}`, values)
         message.success('Service updated successfully')
       } else {
-        await axios.post('/api/services', values)
+        await ApiService.post('/services', values)
         message.success('Service created successfully')
       }
       setModalVisible(false)
@@ -131,6 +163,7 @@ const Services = () => {
       setEditingId(null)
       fetchServices()
     } catch (error) {
+      console.error('Failed to save service:', error)
       message.error('Failed to save service')
     }
   }
@@ -160,89 +193,27 @@ const Services = () => {
         <Table
           columns={columns}
           dataSource={services}
-          rowKey="_id"
+          rowKey={record => record._id || Math.random().toString(36).substr(2, 9)}
           loading={loading}
           pagination={{ pageSize: 10 }}
+          locale={{
+            emptyText: <Empty description="No services found" />,
+          }}
         />
       </Card>
 
-      <Modal
-        title={editingId ? 'Edit Service' : 'Add Service'}
-        open={modalVisible}
+      <ServiceFormModal
+        visible={modalVisible}
         onCancel={() => {
           setModalVisible(false)
           form.resetFields()
           setEditingId(null)
         }}
-        footer={null}
-      >
-        <Form form={form} layout="vertical" onFinish={handleSubmit} className="tw-mt-4">
-          <Form.Item
-            name="id"
-            label="Service Type"
-            rules={[{ required: true, message: 'Please select service type' }]}
-          >
-            <Select>
-              <Option value="to-airport">To Airport</Option>
-              <Option value="from-airport">From Airport</Option>
-              <Option value="round-trip">Round Trip</Option>
-              <Option value="hourly">Hourly</Option>
-              <Option value="group">Group</Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="name"
-            label="Name"
-            rules={[{ required: true, message: 'Please enter name' }]}
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            name="description"
-            label="Description"
-            rules={[{ required: true, message: 'Please enter description' }]}
-          >
-            <Input.TextArea rows={3} />
-          </Form.Item>
-
-          <Form.Item
-            name="basePrice"
-            label="Base Price"
-            rules={[{ required: true, message: 'Please enter base price' }]}
-          >
-            <InputNumber min={0} precision={2} style={{ width: '100%' }} prefix="$" />
-          </Form.Item>
-
-          <Form.Item
-            name="vehicle"
-            label="Vehicle"
-            rules={[{ required: true, message: 'Please select vehicle' }]}
-          >
-            <Select>
-              {vehicles.map(vehicle => (
-                <Option key={vehicle._id} value={vehicle._id}>
-                  {vehicle.name}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item name="isActive" valuePropName="checked" initialValue={true}>
-            <Switch checkedChildren="Active" unCheckedChildren="Inactive" />
-          </Form.Item>
-
-          <Form.Item className="tw-mb-0 tw-text-right">
-            <Space>
-              <Button onClick={() => setModalVisible(false)}>Cancel</Button>
-              <Button type="primary" htmlType="submit">
-                {editingId ? 'Update' : 'Create'}
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
+        form={form}
+        onFinish={handleFormSubmit}
+        editingId={editingId}
+        vehicles={vehicles}
+      />
     </div>
   )
 }

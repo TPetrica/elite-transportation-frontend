@@ -530,11 +530,11 @@ export default function BookingTime() {
                       <div className="slots-grid">
                         {availableTimeSlots.map(slot => (
                           <button
-                            key={slot.time}
+                            key={slot.formattedTime}
                             className={`time-slot ${selectedTime === slot.time ? 'selected' : ''}`}
                             onClick={() => handleTimeSelect(slot.time)}
                           >
-                            {slot.time}
+                            {slot.formattedTime}
                           </button>
                         ))}
                       </div>

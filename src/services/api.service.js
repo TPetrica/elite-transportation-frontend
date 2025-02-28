@@ -1,36 +1,59 @@
-import apiClient from "../config/axios";
+import apiClient from '../config/axios'
 
+// API Service methods
 const ApiService = {
-	setAuthHeader() {
-		const token = localStorage.getItem("accessToken");
-		if (token) {
-			apiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-		}
-	},
+  /**
+   * Make a GET request
+   * @param {string} url - Endpoint URL
+   * @param {object} config - Axios request config
+   * @returns {Promise} - Axios promise
+   */
+  get: (url, config = {}) => {
+    return apiClient.get(url, config)
+  },
 
-	removeAuthHeader() {
-		delete apiClient.defaults.headers.common["Authorization"];
-	},
+  /**
+   * Make a POST request
+   * @param {string} url - Endpoint URL
+   * @param {object} data - Request payload
+   * @param {object} config - Axios request config
+   * @returns {Promise} - Axios promise
+   */
+  post: (url, data = {}, config = {}) => {
+    return apiClient.post(url, data, config)
+  },
 
-	get(resource) {
-		return apiClient.get(resource);
-	},
+  /**
+   * Make a PUT request
+   * @param {string} url - Endpoint URL
+   * @param {object} data - Request payload
+   * @param {object} config - Axios request config
+   * @returns {Promise} - Axios promise
+   */
+  put: (url, data = {}, config = {}) => {
+    return apiClient.put(url, data, config)
+  },
 
-	post(resource, data) {
-		return apiClient.post(resource, data);
-	},
+  /**
+   * Make a PATCH request
+   * @param {string} url - Endpoint URL
+   * @param {object} data - Request payload
+   * @param {object} config - Axios request config
+   * @returns {Promise} - Axios promise
+   */
+  patch: (url, data = {}, config = {}) => {
+    return apiClient.patch(url, data, config)
+  },
 
-	put(resource, data) {
-		return apiClient.put(resource, data);
-	},
+  /**
+   * Make a DELETE request
+   * @param {string} url - Endpoint URL
+   * @param {object} config - Axios request config
+   * @returns {Promise} - Axios promise
+   */
+  delete: (url, config = {}) => {
+    return apiClient.delete(url, config)
+  },
+}
 
-	delete(resource) {
-		return apiClient.delete(resource);
-	},
-
-	customRequest(config) {
-		return apiClient(config);
-	},
-};
-
-export default ApiService;
+export default ApiService
