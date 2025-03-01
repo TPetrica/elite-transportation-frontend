@@ -3,8 +3,9 @@ import { useBooking } from '@/context/BookingContext'
 import { format } from 'date-fns'
 import { Tooltip } from 'antd'
 import { InfoCircleOutlined } from '@ant-design/icons'
+import moment from 'moment'
 
-// Utility functions
+// Formatting utilities
 const formatDateTime = (date, time) => {
   if (!date) return ''
   try {
@@ -19,72 +20,6 @@ const formatCurrency = amount => {
     style: 'currency',
     currency: 'USD',
   }).format(amount)
-}
-
-const formatCapacity = capacity => {
-  if (!capacity) return ''
-  let result = ''
-  if (capacity.passengers) {
-    result += `${capacity.passengers} passengers`
-  }
-  if (capacity.luggage) {
-    result +=
-      capacity.luggage === 'number' ? `, ${capacity.luggage} luggage` : `, ${capacity.luggage}`
-  }
-  return result
-}
-
-// Price breakdown tooltip content
-const PriceBreakdown = ({ service, isWinter, hours, passengers }) => {
-  if (!service) return null
-
-  let breakdown = []
-  switch (service.id) {
-    case 'from-airport':
-    case 'to-airport':
-      breakdown = [
-        { label: 'Base fare', amount: 100 },
-        { label: 'Gas surcharge', amount: 10 },
-        ...(isWinter ? [{ label: 'Winter SUV surcharge', amount: 10 }] : []),
-      ]
-      break
-    case 'canyons':
-      breakdown = [{ label: 'Fixed rate', amount: 150 }]
-      break
-    case 'per-person':
-      const effectivePassengers = Math.max(2, passengers)
-      breakdown = [
-        {
-          label: `Rate for ${effectivePassengers} passengers @ $65/person`,
-          amount: 65 * effectivePassengers,
-        },
-      ]
-      break
-    case 'hourly':
-      breakdown = [
-        { label: `${hours} hour${hours > 1 ? 's' : ''} @ $100/hour`, amount: 100 * hours },
-      ]
-      break
-    case 'group':
-      return <div>Please inquire for pricing</div>
-  }
-
-  const total = breakdown.reduce((sum, item) => sum + item.amount, 0)
-
-  return (
-    <div className="price-breakdown-tooltip">
-      {breakdown.map((item, idx) => (
-        <div key={idx} className="breakdown-row">
-          <span>{item.label}</span>
-          <span>{formatCurrency(item.amount)}</span>
-        </div>
-      ))}
-      <div className="breakdown-total">
-        <strong>Total Base Price</strong>
-        <strong>{formatCurrency(total)}</strong>
-      </div>
-    </div>
-  )
 }
 
 // Sub-components
@@ -119,7 +54,7 @@ const DateTimeInfo = ({ pickupDetails }) => (
       <li>
         <span className="icon-item icon-time"></span>
         <span className="info-location text-14-medium">
-          {pickupDetails?.time || 'Time not selected'}
+          {moment(pickupDetails?.time, 'HH:mm').format('h:mm A') || 'Time not selected'}
         </span>
       </li>
     </ul>
@@ -143,35 +78,41 @@ const DistanceInfo = ({ distance, duration }) => (
   </div>
 )
 
-const ServiceInfo = ({ selectedService, isWinter, pricing, passengerDetails }) => (
-  <>
-    <div className="border-bottom mt-30 mb-25"></div>
-    <div className="mt-0">
-      <span className="text-14 color-grey">
-        Service
-        <Tooltip
-          title={
-            <PriceBreakdown
-              service={selectedService}
-              isWinter={isWinter}
-              hours={pricing.hours}
-              passengers={passengerDetails.passengers}
-            />
-          }
-          placement="right"
-        >
-          <InfoCircleOutlined className="info-icon ml-2" />
-        </Tooltip>
-      </span>
-      <br />
-      <span className="text-14-medium color-text">
-        {selectedService.title}
+const ServiceInfo = ({ selectedService, isAffiliate }) => {
+  console.log('selectedService', selectedService)
+
+  // Create a modified description for affiliate mode
+  const getDescription = () => {
+    if (!selectedService || !selectedService.description) return ''
+
+    if (isAffiliate && selectedService.serviceType.toLowerCase().includes('per-person')) {
+      // For affiliate per-person service, show simple $65 per person without minimum
+      return '$65 per person'
+    }
+
+    return selectedService.description
+  }
+
+  return (
+    <>
+      <div className="border-bottom mt-30 mb-25"></div>
+      <div className="mt-0">
+        <span className="text-14 color-grey">
+          Service
+          <Tooltip title="Price is calculated based on your selections" placement="right">
+            <InfoCircleOutlined className="info-icon ml-2" />
+          </Tooltip>
+        </span>
         <br />
-        {formatCapacity(selectedService.capacity)}
-      </span>
-    </div>
-  </>
-)
+        <span className="text-14-medium color-text">
+          {selectedService.title}
+          <br />
+          <span className="text-sm">{getDescription()}</span>
+        </span>
+      </div>
+    </>
+  )
+}
 
 const PassengerInfo = ({ passengerDetails }) => {
   if (!passengerDetails || (!passengerDetails.firstName && !passengerDetails.lastName)) {
@@ -227,7 +168,7 @@ const ExtrasInfo = ({ selectedExtras }) => {
 const PricingSummary = ({ pricing, selectedService }) => (
   <>
     <ul className="list-prices list-prices-2">
-      {selectedService && (
+      {selectedService && pricing.basePrice > 0 && (
         <li>
           <span className="text">Service Price</span>
           <span className="price">{formatCurrency(pricing.basePrice)}</span>
@@ -273,21 +214,11 @@ export default function SideBar() {
     duration,
     pricing,
     passengerDetails,
-    updatePricing,
-    isWinter,
+    isAffiliate,
   } = useBooking()
 
   const handleTipChange = value => {
-    const gratuity = parseFloat(value)
-    if (!isNaN(gratuity)) {
-      updatePricing({
-        gratuity: gratuity,
-        // Include these additional fields to maintain the tip state
-        selectedTipPercentage: gratuity === 0 ? 0 : (gratuity / pricing.basePrice) * 100,
-        customTipAmount: '',
-        isCustomTip: false,
-      })
-    }
+    // Handler is now implemented directly in the TipCalculator component
   }
 
   return (
@@ -307,12 +238,7 @@ export default function SideBar() {
 
         {/* Service Details */}
         {selectedService && (
-          <ServiceInfo
-            selectedService={selectedService}
-            isWinter={isWinter}
-            pricing={pricing}
-            passengerDetails={passengerDetails}
-          />
+          <ServiceInfo selectedService={selectedService} isAffiliate={isAffiliate} />
         )}
 
         {/* Passenger Details */}
@@ -326,7 +252,7 @@ export default function SideBar() {
           <div className="pricing-summary mt-30">
             {pricing.basePrice > 0 && (
               <div className="mb-30">
-                <TipCalculator basePrice={pricing.basePrice} onTipChange={handleTipChange} />
+                <TipCalculator basePrice={pricing.basePrice} />
               </div>
             )}
             <PricingSummary pricing={pricing} selectedService={selectedService} />

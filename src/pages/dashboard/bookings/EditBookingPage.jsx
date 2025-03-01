@@ -4,7 +4,6 @@ import {
   Form,
   Input,
   Select,
-  DatePicker,
   TimePicker,
   InputNumber,
   Button,
@@ -14,14 +13,34 @@ import {
   Divider,
   Space,
   Alert,
+  Typography,
+  Badge,
+  Tag,
+  Row,
+  Col,
 } from 'antd'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Save, Calendar, Clock, MapPin, User, Phone, Mail, FileText } from 'lucide-react'
+import {
+  ArrowLeft,
+  Save,
+  Calendar,
+  Clock,
+  MapPin,
+  User,
+  Phone,
+  Mail,
+  FileText,
+  Plus,
+  Minus,
+  DollarSign,
+} from 'lucide-react'
 import moment from 'moment'
 import ApiService from '@/services/api.service'
+import DatePicker from '@/components/dashboard/DatePicker'
 
 const { Option } = Select
 const { TabPane } = Tabs
+const { Text, Title } = Typography
 
 const EditBookingPage = () => {
   const { bookingId } = useParams()
@@ -31,6 +50,8 @@ const EditBookingPage = () => {
   const [submitting, setSubmitting] = useState(false)
   const [booking, setBooking] = useState(null)
   const [extras, setExtras] = useState([])
+  const [selectedExtras, setSelectedExtras] = useState([])
+  const [totalExtrasPrice, setTotalExtrasPrice] = useState(0)
 
   useEffect(() => {
     const fetchBookingData = async () => {
@@ -50,6 +71,27 @@ const EditBookingPage = () => {
 
         const bookingData = bookingRes.data
         setBooking(bookingData)
+
+        // Set extras data
+        const extrasData = Array.isArray(extrasRes.data) ? extrasRes.data : []
+        setExtras(extrasData)
+
+        // Prepare selected extras
+        const currentExtras =
+          bookingData.extras?.map(extra => ({
+            itemId: extra.item._id,
+            quantity: extra.quantity,
+            name: extra.item.name,
+            price: extra.item.price,
+            category: extra.item.category || 'Other',
+            totalPrice: extra.price,
+          })) || []
+
+        setSelectedExtras(currentExtras)
+
+        // Calculate total extras price
+        const totalPrice = currentExtras.reduce((sum, item) => sum + item.price * item.quantity, 0)
+        setTotalExtrasPrice(totalPrice)
 
         // Format the data for the form
         form.setFieldsValue({
@@ -76,20 +118,9 @@ const EditBookingPage = () => {
             specialRequirements: bookingData.passengerDetails.specialRequirements || '',
           },
 
-          // Selected extras - use a proper unique key for each extra item
-          selectedExtras:
-            bookingData.extras?.map((extra, index) => ({
-              key: index, // This ensures each extra has a unique identifier
-              itemId: extra.item._id,
-              quantity: extra.quantity,
-            })) || [],
-
           // Status
           status: bookingData.status,
         })
-
-        // Set extras data
-        setExtras(Array.isArray(extrasRes.data) ? extrasRes.data : [])
       } catch (error) {
         console.error('Error fetching booking data:', error)
         message.error('Failed to load booking data')
@@ -102,6 +133,12 @@ const EditBookingPage = () => {
       fetchBookingData()
     }
   }, [bookingId, form])
+
+  useEffect(() => {
+    // Calculate total price whenever selectedExtras change
+    const total = selectedExtras.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    setTotalExtrasPrice(total)
+  }, [selectedExtras])
 
   const handleSubmit = async values => {
     try {
@@ -130,13 +167,11 @@ const EditBookingPage = () => {
         },
         service: values.service,
         status: values.status,
-        // Format extras - remove the key property as it's only for frontend use
-        extras:
-          values.selectedExtras?.map(item => ({
-            item: item.itemId,
-            quantity: item.quantity,
-            // Price will be calculated on the server
-          })) || [],
+        // Format extras from our state
+        extras: selectedExtras.map(item => ({
+          item: item.itemId,
+          quantity: item.quantity,
+        })),
       }
 
       await ApiService.patch(`/bookings/${bookingId}`, updateData)
@@ -144,18 +179,60 @@ const EditBookingPage = () => {
       navigate('/dashboard/bookings')
     } catch (error) {
       console.error('Error updating booking:', error)
-      message.error('Failed to update booking')
+      if (error.response?.data?.message) {
+        message.error(`Failed to update booking: ${error.response.data.message}`)
+      } else {
+        message.error('Failed to update booking')
+      }
     } finally {
       setSubmitting(false)
     }
   }
 
+  const handleAddExtra = extra => {
+    const extraExists = selectedExtras.some(item => item.itemId === extra._id)
+
+    if (!extraExists) {
+      const newExtra = {
+        itemId: extra._id,
+        quantity: 1,
+        name: extra.name,
+        price: extra.price,
+        category: extra.category || 'Other',
+        totalPrice: extra.price,
+      }
+
+      setSelectedExtras(prevExtras => [...prevExtras, newExtra])
+    }
+  }
+
+  const handleRemoveExtra = itemId => {
+    setSelectedExtras(prevExtras => prevExtras.filter(extra => extra.itemId !== itemId))
+  }
+
+  const handleUpdateExtraQuantity = (itemId, change) => {
+    setSelectedExtras(prevExtras =>
+      prevExtras.map(extra => {
+        if (extra.itemId === itemId) {
+          const newQuantity = Math.max(1, extra.quantity + change)
+          return {
+            ...extra,
+            quantity: newQuantity,
+            totalPrice: extra.price * newQuantity,
+          }
+        }
+        return extra
+      })
+    )
+  }
+
   const formatExtrasByCategory = () => {
     const groupedExtras = extras.reduce((acc, extra) => {
-      if (!acc[extra.category]) {
-        acc[extra.category] = []
+      const category = extra.category || 'Other'
+      if (!acc[category]) {
+        acc[category] = []
       }
-      acc[extra.category].push(extra)
+      acc[category].push(extra)
       return acc
     }, {})
 
@@ -260,6 +337,7 @@ const EditBookingPage = () => {
                         className="tw-w-full"
                         format="YYYY-MM-DD"
                         getPopupContainer={trigger => trigger.parentNode}
+                        changeOnBlur={true}
                       />
                     </Form.Item>
 
@@ -275,8 +353,11 @@ const EditBookingPage = () => {
                     >
                       <TimePicker
                         className="tw-w-full"
-                        format="HH:mm"
+                        format="h:mm A"
+                        minuteStep={15}
+                        use12Hours
                         getPopupContainer={trigger => trigger.parentNode}
+                        changeOnBlur={true}
                       />
                     </Form.Item>
                   </div>
@@ -423,107 +504,129 @@ const EditBookingPage = () => {
             tab={
               <span>
                 <FileText size={16} className="tw-inline tw-mr-2" />
-                Extras
+                Extras {selectedExtras.length > 0 && `(${selectedExtras.length})`}
               </span>
             }
             key="extras"
           >
             <Card className="tw-shadow-sm">
-              <h3 className="tw-text-lg tw-font-semibold tw-mb-4">Extra Services</h3>
+              <div className="tw-flex tw-justify-between tw-items-center tw-mb-4">
+                <h3 className="tw-text-lg tw-font-semibold tw-mb-0">Extra Services</h3>
+                {selectedExtras.length > 0 && (
+                  <div className="tw-text-right">
+                    <Text strong>Total Extras: </Text>
+                    <Text className="tw-text-lg tw-font-semibold tw-text-blue-600">
+                      ${totalExtrasPrice.toFixed(2)}
+                    </Text>
+                  </div>
+                )}
+              </div>
 
-              <Form.List name="selectedExtras">
-                {(fields, { add, remove }) => (
-                  <>
-                    {Object.entries(groupedExtras).map(([category, items]) => (
-                      <div key={category} className="tw-mb-6">
-                        <h4 className="tw-text-md tw-font-medium tw-mb-3 tw-capitalize">
-                          {category.replace(/([A-Z])/g, ' $1')}
-                        </h4>
+              {selectedExtras.length > 0 && (
+                <div className="tw-mb-8">
+                  <h4 className="tw-mb-3 tw-font-medium">Selected Extras</h4>
+                  <div className="tw-space-y-3">
+                    {selectedExtras.map(extra => (
+                      <Card
+                        key={extra.itemId}
+                        size="small"
+                        className="tw-border tw-border-blue-500"
+                      >
+                        <div className="tw-flex tw-justify-between tw-items-center">
+                          <div>
+                            <div className="tw-flex tw-items-center">
+                              <Text strong>{extra.name}</Text>
+                              <Tag className="tw-ml-2" color="blue">
+                                {extra.category}
+                              </Tag>
+                            </div>
+                            <Text type="secondary">${extra.price.toFixed(2)} each</Text>
+                          </div>
+                          <div className="tw-flex tw-items-center">
+                            <Text className="tw-mr-3 tw-font-medium tw-text-blue-600">
+                              ${(extra.price * extra.quantity).toFixed(2)}
+                            </Text>
+                            <Button
+                              size="small"
+                              icon={<Minus size={14} />}
+                              onClick={() => handleUpdateExtraQuantity(extra.itemId, -1)}
+                              disabled={extra.quantity <= 1}
+                            />
+                            <span className="tw-mx-2 tw-text-center tw-w-8">{extra.quantity}</span>
+                            <Button
+                              size="small"
+                              icon={<Plus size={14} />}
+                              onClick={() => handleUpdateExtraQuantity(extra.itemId, 1)}
+                            />
+                            <Button
+                              danger
+                              type="text"
+                              size="small"
+                              className="tw-ml-3"
+                              onClick={() => handleRemoveExtra(extra.itemId)}
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-                        <div className="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-3 tw-gap-4">
-                          {items.map(extra => {
-                            // Find if this extra is already selected
-                            const existingField = fields.find(field => {
-                              const itemId = form.getFieldValue([
-                                'selectedExtras',
-                                field.name,
-                                'itemId',
-                              ])
-                              return itemId === extra._id
-                            })
+              <div>
+                <Divider orientation="left">Available Extras</Divider>
+                {Object.entries(groupedExtras).map(([category, items]) => (
+                  <div key={category} className="tw-mb-6">
+                    <h4 className="tw-text-md tw-font-medium tw-mb-3 tw-capitalize">
+                      {category.replace(/([A-Z])/g, ' $1')}
+                    </h4>
+                    <Row gutter={[16, 16]}>
+                      {items.map(extra => {
+                        // Check if this extra is already selected
+                        const isSelected = selectedExtras.some(item => item.itemId === extra._id)
 
-                            const isSelected = !!existingField
-
-                            return (
-                              <Card
-                                key={extra._id}
-                                size="small"
-                                className={`tw-border ${isSelected ? 'tw-border-blue-500' : 'tw-border-gray-200'}`}
-                              >
-                                <div className="tw-flex tw-justify-between tw-items-center">
+                        return (
+                          <Col xs={24} sm={12} md={8} key={extra._id}>
+                            <Card
+                              size="small"
+                              className={`tw-h-full ${isSelected ? 'tw-opacity-50' : ''}`}
+                              hoverable={!isSelected}
+                            >
+                              <div className="tw-flex tw-justify-between tw-h-full">
+                                <div>
+                                  <Text strong>{extra.name}</Text>
                                   <div>
-                                    <h5 className="tw-font-medium">{extra.name}</h5>
-                                    <p className="tw-text-sm tw-text-gray-500">
+                                    <Text className="tw-text-blue-600 tw-font-medium">
                                       ${extra.price.toFixed(2)}
-                                    </p>
+                                    </Text>
                                   </div>
-
-                                  {isSelected ? (
-                                    <Space>
-                                      <Form.Item
-                                        name={['selectedExtras', existingField.name, 'quantity']}
-                                        noStyle
-                                      >
-                                        <InputNumber
-                                          min={1}
-                                          max={extra.maxQuantity}
-                                          size="small"
-                                          className="tw-w-16"
-                                        />
-                                      </Form.Item>
-                                      <Button
-                                        type="text"
-                                        danger
-                                        size="small"
-                                        onClick={() => remove(existingField.name)}
-                                      >
-                                        Remove
-                                      </Button>
-
-                                      {/* Hidden field to store the extra ID */}
-                                      <Form.Item
-                                        name={['selectedExtras', existingField.name, 'itemId']}
-                                        hidden
-                                      >
-                                        <Input />
-                                      </Form.Item>
-                                    </Space>
-                                  ) : (
-                                    <Button
-                                      type="primary"
-                                      size="small"
-                                      onClick={() => {
-                                        // Add a new extra with a unique key
-                                        add({
-                                          key: Date.now(), // Use timestamp as unique key
-                                          itemId: extra._id,
-                                          quantity: 1,
-                                        })
-                                      }}
-                                    >
-                                      Add
-                                    </Button>
+                                  {extra.description && (
+                                    <Text type="secondary" className="tw-text-sm">
+                                      {extra.description}
+                                    </Text>
                                   )}
                                 </div>
-                              </Card>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    ))}
-                  </>
-                )}
-              </Form.List>
+                                <div>
+                                  <Button
+                                    type="primary"
+                                    size="small"
+                                    onClick={() => handleAddExtra(extra)}
+                                    disabled={isSelected}
+                                  >
+                                    {isSelected ? 'Added' : 'Add'}
+                                  </Button>
+                                </div>
+                              </div>
+                            </Card>
+                          </Col>
+                        )
+                      })}
+                    </Row>
+                  </div>
+                ))}
+              </div>
             </Card>
           </TabPane>
         </Tabs>

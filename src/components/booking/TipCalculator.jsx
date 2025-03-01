@@ -4,14 +4,14 @@ import { useEffect, useState } from 'react'
 
 const { Title, Text } = Typography
 
-const TipCalculator = () => {
+const TipCalculator = ({ basePrice, onTipChange }) => {
   const { pricing, updateTipSettings } = useBooking()
   const [tipPercentage, setTipPercentage] = useState(pricing.selectedTipPercentage || null)
   const [customTip, setCustomTip] = useState(pricing.customTipAmount || '')
   const [isCustom, setIsCustom] = useState(pricing.isCustomTip || false)
 
   // Calculate total before tip
-  const totalBeforeTip = pricing.basePrice + pricing.extrasTotal + pricing.nightFee
+  const totalBeforeTip = basePrice || pricing.basePrice
 
   const tipAmount = isCustom
     ? Number(customTip)
@@ -19,16 +19,22 @@ const TipCalculator = () => {
       ? totalBeforeTip * (tipPercentage / 100)
       : 0
 
-  // Remove the initial render effect that set 20% by default
-  // Only keep the effect that updates when values change
+  // Update the gratuity whenever tip changes
   useEffect(() => {
-    updateTipSettings({
-      percentage: tipPercentage,
-      customAmount: customTip,
-      isCustom,
-      gratuity: tipAmount,
-    })
-  }, [tipAmount, tipPercentage, customTip, isCustom, totalBeforeTip])
+    updateTipSettings(tipAmount, tipPercentage, customTip, isCustom)
+
+    if (onTipChange) {
+      onTipChange(tipAmount)
+    }
+  }, [
+    tipAmount,
+    tipPercentage,
+    customTip,
+    isCustom,
+    totalBeforeTip,
+    updateTipSettings,
+    onTipChange,
+  ])
 
   const handleTipSelect = percentage => {
     setIsCustom(false)

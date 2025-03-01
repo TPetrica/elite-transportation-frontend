@@ -31,6 +31,8 @@ import {
   Filter,
   RefreshCw,
   Search,
+  ArrowDown,
+  ArrowUp,
 } from 'lucide-react'
 import moment from 'moment'
 import ApiService from '@/services/api.service'
@@ -53,6 +55,8 @@ const BookingsPage = () => {
     pageSize: 10,
     total: 0,
   })
+  const [sortField, setSortField] = useState('pickup.date')
+  const [sortOrder, setSortOrder] = useState('desc')
   const navigate = useNavigate()
 
   const fetchBookings = async (params = {}) => {
@@ -69,6 +73,11 @@ const BookingsPage = () => {
       // Pagination
       queryParams.page = params.page || pagination.current
       queryParams.limit = params.pageSize || pagination.pageSize
+
+      // Sorting
+      const currentSortField = params.sortField || sortField
+      const currentSortOrder = params.sortOrder || sortOrder
+      queryParams.sortBy = `${currentSortField}:${currentSortOrder === 'ascend' ? 'asc' : 'desc'}`
 
       // Add search parameters if they exist
       const searchValues = searchForm.getFieldsValue()
@@ -109,7 +118,7 @@ const BookingsPage = () => {
 
   useEffect(() => {
     fetchBookings()
-  }, [currentTab]) // Re-fetch when tab changes
+  }, [currentTab, sortField, sortOrder]) // Re-fetch when tab or sorting changes
 
   const handleTabChange = key => {
     setCurrentTab(key)
@@ -123,9 +132,14 @@ const BookingsPage = () => {
   }
 
   const handleTableChange = (pagination, filters, sorter) => {
+    // Update sort state if sorter is defined and has a column
+    if (sorter && sorter.column) {
+      setSortField(sorter.field || 'pickup.date')
+      setSortOrder(sorter.order || 'desc')
+    }
+
     fetchBookings({
       page: pagination.current,
-      pageSize: pagination.pageSize,
       sortField: sorter.field,
       sortOrder: sorter.order,
       ...filters,
@@ -234,7 +248,6 @@ const BookingsPage = () => {
   const handleEditBooking = booking => {
     // Ensure we have a valid booking ID before navigating
     if (booking && booking.id) {
-      console.log('Navigating to edit booking:', booking.id)
       navigate(`/dashboard/bookings/edit/${booking.id}`)
     } else {
       message.error('Cannot edit booking: Invalid booking ID')
@@ -346,6 +359,7 @@ const BookingsPage = () => {
       dataIndex: 'bookingNumber',
       key: 'bookingNumber',
       render: text => <a onClick={() => navigate(`/invoice/${text}`)}>{text}</a>,
+      responsive: ['md'],
     },
     {
       title: 'Customer',
@@ -360,10 +374,16 @@ const BookingsPage = () => {
       render: service => (
         <span className="tw-capitalize">{service?.replace(/-/g, ' ') || 'N/A'}</span>
       ),
+      responsive: ['lg'],
     },
     {
       title: 'Date & Time',
       key: 'dateTime',
+      dataIndex: ['pickup'],
+      sorter: true,
+      sortDirections: ['ascend', 'descend'],
+      defaultSortOrder: 'descend',
+      sortOrder: sortField === 'pickup.date' ? sortOrder : null,
       render: (_, record) =>
         record.pickup ? (
           <span>
@@ -380,6 +400,7 @@ const BookingsPage = () => {
       dataIndex: ['payment', 'amount'],
       key: 'amount',
       render: amount => (amount ? `$${parseFloat(amount).toFixed(2)}` : 'N/A'),
+      responsive: ['md'],
     },
     {
       title: 'Status',
@@ -409,9 +430,9 @@ const BookingsPage = () => {
 
   return (
     <div className="tw-space-y-6">
-      <div className="tw-flex tw-justify-between tw-items-center">
+      <div className="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-start md:tw-items-center tw-gap-4 md:tw-gap-0">
         <div>
-          <h1 className="tw-text-2xl tw-font-bold tw-text-gray-900">Bookings</h1>
+          <h1 className="tw-text-xl md:tw-text-2xl tw-font-bold tw-text-gray-900">Bookings</h1>
           <p className="tw-text-sm tw-text-gray-500">Manage all your transportation bookings</p>
         </div>
         <Button
@@ -431,13 +452,22 @@ const BookingsPage = () => {
             onFinish={handleSearch}
             className="tw-gap-2 tw-flex tw-flex-wrap"
           >
-            <Form.Item name="bookingNumber" className="tw-mb-2">
+            <Form.Item
+              name="bookingNumber"
+              className="tw-mb-2 tw-flex-grow tw-min-w-[150px] sm:tw-min-w-0 sm:tw-flex-grow-0"
+            >
               <Input prefix={<Search size={14} className="tw-mr-1" />} placeholder="Booking ID" />
             </Form.Item>
-            <Form.Item name="customerName" className="tw-mb-2">
+            <Form.Item
+              name="customerName"
+              className="tw-mb-2 tw-flex-grow tw-min-w-[150px] sm:tw-min-w-0 sm:tw-flex-grow-0"
+            >
               <Input prefix={<User size={14} className="tw-mr-1" />} placeholder="Customer Name" />
             </Form.Item>
-            <Form.Item name="date" className="tw-mb-2">
+            <Form.Item
+              name="date"
+              className="tw-mb-2 tw-flex-grow tw-min-w-[150px] sm:tw-min-w-0 sm:tw-flex-grow-0"
+            >
               <DatePicker
                 placeholder="Select Date"
                 format="YYYY-MM-DD"
@@ -445,7 +475,10 @@ const BookingsPage = () => {
                 getPopupContainer={trigger => trigger.parentNode}
               />
             </Form.Item>
-            <Form.Item name="status" className="tw-mb-2">
+            <Form.Item
+              name="status"
+              className="tw-mb-2 tw-flex-grow tw-min-w-[150px] sm:tw-min-w-0 sm:tw-flex-grow-0"
+            >
               <Select placeholder="Status" className="tw-min-w-[120px]" allowClear>
                 <Option value="all">All</Option>
                 <Option value="pending">Pending</Option>
@@ -471,91 +504,106 @@ const BookingsPage = () => {
           </Form>
         </div>
 
-        <Tabs defaultActiveKey="all" onChange={handleTabChange}>
+        <Tabs defaultActiveKey="all" onChange={handleTabChange} className="tw-overflow-x-auto">
           <TabPane tab="All Bookings" key="all">
-            <Table
-              dataSource={bookings}
-              columns={columns}
-              rowKey="id"
-              loading={loading}
-              onChange={handleTableChange}
-              pagination={{
-                ...pagination,
-                showSizeChanger: true,
-                showTotal: total => `Total ${total} bookings`,
-              }}
-              locale={{
-                emptyText: <Empty description="No bookings found" />,
-              }}
-            />
+            <div className="tw-overflow-x-auto">
+              <Table
+                dataSource={bookings}
+                columns={columns}
+                rowKey="id"
+                loading={loading}
+                onChange={handleTableChange}
+                pagination={{
+                  ...pagination,
+                  showSizeChanger: true,
+                  showTotal: total => `Total ${total} bookings`,
+                }}
+                locale={{
+                  emptyText: <Empty description="No bookings found" />,
+                }}
+                scroll={{ x: 'max-content' }}
+              />
+            </div>
           </TabPane>
           <TabPane tab="Pending" key="pending">
-            <Table
-              dataSource={bookings}
-              columns={columns}
-              rowKey="id"
-              loading={loading}
-              onChange={handleTableChange}
-              pagination={{
-                ...pagination,
-                showSizeChanger: true,
-                showTotal: total => `Total ${total} pending bookings`,
-              }}
-              locale={{
-                emptyText: <Empty description="No pending bookings found" />,
-              }}
-            />
+            <div className="tw-overflow-x-auto">
+              <Table
+                dataSource={bookings}
+                columns={columns}
+                rowKey="id"
+                loading={loading}
+                onChange={handleTableChange}
+                pagination={{
+                  ...pagination,
+                  showSizeChanger: true,
+                  showTotal: total => `Total ${total} pending bookings`,
+                }}
+                locale={{
+                  emptyText: <Empty description="No pending bookings found" />,
+                }}
+                scroll={{ x: 'max-content' }}
+              />
+            </div>
           </TabPane>
           <TabPane tab="Confirmed" key="confirmed">
-            <Table
-              dataSource={bookings}
-              columns={columns}
-              rowKey="id"
-              loading={loading}
-              onChange={handleTableChange}
-              pagination={{
-                ...pagination,
-                showSizeChanger: true,
-                showTotal: total => `Total ${total} confirmed bookings`,
-              }}
-              locale={{
-                emptyText: <Empty description="No confirmed bookings found" />,
-              }}
-            />
+            <div className="tw-overflow-x-auto">
+              <Table
+                dataSource={bookings}
+                columns={columns}
+                rowKey="id"
+                loading={loading}
+                onChange={handleTableChange}
+                pagination={{
+                  ...pagination,
+                  showSizeChanger: true,
+                  showTotal: total => `Total ${total} confirmed bookings`,
+                }}
+                locale={{
+                  emptyText: <Empty description="No confirmed bookings found" />,
+                }}
+                scroll={{ x: 'max-content' }}
+              />
+            </div>
           </TabPane>
           <TabPane tab="Completed" key="completed">
-            <Table
-              dataSource={bookings}
-              columns={columns}
-              rowKey="id"
-              loading={loading}
-              onChange={handleTableChange}
-              pagination={{
-                ...pagination,
-                showSizeChanger: true,
-                showTotal: total => `Total ${total} completed bookings`,
-              }}
-              locale={{
-                emptyText: <Empty description="No completed bookings found" />,
-              }}
-            />
+            <div className="tw-overflow-x-auto">
+              <Table
+                dataSource={bookings}
+                columns={columns}
+                rowKey="id"
+                loading={loading}
+                onChange={handleTableChange}
+                pagination={{
+                  ...pagination,
+                  showSizeChanger: true,
+                  showTotal: total => `Total ${total} completed bookings`,
+                }}
+                locale={{
+                  emptyText: <Empty description="No completed bookings found" />,
+                }}
+                scroll={{ x: 'max-content' }}
+              />
+            </div>
           </TabPane>
           <TabPane tab="Cancelled" key="cancelled">
-            <Table
-              dataSource={bookings}
-              columns={columns}
-              rowKey="id"
-              loading={loading}
-              onChange={handleTableChange}
-              pagination={{
-                ...pagination,
-                showSizeChanger: true,
-                showTotal: total => `Total ${total} cancelled bookings`,
-              }}
-              locale={{
-                emptyText: <Empty description="No cancelled bookings found" />,
-              }}
-            />
+            <div className="tw-overflow-x-auto">
+              <Table
+                dataSource={bookings}
+                columns={columns}
+                rowKey="id"
+                loading={loading}
+                onChange={handleTableChange}
+                pagination={{
+                  ...pagination,
+                  showSizeChanger: true,
+                  showTotal: total => `Total ${total} cancelled bookings`,
+                }}
+                locale={{
+                  emptyText: <Empty description="No cancelled bookings found" />,
+                }}
+                scroll={{ x: 'max-content' }}
+              />
+            </div>
           </TabPane>
         </Tabs>
       </Card>

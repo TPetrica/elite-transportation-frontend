@@ -2,6 +2,17 @@ import apiClient from '../config/axios'
 
 // API Service methods
 const ApiService = {
+  setAuthHeader() {
+    const token = localStorage.getItem('accessToken')
+    if (token) {
+      apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`
+    }
+  },
+
+  removeAuthHeader() {
+    delete apiClient.defaults.headers.common['Authorization']
+  },
+
   /**
    * Make a GET request
    * @param {string} url - Endpoint URL

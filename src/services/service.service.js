@@ -1,14 +1,15 @@
 import ApiService from './api.service'
 
-class ServiceService {
-  async getServices() {
+class ServiceAPI {
+  async getActiveServices() {
     try {
-      const response = await ApiService.get('/services')
+      const response = await ApiService.get('/services/public')
       return {
         success: true,
         data: response.data,
       }
     } catch (error) {
+      console.error('Error fetching services:', error)
       return {
         success: false,
         error: error.response?.data?.message || 'Failed to fetch services',
@@ -16,65 +17,37 @@ class ServiceService {
     }
   }
 
-  async getServiceById(id) {
+  async getServiceByType(serviceType) {
     try {
-      const response = await ApiService.get(`/services/${id}`)
+      const response = await ApiService.get(`/services/type/${serviceType}`)
       return {
         success: true,
         data: response.data,
       }
     } catch (error) {
+      console.error('Error fetching service by type:', error)
       return {
         success: false,
-        error: error.response?.data?.message || 'Failed to fetch service',
+        error: error.response?.data?.message || 'Failed to fetch service details',
       }
     }
   }
 
-  async createService(serviceData) {
+  async calculatePrice(bookingDetails) {
     try {
-      const response = await ApiService.post('/services', serviceData)
+      const response = await ApiService.post('/services/calculate-price', bookingDetails)
       return {
         success: true,
         data: response.data,
       }
     } catch (error) {
+      console.error('Error calculating price:', error)
       return {
         success: false,
-        error: error.response?.data?.message || 'Failed to create service',
-      }
-    }
-  }
-
-  async updateService(id, serviceData) {
-    try {
-      const response = await ApiService.put(`/services/${id}`, serviceData)
-      return {
-        success: true,
-        data: response.data,
-      }
-    } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.message || 'Failed to update service',
-      }
-    }
-  }
-
-  async deleteService(id) {
-    try {
-      const response = await ApiService.delete(`/services/${id}`)
-      return {
-        success: true,
-        data: response.data,
-      }
-    } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.message || 'Failed to delete service',
+        error: error.response?.data?.message || 'Failed to calculate price',
       }
     }
   }
 }
 
-export default new ServiceService()
+export default new ServiceAPI()

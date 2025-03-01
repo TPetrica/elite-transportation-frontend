@@ -10,13 +10,13 @@ import BillingForm from './BillingForm'
 export default function BookingPayment() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  // Include isAffiliate and affiliateCode from the context
   const {
     pricing,
     pickupDetails,
     dropoffDetails,
     selectedService,
     passengerDetails,
+    selectedExtras,
     distance,
     duration,
     isAffiliate,
@@ -32,18 +32,54 @@ export default function BookingPayment() {
       navigate('/booking')
       return
     }
-  }, [])
+  }, [navigate, passengerDetails, pickupDetails, dropoffDetails, selectedService])
 
-  const mapServiceTypeForBackend = serviceId => {
-    const serviceMap = {
-      'from-airport': 'from-airport',
-      'to-airport': 'to-airport',
-      canyons: 'canyons', // Fixed: Use canyons service type
-      'per-person': 'per-person', // Fixed: Use per-person service type
-      hourly: 'hourly',
-      group: 'group',
+  const formatBookingData = () => {
+    // Determine the service type based on the selected service
+    const serviceType = selectedService.serviceType
+
+    // Format the extras for API
+    const formattedExtras = selectedExtras.map(extra => ({
+      item: extra.item || extra.id,
+      quantity: extra.quantity,
+    }))
+
+    // Create the booking data object in the format expected by the API
+    return {
+      pickup: {
+        address: pickupDetails.address,
+        coordinates: pickupDetails.coordinates,
+        date: pickupDetails.date,
+        time: pickupDetails.time,
+        flightNumber: pickupDetails.flightNumber || '',
+        flightTime: pickupDetails.flightTime || '',
+        isCustom: pickupDetails.isCustom || false,
+      },
+      dropoff: {
+        address: dropoffDetails.address,
+        coordinates: dropoffDetails.coordinates,
+        isCustom: dropoffDetails.isCustom || false,
+      },
+      distance: {
+        km: parseInt(distance?.km || 0),
+        miles: parseInt(distance?.miles || 0),
+      },
+      duration,
+      service: serviceType, // Use the service type string, not the ID
+      passengerDetails: {
+        firstName: passengerDetails.firstName,
+        lastName: passengerDetails.lastName,
+        phone: passengerDetails.phone,
+        passengers: passengerDetails.passengers.toString(),
+        luggage: passengerDetails.luggage ? passengerDetails.luggage.toString() : '0',
+        email: passengerDetails.email || '',
+        notes: passengerDetails.notes || '',
+        specialRequirements: passengerDetails.specialRequirements || '',
+      },
+      email: passengerDetails.email || '',
+      affiliate: isAffiliate ? true : false,
+      affiliateCode: affiliateCode || '',
     }
-    return serviceMap[serviceId] || 'hourly'
   }
 
   const handlePayment = async billingDetails => {
@@ -55,50 +91,12 @@ export default function BookingPayment() {
         throw new Error('Please select a service')
       }
 
-      const cleanPassengerDetails = {
-        firstName: passengerDetails.firstName,
-        lastName: passengerDetails.lastName,
-        phone: passengerDetails.phone,
-        passengers: passengerDetails.passengers.toString(),
-        luggage: passengerDetails.luggage.toString(),
-        email: passengerDetails.email || '',
-        notes: passengerDetails.notes || '',
-        specialRequirements: passengerDetails.specialRequirements || '',
-      }
-
-      const cleanPickupDetails = {
-        address: pickupDetails.address,
-        coordinates: pickupDetails.coordinates,
-        date: pickupDetails.date,
-        time: pickupDetails.time,
-        flightNumber: pickupDetails.flightNumber || '',
-        flightTime: pickupDetails.flightTime || '',
-        isCustom: pickupDetails.isCustom,
-      }
-
-      const cleanDropoffDetails = {
-        address: dropoffDetails.address,
-        coordinates: dropoffDetails.coordinates,
-        isCustom: dropoffDetails.isCustom,
-      }
+      const bookingData = formatBookingData()
 
       const payload = {
         amount: pricing.totalPrice,
         billingDetails,
-        bookingData: {
-          pickup: cleanPickupDetails,
-          dropoff: cleanDropoffDetails,
-          distance: {
-            km: parseInt(distance?.km || 0),
-            miles: parseInt(distance?.miles || 0),
-          },
-          duration,
-          service: mapServiceTypeForBackend(selectedService.id),
-          passengerDetails: cleanPassengerDetails,
-          email: passengerDetails.email || '',
-          affiliate: isAffiliate ? true : false,
-          affiliateCode: affiliateCode || '',
-        },
+        bookingData,
       }
 
       const result = await PaymentService.createCheckoutSession(payload)
