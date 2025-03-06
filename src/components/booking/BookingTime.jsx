@@ -46,13 +46,13 @@ function BookingTime() {
     setAffiliateMode,
     isAffiliate,
     resetBooking,
+    services, // Get services from context
   } = useBooking()
 
   const [error, setError] = useState('')
   const [availableTimeSlots, setAvailableTimeSlots] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [showPassengerWarning, setShowPassengerWarning] = useState(false)
-  const [services, setServices] = useState([])
   const [loadingServices, setLoadingServices] = useState(true)
 
   // Use ref to prevent infinite loops with affiliate mode
@@ -60,61 +60,30 @@ function BookingTime() {
   const previousPickupCoordinates = useRef(null)
   const previousDropoffCoordinates = useRef(null)
 
-  // Load services from the backend - with proper error handling and cleanup
+  // Check if services are loaded
   useEffect(() => {
-    let isMounted = true
-    const fetchServices = async () => {
-      if (!isMounted) return
+    if (services && services.length > 0) {
+      setLoadingServices(false)
 
-      setLoadingServices(true)
-      try {
-        const response = await serviceAPI.getActiveServices()
-
-        if (!isMounted) return
-
-        if (response.success) {
-          setServices(response.data)
-        } else {
-          setError('Failed to load services. Please try again later.')
-        }
-      } catch (err) {
-        if (!isMounted) return
-        console.error('Error loading services:', err)
-        setError('Failed to load services. Please try again later.')
-      } finally {
-        if (isMounted) {
-          setLoadingServices(false)
-        }
+      // Show passenger warning if needed
+      if (selectedService && selectedService.maxPassengers) {
+        setShowPassengerWarning(true)
       }
     }
+  }, [services, selectedService])
 
-    fetchServices()
-
-    return () => {
-      isMounted = false
-    }
-  }, [])
-
-  // Check URL for affiliate code - memoized deps
+  // Check URL for affiliate code
   useEffect(() => {
     const params = new URLSearchParams(location.search)
     const affiliateCode = params.get('affiliate')
-
-    // If URL doesn't have affiliate code but state is in affiliate mode, reset the booking state
-    if (!affiliateCode && isAffiliate) {
-      resetBooking()
-      hasSetAffiliateService.current = false
-      return
-    }
 
     // If URL has affiliate code, set affiliate mode
     if (affiliateCode === 'PCH' && !isAffiliate) {
       setAffiliateMode(affiliateCode)
     }
-  }, [location.search, setAffiliateMode, isAffiliate, resetBooking])
+  }, [location.search, setAffiliateMode, isAffiliate])
 
   // Set affiliate service after services are loaded and affiliate mode is set
-  // Use refs to track previous state to prevent unnecessary effect runs
   useEffect(() => {
     if (isAffiliate && services.length > 0 && !hasSetAffiliateService.current) {
       const perPersonService = services.find(s => s.title.toLowerCase().includes('per person'))
@@ -247,8 +216,12 @@ function BookingTime() {
       const isToAirport = isToAirportService(newService)
       const wasToAirport = isToAirportService(previousService)
 
-      // If switching to from-airport, clear the pickup location
-      if (isFromAirport && !wasFromAirport) {
+      // If switching to from-airport, clear the pickup location only if it's not already set
+      if (
+        isFromAirport &&
+        !wasFromAirport &&
+        (!pickupDetails?.address || !pickupDetails?.coordinates)
+      ) {
         setPickupDetails({
           ...pickupDetails,
           address: '',
@@ -258,8 +231,12 @@ function BookingTime() {
         })
       }
 
-      // If switching to to-airport, clear the dropoff location
-      if (isToAirport && !wasToAirport) {
+      // If switching to to-airport, clear the dropoff location only if it's not already set
+      if (
+        isToAirport &&
+        !wasToAirport &&
+        (!dropoffDetails?.address || !dropoffDetails?.coordinates)
+      ) {
         setDropoffDetails({
           ...dropoffDetails,
           address: '',
@@ -286,14 +263,13 @@ function BookingTime() {
       const service = services.find(s => s.id === serviceId)
 
       if (service) {
-        setSelectedService(service)
-        setShowPassengerWarning(false)
+        // Only update if service is different from current
+        if (!selectedService || selectedService.id !== service.id) {
+          setSelectedService(service)
+          setShowPassengerWarning(!!service.maxPassengers)
 
-        // Clear locations when switching between airport and non-airport services
-        handleServiceTypeChange(service, selectedService)
-
-        if (service.maxPassengers) {
-          setShowPassengerWarning(true)
+          // Clear locations when switching between airport and non-airport services
+          handleServiceTypeChange(service, selectedService)
         }
       }
     },
@@ -304,6 +280,9 @@ function BookingTime() {
     date => {
       if (!date) return
 
+      // Check if date is null or undefined
+      if (!date.year || !date.month || !date.day) return
+
       // Create a moment object without any timezone adjustments
       const momentDate = moment({
         year: date.year,
@@ -311,18 +290,31 @@ function BookingTime() {
         day: date.day,
       })
 
+      // Only update if the date has actually changed
+      if (selectedDate && momentDate.format('YYYY-MM-DD') === selectedDate.format('YYYY-MM-DD')) {
+        return
+      }
+
       setSelectedDate(momentDate)
+
+      // Only reset time if date changed
       setSelectedTime(null)
+
       setPickupDetails({
         ...pickupDetails,
         date: momentDate.format('YYYY-MM-DD'),
       })
     },
-    [setSelectedDate, setSelectedTime, pickupDetails, setPickupDetails]
+    [setSelectedDate, setSelectedTime, pickupDetails, setPickupDetails, selectedDate]
   )
 
   const handleTimeSelect = useCallback(
     async time => {
+      // If time is already selected, don't do anything
+      if (selectedTime === time) {
+        return
+      }
+
       setError('')
 
       try {
@@ -349,6 +341,7 @@ function BookingTime() {
           const slotsResult = await calendarService.getAvailableTimeSlots(
             selectedDate.format('YYYY-MM-DD')
           )
+
           if (slotsResult.success) {
             setAvailableTimeSlots(calendarService.formatAvailableSlots(slotsResult.data))
           }
@@ -358,47 +351,69 @@ function BookingTime() {
         setError('Failed to verify time slot availability')
       }
     },
-    [selectedDate, setSelectedTime, pickupDetails, setPickupDetails]
+    [selectedDate, setSelectedTime, pickupDetails, setPickupDetails, selectedTime]
   )
 
+  // This is the key function that was causing issues
   const handleAffiliateLocationChange = useCallback(
     (locationType, location) => {
-      if (location.address === AFFILIATE_LOCATIONS.AIRPORT.address) {
-        // If selected location is airport, set the other end to hostel
+      // Only proceed if we have a valid location
+      if (!location || !location.address) return
+
+      // If the selected location is the airport
+      if (location.address.includes('Salt Lake City International Airport')) {
         if (locationType === 'pickup') {
-          setDropoffDetails({
-            ...dropoffDetails,
-            ...AFFILIATE_LOCATIONS.HOSTEL,
-          })
+          // If pickup is airport, dropoff should be hostel
+          setTimeout(() => {
+            setDropoffDetails({
+              ...AFFILIATE_LOCATIONS.HOSTEL,
+            })
+          }, 0)
         } else {
-          setPickupDetails({
-            ...pickupDetails,
-            ...AFFILIATE_LOCATIONS.AIRPORT,
-          })
+          // If dropoff is airport, pickup should be hostel
+          setTimeout(() => {
+            setPickupDetails({
+              ...AFFILIATE_LOCATIONS.HOSTEL,
+            })
+          }, 0)
         }
-      } else if (location.address === AFFILIATE_LOCATIONS.HOSTEL.address) {
-        // If selected location is hostel, set the other end to airport
+      }
+      // If the selected location is the hostel
+      else if (location.address.includes('Park City Hostel')) {
         if (locationType === 'pickup') {
-          setDropoffDetails({
-            ...dropoffDetails,
-            ...AFFILIATE_LOCATIONS.AIRPORT,
-          })
+          // If pickup is hostel, dropoff should be airport
+          setTimeout(() => {
+            setDropoffDetails({
+              ...AFFILIATE_LOCATIONS.AIRPORT,
+            })
+          }, 0)
         } else {
-          setPickupDetails({
-            ...pickupDetails,
-            ...AFFILIATE_LOCATIONS.HOSTEL,
-          })
+          // If dropoff is hostel, pickup should be airport
+          setTimeout(() => {
+            setPickupDetails({
+              ...AFFILIATE_LOCATIONS.AIRPORT,
+            })
+          }, 0)
         }
       }
     },
-    [pickupDetails, dropoffDetails, setPickupDetails, setDropoffDetails]
+    [setPickupDetails, setDropoffDetails]
   )
 
   const handleFromLocationChange = useCallback(
     location => {
       const isCottonwoodService = location.isCottonwood || dropoffDetails?.isCottonwood
 
-      // Special handling for affiliate bookings
+      // Update pickup details
+      setPickupDetails({
+        ...pickupDetails,
+        address: location.address,
+        coordinates: location.coordinates,
+        isCustom: location.isCustom,
+        isCottonwood: location.isCottonwood,
+      })
+
+      // Special handling for affiliate bookings - do this after updating pickup
       if (isAffiliate) {
         handleAffiliateLocationChange('pickup', location)
       }
@@ -413,14 +428,6 @@ function BookingTime() {
           setSelectedService(canyonsService)
         }
       }
-
-      setPickupDetails({
-        ...pickupDetails,
-        address: location.address,
-        coordinates: location.coordinates,
-        isCustom: location.isCustom,
-        isCottonwood: location.isCottonwood,
-      })
     },
     [
       dropoffDetails,
@@ -438,7 +445,16 @@ function BookingTime() {
     location => {
       const isCottonwoodService = location.isCottonwood || pickupDetails?.isCottonwood
 
-      // Special handling for affiliate bookings
+      // Update dropoff details
+      setDropoffDetails({
+        ...dropoffDetails,
+        address: location.address,
+        coordinates: location.coordinates,
+        isCustom: location.isCustom,
+        isCottonwood: location.isCottonwood,
+      })
+
+      // Special handling for affiliate bookings - do this after updating dropoff
       if (isAffiliate) {
         handleAffiliateLocationChange('dropoff', location)
       }
@@ -453,14 +469,6 @@ function BookingTime() {
           setSelectedService(canyonsService)
         }
       }
-
-      setDropoffDetails({
-        ...dropoffDetails,
-        address: location.address,
-        coordinates: location.coordinates,
-        isCustom: location.isCustom,
-        isCottonwood: location.isCottonwood,
-      })
     },
     [
       pickupDetails,
@@ -501,7 +509,8 @@ function BookingTime() {
         return
       }
 
-      navigate('/booking-extra')
+      // Pass state to preserve booking data
+      navigate('/booking-extra', { state: { preserveBookingData: true } })
     } catch (error) {
       console.error('Error proceeding to next step:', error)
       setError('Failed to verify time slot availability')
@@ -661,6 +670,7 @@ function BookingTime() {
                       placeholder="Select the date"
                       editable={false}
                       calendarPosition="bottom-center"
+                      value={pickupDetails?.date ? new Date(pickupDetails.date) : null}
                     />
                   </div>
 

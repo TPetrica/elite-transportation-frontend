@@ -17,6 +17,7 @@ const AFFILIATE_LOCATIONS = [
     secondaryText: 'Salt Lake City, UT, USA',
     isAirport: true,
     isCustom: false,
+    coordinates: { lat: 40.7899, lng: -111.9791 },
   },
   {
     value: 'park-city-hostel',
@@ -26,6 +27,7 @@ const AFFILIATE_LOCATIONS = [
     secondaryText: 'Park City, UT, USA',
     isAirport: false,
     isCustom: false,
+    coordinates: { lat: 40.6609, lng: -111.4988 },
   },
 ]
 
@@ -87,11 +89,13 @@ export default function PlacePicker({
   placeholder,
   selectedService,
   isAffiliate,
+  airportOnly = false,
   disabled = false,
 }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false)
   const [forceValue, setForceValue] = useState(null)
+  const [initialRender, setInitialRender] = useState(true)
 
   useEffect(() => {
     let isMounted = true
@@ -113,10 +117,15 @@ export default function PlacePicker({
       setIsGoogleLoaded(true)
     }
 
+    // Set initialRender to false after first render
+    if (initialRender) {
+      setInitialRender(false)
+    }
+
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [initialRender])
 
   const isInAllowedRegion = address => {
     if (!address) return false
@@ -178,6 +187,8 @@ export default function PlacePicker({
 
   const handleChange = async (placeId, option) => {
     if (!isGoogleLoaded || disabled) return
+
+    console.log('PlacePicker handleChange:', type, placeId, option)
 
     try {
       if (!option) {
@@ -274,10 +285,6 @@ export default function PlacePicker({
     return AFFILIATE_LOCATIONS.map(location => ({
       ...location,
       isAffiliateLocation: true,
-      coordinates:
-        location.value === 'slc-airport'
-          ? { lat: 40.7899, lng: -111.9791 }
-          : { lat: 40.6609, lng: -111.4988 },
     }))
   }, [])
 

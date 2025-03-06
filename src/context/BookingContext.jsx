@@ -1,31 +1,18 @@
-import { createContext, useContext, useReducer, useMemo, useCallback } from 'react'
+import {
+  createContext,
+  useContext,
+  useReducer,
+  useMemo,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react'
 import moment from 'moment'
+import serviceAPI from '@/services/service.service'
 
 const BookingContext = createContext(null)
 
-const PRICES = {
-  SUV: {
-    base: 120,
-    gasSurcharge: 0,
-    winterSurcharge: 0,
-  },
-  CANYONS: {
-    base: 150,
-  },
-  PER_PERSON: {
-    base: 65,
-    minPersons: 2,
-    affiliateMinPersons: 1,
-  },
-  HOURLY: {
-    base: 100,
-  },
-  ADDITIONAL_FEES: {
-    nightService: 20,
-    meetAndGreet: 30,
-  },
-}
-
+// Initial state for booking
 const initialState = {
   pickupDetails: {
     address: '',
@@ -72,22 +59,7 @@ const initialState = {
   isWinter: false,
   isAffiliate: false,
   affiliateCode: '',
-}
-
-// Memoized price calculation functions
-const calculatePrice = {
-  standard: () => PRICES.SUV.base,
-  canyons: () => PRICES.CANYONS.base,
-  perPerson: (passengers, isAffiliate = false) => {
-    const minPersons = isAffiliate
-      ? PRICES.PER_PERSON.affiliateMinPersons
-      : PRICES.PER_PERSON.minPersons
-    const effectivePassengers = Math.max(passengers, minPersons)
-    return effectivePassengers * PRICES.PER_PERSON.base
-  },
-  hourly: hours => PRICES.HOURLY.base * hours,
-  group: () => 0,
-  roundTrip: () => 200, // Assuming $200 for round trips
+  services: [], // Added to store services from backend
 }
 
 // Calculate base price based on service, passenger count, hours, location
@@ -102,26 +74,31 @@ const calculateBasePrice = (
 
   const passengerCount = parseInt(numPassengers) || 1
 
-  // If either pickup or dropoff is in Cottonwood, use Cottonwood pricing
-  if (isCottonwood) {
-    return calculatePrice.canyons()
+  // If either pickup or dropoff is in Cottonwood Canyons, use Cottonwood pricing
+  if (isCottonwood && service.serviceType !== 'canyons') {
+    // Find canyons service from context state
+    const canyonsService = service.canyonsPrice || 150 // Fallback to 150 if not found
+    return canyonsService
   }
 
   // Calculate price based on service type
   switch (service.serviceType) {
     case 'from-airport':
     case 'to-airport':
-      return calculatePrice.standard()
+      return service.basePrice
     case 'canyons':
-      return calculatePrice.canyons()
+      return service.basePrice
     case 'per-person':
-      return calculatePrice.perPerson(passengerCount, isAffiliate)
+      // Get minimum passenger count from service
+      const minPersons = isAffiliate ? 1 : service.minPassengers || 2
+      const effectivePassengers = Math.max(passengerCount, minPersons)
+      return effectivePassengers * service.basePrice
     case 'hourly':
-      return calculatePrice.hourly(hours)
+      return service.basePrice * hours
     case 'round-trip':
-      return calculatePrice.roundTrip()
+      return service.basePrice
     case 'group':
-      return calculatePrice.group()
+      return service.basePrice || 0
     default:
       // Fallback to base price if available
       return service.basePrice || 0
@@ -129,10 +106,10 @@ const calculateBasePrice = (
 }
 
 // Calculate night service fee
-const calculateNightFee = time => {
+const calculateNightFee = (time, nightFeeAmount = 20) => {
   if (!time) return 0
   const hour = parseInt(time.split(':')[0], 10)
-  return hour >= 23 || hour < 7 ? PRICES.ADDITIONAL_FEES.nightService : 0
+  return hour >= 23 || hour < 7 ? nightFeeAmount : 0
 }
 
 // Calculate total price
@@ -196,6 +173,13 @@ const updatePricingState = (
 
 const bookingReducer = (state, action) => {
   switch (action.type) {
+    case 'SET_SERVICES': {
+      return {
+        ...state,
+        services: action.payload,
+      }
+    }
+
     case 'SET_AFFILIATE_MODE': {
       // First just set the affiliate mode
       const newState = {
@@ -511,6 +495,7 @@ const bookingReducer = (state, action) => {
         ...initialState,
         isAffiliate: state.isAffiliate,
         affiliateCode: state.affiliateCode,
+        services: state.services, // Keep services from backend
       }
 
     default:
@@ -521,7 +506,27 @@ const bookingReducer = (state, action) => {
 export const BookingProvider = ({ children }) => {
   const [state, dispatch] = useReducer(bookingReducer, initialState)
 
+  // Fetch services on initial render
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await serviceAPI.getActiveServices()
+        if (response.success) {
+          dispatch({ type: 'SET_SERVICES', payload: response.data })
+        } else {
+          console.error('Failed to load services:', response.error)
+        }
+      } catch (err) {
+        console.error('Error loading services:', err)
+      }
+    }
+
+    fetchServices()
+  }, [])
+
   // Memoize dispatch actions to prevent recreation on every render
+  const setServices = useCallback(payload => dispatch({ type: 'SET_SERVICES', payload }), [])
+
   const setPickupDetails = useCallback(
     payload => dispatch({ type: 'SET_PICKUP_DETAILS', payload }),
     []
@@ -594,6 +599,7 @@ export const BookingProvider = ({ children }) => {
   const contextValue = useMemo(
     () => ({
       ...state,
+      setServices,
       setPickupDetails,
       setDropoffDetails,
       setSelectedDate,
@@ -611,6 +617,7 @@ export const BookingProvider = ({ children }) => {
     }),
     [
       state,
+      setServices,
       setPickupDetails,
       setDropoffDetails,
       setSelectedDate,

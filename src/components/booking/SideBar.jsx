@@ -54,7 +54,9 @@ const DateTimeInfo = ({ pickupDetails }) => (
       <li>
         <span className="icon-item icon-time"></span>
         <span className="info-location text-14-medium">
-          {moment(pickupDetails?.time, 'HH:mm').format('h:mm A') || 'Time not selected'}
+          {pickupDetails?.time
+            ? moment(pickupDetails.time, 'HH:mm').format('h:mm A')
+            : 'Time not selected'}
         </span>
       </li>
     </ul>
@@ -79,19 +81,19 @@ const DistanceInfo = ({ distance, duration }) => (
 )
 
 const ServiceInfo = ({ selectedService, isAffiliate }) => {
-  console.log('selectedService', selectedService)
-
-  // Create a modified description for affiliate mode
+  // Create a description based on service type
   const getDescription = () => {
-    if (!selectedService || !selectedService.description) return ''
+    if (!selectedService) return ''
 
-    if (isAffiliate && selectedService.serviceType.toLowerCase().includes('per-person')) {
-      // For affiliate per-person service, show simple $65 per person without minimum
-      return '$65 per person'
+    // For affiliate per-person service
+    if (isAffiliate && selectedService.serviceType === 'per-person') {
+      return `$${selectedService.basePrice} per person`
     }
 
-    return selectedService.description
+    return selectedService.description || ''
   }
+
+  if (!selectedService) return null
 
   return (
     <>
@@ -217,9 +219,8 @@ export default function SideBar() {
     isAffiliate,
   } = useBooking()
 
-  const handleTipChange = value => {
-    // Handler is now implemented directly in the TipCalculator component
-  }
+  console.log('pickupDetails', pickupDetails)
+  console.log('dropoffDetails', dropoffDetails)
 
   return (
     <div className="box-tab-right">

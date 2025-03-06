@@ -45,8 +45,6 @@ export default function BookingReceived() {
   if (error) return <div className="error">{error}</div>
   if (!sessionData?.bookingDetails) return <div>No booking details found</div>
 
-  const { bookingDetails } = sessionData
-
   return (
     <section className="section">
       <div className="container-sub">
@@ -62,12 +60,14 @@ export default function BookingReceived() {
             </p>
           </div>
 
-          {/* Booking Info */}
+          {/* Booking Info - Simplified */}
           <div className="box-info-book-border wow fadeInUp">
             <div className="info-1">
               <span className="color-text text-14">Booking Number</span>
               <br />
-              <span className="color-text text-14-medium">{bookingDetails.bookingNumber}</span>
+              <span className="color-text text-14-medium">
+                {sessionData.bookingDetails.bookingNumber}
+              </span>
             </div>
             <div className="info-1">
               <span className="color-text text-14">Total Amount</span>
@@ -79,92 +79,15 @@ export default function BookingReceived() {
               <br />
               <span className="color-text text-14-medium">{new Date().toLocaleDateString()}</span>
             </div>
-            <div className="info-1">
-              <span className="color-text text-14">Payment Method</span>
+          </div>
+
+          <div className="text-center mt-20 mb-30">
+            <p className="text-14 color-grey">
+              Thank you for your reservation! All booking details have been sent to your email.
               <br />
-              <span className="color-text text-14-medium">Credit Card</span>
-            </div>
+              If you have any questions, please contact our customer service.
+            </p>
           </div>
-
-          {/* Service Details */}
-          <div className="box-booking-border wow fadeInUp">
-            <h6 className="heading-20-medium color-text">Service Information</h6>
-            <ul className="list-prices">
-              <li>
-                <span className="text-top">Service Type</span>
-                <span className="text-bottom">{bookingDetails.service}</span>
-              </li>
-            </ul>
-          </div>
-
-          {/* Reservation Details */}
-          <div className="box-booking-border wow fadeInUp">
-            <h6 className="heading-20-medium color-text">Reservation Information</h6>
-            <ul className="list-prices">
-              <li>
-                <span className="text-top">Pick Up Address</span>
-                <span className="text-bottom">{bookingDetails.pickupAddress}</span>
-              </li>
-              <li>
-                <span className="text-top">Drop Off Address</span>
-                <span className="text-bottom">{bookingDetails.dropoffAddress}</span>
-              </li>
-              <li>
-                <span className="text-top">Pick Up Date</span>
-                <span className="text-bottom">
-                  {new Date(bookingDetails.pickupDate).toLocaleDateString()}
-                </span>
-              </li>
-              <li>
-                <span className="text-top">Pick Up Time</span>
-                <span className="text-bottom">{bookingDetails.pickupTime}</span>
-              </li>
-              <li>
-                <span className="text-top">Distance</span>
-                <span className="text-bottom">{bookingDetails.distance}</span>
-              </li>
-              <li>
-                <span className="text-top">Duration</span>
-                <span className="text-bottom">{bookingDetails.duration}</span>
-              </li>
-            </ul>
-          </div>
-
-          {/* Passenger Details */}
-          {bookingDetails.passengerDetails && (
-            <div className="box-booking-border wow fadeInUp">
-              <h6 className="heading-20-medium color-text">Passenger Information</h6>
-              <ul className="list-prices">
-                <li>
-                  <span className="text-top">Name</span>
-                  <span className="text-bottom">
-                    {bookingDetails.passengerDetails.firstName}{' '}
-                    {bookingDetails.passengerDetails.lastName}
-                  </span>
-                </li>
-                <li>
-                  <span className="text-top">Phone</span>
-                  <span className="text-bottom">{bookingDetails.passengerDetails.phone}</span>
-                </li>
-                <li>
-                  <span className="text-top">Passengers</span>
-                  <span className="text-bottom">{bookingDetails.passengerDetails.passengers}</span>
-                </li>
-                <li>
-                  <span className="text-top">Luggage</span>
-                  <span className="text-bottom">{bookingDetails.passengerDetails.luggage}</span>
-                </li>
-                {bookingDetails.passengerDetails.specialRequirements && (
-                  <li>
-                    <span className="text-top">Special Requirements</span>
-                    <span className="text-bottom">
-                      {bookingDetails.passengerDetails.specialRequirements}
-                    </span>
-                  </li>
-                )}
-              </ul>
-            </div>
-          )}
 
           {/* Return Home Button */}
           <div className="text-center mt-30">
