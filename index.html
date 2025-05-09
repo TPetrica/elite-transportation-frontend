@@ -4,50 +4,96 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="https://fonts.bunny.net/css?family=dm-sans:400,500,700" />
-
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-1695104702"></script>
-    <script>
-      window.dataLayer = window.dataLayer || []
-      function gtag() {
-        dataLayer.push(arguments)
+    <meta name="description" content="Elite Transportation Park City - Professional chauffeur and luxury car service in Park City, Utah. Airport transfers, private car hire, and special events transportation." />
+    
+    <!-- Preload critical fonts -->
+    <link rel="preconnect" href="https://fonts.bunny.net" crossorigin />
+    <link rel="preload" as="style" href="https://fonts.bunny.net/css?family=dm-sans:400,500,700" />
+    <link rel="stylesheet" href="https://fonts.bunny.net/css?family=dm-sans:400,500,700" media="print" onload="this.media='all'" />
+    
+    <!-- Preload critical CSS -->
+    <link rel="preload" href="/assets/index-jPXlVS68.css" as="style" />
+    
+    <!-- Font display swap to ensure text remains visible during webfont loading -->
+    <style>
+      /* Font display swap */
+      @font-face {
+        font-family: 'DM Sans';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: local('DM Sans'), url('https://fonts.bunny.net/files/dm-sans-latin-400-normal.woff2') format('woff2');
       }
-      gtag('js', new Date())
+      
+      /* Critical CSS for initial render */
+      body {
+        margin: 0;
+        font-family: 'DM Sans', sans-serif;
+      }
+      
+      .loading-app, .loading-page {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 1.5rem;
+        color: #333;
+      }
+      
+      /* Image loading styles */
+      .img-loading {
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      
+      .img-loaded {
+        opacity: 1;
+      }
+    </style>
 
-      gtag('config', 'G-C348R6D3XH')
-      gtag('config', 'AW-1695104702')
-    </script>
-
-    <script>
-      ;(function (w, d, s, l, i) {
-        w[l] = w[l] || []
-        w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' })
-        var f = d.getElementsByTagName(s)[0],
-          j = d.createElement(s),
-          dl = l != 'dataLayer' ? '&l=' + l : ''
-        j.async = true
-        j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl
-        f.parentNode.insertBefore(j, f)
-      })(window, document, 'script', 'dataLayer', 'GTM-PHVLFL37')
-    </script>
-    <!-- End Google Tag Manager -->
-
+    <!-- Google Analytics will be loaded dynamically by JavaScript -->
+    
     <title>Elite Transportation Park City Chauffeur Limousine Transport and Car Hire</title>
   </head>
   <body>
-    <!-- Google Tag Manager (noscript) -->
-    <noscript
-      ><iframe
-        src="https://www.googletagmanager.com/ns.html?id=GTM-PHVLFL37"
-        height="0"
-        width="0"
-        style="display: none; visibility: hidden"
-      ></iframe
-    ></noscript>
-    <!-- End Google Tag Manager (noscript) -->
-
+    <!-- Google Tag Manager (noscript) will be added dynamically -->
+    
     <div id="root"></div>
+    
+    <!-- Add a placeholder for the map to trigger loading when scrolled to -->
+    <div id="map-trigger" style="height: 0; width: 0; opacity: 0;"></div>
+    
     <script type="module" src="/src/main.jsx"></script>
+    
+    <!-- Dynamically load Google Tag Manager -->
+    <script>
+      // Load GTM after page load
+      window.addEventListener('load', function() {
+        // Only load analytics in production
+        if (window.location.hostname !== 'localhost') {
+          // Google Tag Manager
+          var gtmScript = document.createElement('script');
+          gtmScript.innerHTML = `
+            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+            })(window,document,'script','dataLayer','GTM-PHVLFL37');
+          `;
+          document.head.appendChild(gtmScript);
+          
+          // Add noscript iframe
+          var noscript = document.createElement('noscript');
+          var iframe = document.createElement('iframe');
+          iframe.src = "https://www.googletagmanager.com/ns.html?id=GTM-PHVLFL37";
+          iframe.height = "0";
+          iframe.width = "0";
+          iframe.style.cssText = "display:none;visibility:hidden";
+          noscript.appendChild(iframe);
+          document.body.insertBefore(noscript, document.body.firstChild);
+        }
+      });
+    </script>
   </body>
 </html>

@@ -1,38 +1,83 @@
-import { useEffect } from 'react'
+import { useEffect, lazy, Suspense } from 'react'
 import { useLocation } from 'react-router-dom'
 import WOW from 'wow.js'
 import ScrollTopBehaviour from './components/common/ScrollTopBehaviour'
 import { AuthProvider } from './context/AuthContext'
 import { BookingProvider } from './context/BookingContext'
-import { useGoogleMaps } from './hooks/useGoogleMaps'
-import AppRoutes from './routes/AppRoutes'
 import './styles/style.scss'
+
+// Lazy load Google Maps hook to avoid loading the API on initial page load
+const LazyGoogleMapsProvider = lazy(() => import('./components/common/LazyGoogleMapsProvider'))
+
+// Lazy load routes
+const AppRoutes = lazy(() => import('./routes/AppRoutes'))
 
 function App() {
   const { pathname } = useLocation()
-  const { isLoaded, error } = useGoogleMaps()
 
+  // Lazy load Bootstrap
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      import('bootstrap/dist/js/bootstrap.esm')
+      // Use a more specific import to reduce bundle size
+      const loadBootstrap = () => import('bootstrap/dist/js/bootstrap.esm')
+      
+      // Only load Bootstrap after the page is fully loaded
+      if (document.readyState === 'complete') {
+        loadBootstrap()
+      } else {
+        window.addEventListener('load', loadBootstrap)
+        return () => window.removeEventListener('load', loadBootstrap)
+      }
     }
   }, [])
 
+  // Initialize WOW.js for animations when pathname changes
   useEffect(() => {
-    new WOW({
-      live: false,
-    }).init()
+    // Defer WOW initialization until after critical content is loaded
+    const timer = setTimeout(() => {
+      new WOW({
+        live: false,
+        offset: 100,
+      }).init()
+    }, 1000)
+    
+    return () => clearTimeout(timer)
   }, [pathname])
 
-  if (error) {
-    console.error('Google Maps failed to load:', error)
-  }
+  // Defer loading Google Analytics scripts
+  useEffect(() => {
+    // Load analytics after the page is fully loaded
+    const loadAnalytics = () => {
+      // Only load analytics in production
+      if (process.env.NODE_ENV === 'production') {
+        const script = document.createElement('script')
+        script.src = 'https://www.googletagmanager.com/gtag/js?id=AW-1695104702'
+        script.async = true
+        document.head.appendChild(script)
+        
+        script.onload = () => {
+          window.dataLayer = window.dataLayer || []
+          function gtag() { dataLayer.push(arguments) }
+          gtag('js', new Date())
+          gtag('config', 'G-C348R6D3XH')
+          gtag('config', 'AW-1695104702')
+        }
+      }
+    }
+    
+    window.addEventListener('load', loadAnalytics)
+    return () => window.removeEventListener('load', loadAnalytics)
+  }, [])
 
   return (
     <AuthProvider>
       <BookingProvider>
-        <AppRoutes />
-        <ScrollTopBehaviour />
+        <Suspense fallback={<div className="loading-app">Loading...</div>}>
+          <LazyGoogleMapsProvider>
+            <AppRoutes />
+            <ScrollTopBehaviour />
+          </LazyGoogleMapsProvider>
+        </Suspense>
       </BookingProvider>
     </AuthProvider>
   )
