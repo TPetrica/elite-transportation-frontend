@@ -12,6 +12,7 @@ import {
   X,
   LogOut,
   User,
+  FileText,
 } from 'lucide-react'
 import { Layout, Button, Dropdown, Avatar, Drawer, Menu as AntMenu } from 'antd'
 import AuthService from '@/services/auth.service'
@@ -25,6 +26,7 @@ const navigation = [
   { name: 'Extras', href: '/dashboard/extras', icon: Plus },
   { name: 'Schedule', href: '/dashboard/schedule', icon: Calendar },
   { name: 'Vehicles', href: '/dashboard/vehicles', icon: ShoppingBag },
+  { name: 'Blog Posts', href: '/dashboard/blogs', icon: FileText },
   { name: 'Settings', href: '/dashboard/settings', icon: SettingsIcon },
 ]
 

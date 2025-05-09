@@ -2,6 +2,7 @@
 export const services = [
   {
     id: 1,
+    slug: 'airport-transfers',
     title: 'Airport Transfers',
     description:
       'Reliable luxury transportation between Park City and Salt Lake International Airport (SLC). Professional chauffeurs track your flight and provide door-to-door service with complimentary wait time and luggage assistance. Choose our standard service starting at $120 or opt for our specialized Cottonwood Canyon transfer at $150.',
@@ -50,6 +51,7 @@ export const services = [
   },
   {
     id: 2,
+    slug: 'hourly-charter',
     title: 'Hourly Charter',
     description:
       'Flexible luxury vehicle service with a professional chauffeur at your disposal. Perfect for business meetings, shopping trips, local sightseeing, or special events in and around Park City. Rates start at $100 per hour with a 1-hour minimum.',
@@ -98,6 +100,7 @@ export const services = [
   },
   {
     id: 3,
+    slug: 'grout-transportation',
     title: 'Group Transportation',
     description:
       'Premium group transportation in spacious luxury vans accommodating up to 7 passengers. Ideal for corporate events, wedding parties, family gatherings, and special occasions. For groups over 4 passengers, please contact us directly for pricing and availability.',
@@ -146,6 +149,7 @@ export const services = [
   },
   {
     id: 4,
+    slug: 'winter-sports-transport',
     title: 'Winter Sports Transport',
     description:
       "Specialized transportation to Park City's premier ski resorts including Park City Mountain and Deer Valley. Expert winter drivers, equipment accommodation, and early morning service available. Contact us for rates and availability.",

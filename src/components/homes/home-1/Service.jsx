@@ -102,7 +102,7 @@ export default function Service() {
                     <h3 className="cardTitle text-20-medium color-white mb-10">{elm.title}</h3>
                     <div className="box-inner-info">
                       <p className="cardDesc text-14 color-white mb-30">{elm.description}</p>
-                      <Link className="cardLink btn btn-arrow-up" to={`/service-single/${elm.id}`}>
+                      <Link className="cardLink btn btn-arrow-up" to={`/services/${elm.slug}`}>
                         <svg
                           className="icon-16"
                           fill="none"

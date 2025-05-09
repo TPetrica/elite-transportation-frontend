@@ -21,7 +21,16 @@ export default defineConfig({
 		},
 	},
 	optimizeDeps: {
-		include: ["@popperjs/core"],
+		include: ["@popperjs/core", "draft-js", "react-draft-wysiwyg"],
+		esbuildOptions: {
+			define: {
+				global: 'globalThis',
+			},
+		},
+	},
+	define: {
+		'process.env': {},
+		global: 'window',
 	},
 });
 

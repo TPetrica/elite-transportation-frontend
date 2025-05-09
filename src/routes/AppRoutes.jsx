@@ -43,6 +43,7 @@ import ExtraServicePage from '@/pages/dashboard/extras'
 import SchedulePage from '@/pages/dashboard/schedule'
 import VehiclesPage from '@/pages/dashboard/vehicles'
 import SettingsPage from '@/pages/dashboard/settings'
+import BlogsPage from '@/pages/dashboard/blogs'
 
 const AppRoutes = () => {
   return (
@@ -71,6 +72,7 @@ const AppRoutes = () => {
           <Route path="extras" element={<ExtraServicePage />} />
           <Route path="schedule" element={<SchedulePage />} />
           <Route path="vehicles" element={<VehiclesPage />} />
+          <Route path="blogs" element={<BlogsPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
 
@@ -87,9 +89,9 @@ const AppRoutes = () => {
         <Route path="coming-soon" element={<CommingSoonPage />} />
         <Route path="fleet" element={<FleetSinglePage />} />
         <Route path="services" element={<ServiceGridPage1 />} />
-        <Route path="service-single/:id" element={<ServiceSinglePage />} />
+        <Route path="services/:slug" element={<ServiceSinglePage />} />
         <Route path="blog" element={<BlogsGridPage1 />} />
-        <Route path="blog-single/:id" element={<BlogsSinglePage />} />
+        <Route path="blog/:slug" element={<BlogsSinglePage />} />
 
         {/* Redirect from /reservation to /booking-time */}
         <Route path="reservation" element={<Navigate to="/booking-time" replace />} />

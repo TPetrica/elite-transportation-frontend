@@ -9,8 +9,8 @@ import { services } from '@/data/services'
 import { Navigate, useParams } from 'react-router-dom'
 
 export default function ServiceSinglePage() {
-  const { id } = useParams()
-  const service = services.find(s => s.id.toString() === id)
+  const { slug } = useParams()
+  const service = services.find(s => s.slug === slug)
 
   // If service not found, redirect to services page
   if (!service) {

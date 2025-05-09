@@ -1,14 +1,56 @@
-import { useState } from "react";
+import React from 'react'
 
-export default function Pagination() {
-  const [activePage, setActivePage] = useState(1);
+export default function Pagination({ currentPage = 1, totalPages = 10, onPageChange }) {
+  // Generate an array of page numbers to display
+  const getPageNumbers = () => {
+    const pageNumbers = []
+    
+    // Always show first page
+    pageNumbers.push(1)
+    
+    // If current page is not 1 and not 2, show ellipsis after page 1
+    if (currentPage > 3) {
+      pageNumbers.push('...')
+    }
+    
+    // Show current page and one before/after if they're not already included
+    if (currentPage > 2) {
+      pageNumbers.push(currentPage - 1)
+    }
+    
+    if (currentPage !== 1 && currentPage !== totalPages) {
+      pageNumbers.push(currentPage)
+    }
+    
+    if (currentPage < totalPages - 1) {
+      pageNumbers.push(currentPage + 1)
+    }
+    
+    // If current page is not near the last page, show ellipsis before last page
+    if (currentPage < totalPages - 2) {
+      pageNumbers.push('...')
+    }
+    
+    // Always show last page if there's more than one page
+    if (totalPages > 1) {
+      pageNumbers.push(totalPages)
+    }
+    
+    // Remove duplicates
+    return pageNumbers.filter((page, index, self) => 
+      self.indexOf(page) === index
+    )
+  }
+
+  const pageNumbers = getPageNumbers()
 
   return (
     <ul className="pagination">
       <li className="page-item">
         <a
           className="page-link page-prev cursor-pointer"
-          onClick={() => setActivePage((pre) => (pre > 1 ? pre - 1 : pre))}
+          onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
+          style={{ opacity: currentPage === 1 ? 0.5 : 1, cursor: currentPage === 1 ? 'default' : 'pointer' }}
         >
           <svg
             fill="none"
@@ -26,54 +68,28 @@ export default function Pagination() {
           </svg>
         </a>
       </li>
-      {[1, 2, 3].map((elm, i) => (
-        <li key={i} className="page-item">
-          <a
-            onClick={() => setActivePage(elm)}
-            className={`page-link cursor-pointer ${
-              elm == activePage ? "active" : ""
-            }`}
-          >
-            {elm}
-          </a>
+      
+      {pageNumbers.map((page, index) => (
+        <li key={index} className="page-item">
+          {page === '...' ? (
+            <span className="page-link">...</span>
+          ) : (
+            <a
+              onClick={() => onPageChange(page)}
+              className={`page-link cursor-pointer ${page === currentPage ? 'active' : ''}`}
+            >
+              {page}
+            </a>
+          )}
         </li>
-      ))}{" "}
-      {activePage > 4 && activePage < 10 && (
-        <li className="page-item">
-          <a className="page-link" href="#">
-            ...
-          </a>
-        </li>
-      )}
-      {activePage > 3 && activePage < 10 && (
-        <li className="page-item cursor-pointer">
-          <a className={`page-link cursor-pointer active`}>{activePage}</a>
-        </li>
-      )}
-      {activePage != 9 && (
-        <li className="page-item">
-          <a className="page-link" href="#">
-            ...
-          </a>
-        </li>
-      )}
-      <li
-        onClick={() => setActivePage(() => 10)}
-        className="page-item cursor-pointer"
-      >
+      ))}
+      
+      <li className="page-item">
         <a
-          className={`page-link cursor-pointer ${
-            10 == activePage ? "active" : ""
-          }`}
+          className="page-link page-next cursor-pointer"
+          onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
+          style={{ opacity: currentPage === totalPages ? 0.5 : 1, cursor: currentPage === totalPages ? 'default' : 'pointer' }}
         >
-          10
-        </a>
-      </li>
-      <li
-        className="page-item cursor-pointer"
-        onClick={() => setActivePage((pre) => (pre < 10 ? pre + 1 : pre))}
-      >
-        <a className="page-link page-next">
           <svg
             fill="none"
             stroke="currentColor"
@@ -91,5 +107,5 @@ export default function Pagination() {
         </a>
       </li>
     </ul>
-  );
+  )
 }
