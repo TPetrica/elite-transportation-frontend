@@ -18,28 +18,28 @@ const banners = [
   },
   {
     id: 2,
-    url: '/assets/imgs/page/homepage1/car1.webp',
+    url: '/assets/imgs/page/homepage1/car1-optimized.webp',
     title: 'Airport Transfers',
     text: 'Safe Rides to SLC International Airport',
     position: 'bottom center',
   },
   {
     id: 3,
-    url: '/assets/imgs/page/homepage1/car2.webp',
+    url: '/assets/imgs/page/homepage1/car2-optimized.webp',
     title: 'Local Excellence',
     text: 'Your Trusted Park City Transport Partner',
     position: 'center center',
   },
   {
     id: 4,
-    url: '/assets/imgs/page/homepage1/car3.webp',
+    url: '/assets/imgs/page/homepage1/car3-optimized.webp',
     title: 'Mountain Travel Made Easy',
     text: 'Resort & Ski Area Transportation',
     position: 'center center',
   },
   {
     id: 5,
-    url: '/assets/imgs/template/logo.jpeg',
+    url: '/assets/imgs/template/logo.webp',
     title: 'Group Transportation',
     text: 'Corporate & Event Services in Utah',
     position: 'center center',
@@ -99,15 +99,7 @@ export default function Hero() {
                 src={elm.url}
                 position={elm.position}
                 className="box-cover-image boxBgImage"
-                eager={i === 0}
-                style={{
-                  // Set explicit aspect ratio to avoid layout shifts
-                  aspectRatio: '16/9',
-                  width: '100%',
-                  height: i === 0 ? '100%' : 0, // Only first slide gets height initially
-                }}
-                data-height="100%"
-                data-index={i}
+                eager={i === 0} // Load first slide eagerly
               />
               <div className="box-banner-info">
                 <p className="text-16 color-white wow fadeInUp">{elm.title}</p>
