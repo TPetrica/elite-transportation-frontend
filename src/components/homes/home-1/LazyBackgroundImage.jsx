@@ -1,5 +1,5 @@
-// LazyBackgroundImage.jsx
-import { useState, useEffect } from 'react'
+// LazyBackgroundImage.jsx - Improved version
+import { useState, useEffect, useRef } from 'react'
 
 const LazyBackgroundImage = ({
   src,
@@ -8,7 +8,8 @@ const LazyBackgroundImage = ({
   eager = false,
   ...props
 }) => {
-  const [loaded, setLoaded] = useState(eager)
+  const [loaded, setLoaded] = useState(false)
+  const imgRef = useRef(null)
 
   // Convert to WebP if not already
   const getWebPPath = imagePath => {
@@ -19,28 +20,55 @@ const LazyBackgroundImage = ({
 
   const webpSrc = getWebPPath(src)
 
+  // For the first slide (eager), use inline style with data URI or a tiny placeholder
+  // This eliminates the need to wait for an additional image load
+  const initialStyle = eager
+    ? { backgroundImage: `url(${webpSrc})`, backgroundPosition: position, ...props.style }
+    : {
+        // Start with a transparent or blurred tiny placeholder if not eager
+        backgroundImage: 'none',
+        backgroundPosition: position,
+        ...props.style,
+      }
+
   useEffect(() => {
+    // If eager, consider it loaded immediately
     if (eager) {
       setLoaded(true)
       return
     }
 
-    const img = new Image()
-    img.src = webpSrc
-    img.onload = () => setLoaded(true)
+    // Use Intersection Observer to only load when visible
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting) {
+          const img = new Image()
+          img.src = webpSrc
+          img.onload = () => setLoaded(true)
+
+          // Stop observing once we start loading
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.01, rootMargin: '200px' } // Load when 1% visible or 200px from viewport
+    )
+
+    if (imgRef.current) {
+      observer.observe(imgRef.current)
+    }
 
     return () => {
-      img.onload = null
+      observer.disconnect()
     }
   }, [webpSrc, eager])
 
   return (
     <div
-      className={`${className} ${loaded ? 'img-loaded' : 'img-loading'}`}
+      ref={imgRef}
+      className={`${className} ${loaded || eager ? 'img-loaded' : 'img-loading'}`}
       style={{
-        backgroundImage: loaded ? `url(${webpSrc})` : 'none',
-        backgroundPosition: position,
-        ...props.style,
+        ...initialStyle,
+        backgroundImage: loaded || eager ? `url(${webpSrc})` : initialStyle.backgroundImage,
       }}
       {...props}
     />

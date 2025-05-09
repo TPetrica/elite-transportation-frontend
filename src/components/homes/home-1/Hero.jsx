@@ -11,7 +11,7 @@ import { Swiper, SwiperSlide } from 'swiper/react'
 const banners = [
   {
     id: 1,
-    url: '/assets/imgs/page/homepage1/car4.webp',
+    url: '/assets/imgs/page/homepage1/car4-optimized.webp',
     title: 'Premium Park City Transportation',
     text: 'Luxury SUV Service for All Your Travel Needs',
     position: 'bottom center',
@@ -58,7 +58,23 @@ export default function Hero() {
     modules: [Navigation, Autoplay, Pagination],
     pagination: { el: '.sph1', clickable: true, type: 'fraction' },
     autoplay: { delay: 10000 },
+    preloadImages: false, // Let our custom handling work
+    lazy: true, // Enable Swiper's built-in lazy loading as a fallback
+    watchSlidesProgress: true, // Required for lazy loading to work properly
+    init: false, // Delay initialization
   }
+
+  // Initialize swiper after first render to avoid LCP issues
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const swiperContainer = document.querySelector('.swiper-container')
+      if (swiperContainer && swiperContainer.swiper) {
+        swiperContainer.swiper.init()
+      }
+    }, 100)
+
+    return () => clearTimeout(timer)
+  }, [])
 
   const handleSearch = () => {
     const momentDate = moment(selectedDateLocal)
@@ -83,7 +99,15 @@ export default function Hero() {
                 src={elm.url}
                 position={elm.position}
                 className="box-cover-image boxBgImage"
-                eager={i === 0} // Load first slide eagerly
+                eager={i === 0}
+                style={{
+                  // Set explicit aspect ratio to avoid layout shifts
+                  aspectRatio: '16/9',
+                  width: '100%',
+                  height: i === 0 ? '100%' : 0, // Only first slide gets height initially
+                }}
+                data-height="100%"
+                data-index={i}
               />
               <div className="box-banner-info">
                 <p className="text-16 color-white wow fadeInUp">{elm.title}</p>

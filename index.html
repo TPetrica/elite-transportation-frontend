@@ -4,16 +4,31 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Elite Transportation Park City - Professional chauffeur and luxury car service in Park City, Utah. Airport transfers, private car hire, and special events transportation." />
-    
+    <meta
+      name="description"
+      content="Elite Transportation Park City - Professional chauffeur and luxury car service in Park City, Utah. Airport transfers, private car hire, and special events transportation."
+    />
+
+    <link
+      rel="preload"
+      as="image"
+      href="/assets/imgs/page/homepage1/car4.webp"
+      fetchpriority="high"
+    />
+
     <!-- Preload critical fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net" crossorigin />
     <link rel="preload" as="style" href="https://fonts.bunny.net/css?family=dm-sans:400,500,700" />
-    <link rel="stylesheet" href="https://fonts.bunny.net/css?family=dm-sans:400,500,700" media="print" onload="this.media='all'" />
-    
+    <link
+      rel="stylesheet"
+      href="https://fonts.bunny.net/css?family=dm-sans:400,500,700"
+      media="print"
+      onload="this.media='all'"
+    />
+
     <!-- Preload critical CSS -->
     <link rel="preload" href="/assets/index-jPXlVS68.css" as="style" />
-    
+
     <!-- Font display swap to ensure text remains visible during webfont loading -->
     <style>
       /* Font display swap */
@@ -22,16 +37,19 @@
         font-style: normal;
         font-weight: 400;
         font-display: swap;
-        src: local('DM Sans'), url('https://fonts.bunny.net/files/dm-sans-latin-400-normal.woff2') format('woff2');
+        src:
+          local('DM Sans'),
+          url('https://fonts.bunny.net/files/dm-sans-latin-400-normal.woff2') format('woff2');
       }
-      
+
       /* Critical CSS for initial render */
       body {
         margin: 0;
         font-family: 'DM Sans', sans-serif;
       }
-      
-      .loading-app, .loading-page {
+
+      .loading-app,
+      .loading-page {
         display: flex;
         justify-content: center;
         align-items: center;
@@ -40,60 +58,60 @@
         font-size: 1.5rem;
         color: #333;
       }
-      
+
       /* Image loading styles */
       .img-loading {
         opacity: 0;
         transition: opacity 0.3s;
       }
-      
+
       .img-loaded {
         opacity: 1;
       }
     </style>
 
     <!-- Google Analytics will be loaded dynamically by JavaScript -->
-    
+
     <title>Elite Transportation Park City Chauffeur Limousine Transport and Car Hire</title>
   </head>
   <body>
     <!-- Google Tag Manager (noscript) will be added dynamically -->
-    
+
     <div id="root"></div>
-    
+
     <!-- Add a placeholder for the map to trigger loading when scrolled to -->
-    <div id="map-trigger" style="height: 0; width: 0; opacity: 0;"></div>
-    
+    <div id="map-trigger" style="height: 0; width: 0; opacity: 0"></div>
+
     <script type="module" src="/src/main.jsx"></script>
-    
+
     <!-- Dynamically load Google Tag Manager -->
     <script>
       // Load GTM after page load
-      window.addEventListener('load', function() {
+      window.addEventListener('load', function () {
         // Only load analytics in production
         if (window.location.hostname !== 'localhost') {
           // Google Tag Manager
-          var gtmScript = document.createElement('script');
+          var gtmScript = document.createElement('script')
           gtmScript.innerHTML = `
             (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
             new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
             j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
             })(window,document,'script','dataLayer','GTM-PHVLFL37');
-          `;
-          document.head.appendChild(gtmScript);
-          
+          `
+          document.head.appendChild(gtmScript)
+
           // Add noscript iframe
-          var noscript = document.createElement('noscript');
-          var iframe = document.createElement('iframe');
-          iframe.src = "https://www.googletagmanager.com/ns.html?id=GTM-PHVLFL37";
-          iframe.height = "0";
-          iframe.width = "0";
-          iframe.style.cssText = "display:none;visibility:hidden";
-          noscript.appendChild(iframe);
-          document.body.insertBefore(noscript, document.body.firstChild);
+          var noscript = document.createElement('noscript')
+          var iframe = document.createElement('iframe')
+          iframe.src = 'https://www.googletagmanager.com/ns.html?id=GTM-PHVLFL37'
+          iframe.height = '0'
+          iframe.width = '0'
+          iframe.style.cssText = 'display:none;visibility:hidden'
+          noscript.appendChild(iframe)
+          document.body.insertBefore(noscript, document.body.firstChild)
         }
-      });
+      })
     </script>
   </body>
 </html>
