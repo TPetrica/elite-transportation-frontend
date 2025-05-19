@@ -1,7 +1,4 @@
-import MetaComponent from '@/components/common/MetaComponent'
-import Footer1 from '@/components/footers/Footer1'
-import Header1 from '@/components/headers/Header1'
-import MobailHeader1 from '@/components/headers/MobailHeader1'
+import DefaultLayout from '@/layouts/DefaultLayout'
 import Breadcumb from '@/components/service/serviceSingle/Breadcumb'
 import Features1 from '@/components/service/serviceSingle/Features1'
 import Features2 from '@/components/service/serviceSingle/Features2'
@@ -23,17 +20,11 @@ export default function ServiceSinglePage() {
   }
 
   return (
-    <>
-      <MetaComponent meta={metadata} />
-      <Header1 />
-      <MobailHeader1 />
-      <main className="main">
-        <Breadcumb service={service} />
-        {/* <SearchBox service={service} /> */}
-        <Features1 />
-        <Features2 service={service} />
-      </main>
-      <Footer1 />
-    </>
+    <DefaultLayout metadata={metadata}>
+      <Breadcumb service={service} />
+      {/* <SearchBox service={service} /> */}
+      <Features1 />
+      <Features2 service={service} />
+    </DefaultLayout>
   )
 }

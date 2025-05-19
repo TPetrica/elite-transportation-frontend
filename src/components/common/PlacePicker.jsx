@@ -7,30 +7,6 @@ import styled from 'styled-components'
 const COTTONWOOD_LOCATIONS = ['Snowbird', 'Alta', 'Solitude', 'Brighton', 'Sundance']
 const ALLOWED_REGIONS = ['Salt Lake City', 'Park City', 'Cottonwood', 'Utah', 'UT', 'SLC']
 
-// Fixed locations for affiliate bookings
-const AFFILIATE_LOCATIONS = [
-  {
-    value: 'slc-airport',
-    address: 'Salt Lake City International Airport, Salt Lake City, UT, USA',
-    label: 'Salt Lake City International Airport',
-    mainText: 'Salt Lake City International Airport',
-    secondaryText: 'Salt Lake City, UT, USA',
-    isAirport: true,
-    isCustom: false,
-    coordinates: { lat: 40.7899, lng: -111.9791 },
-  },
-  {
-    value: 'park-city-hostel',
-    address: 'Park City Hostel, Park City, UT, USA',
-    label: 'Park City Hostel',
-    mainText: 'Park City Hostel',
-    secondaryText: 'Park City, UT, USA',
-    isAirport: false,
-    isCustom: false,
-    coordinates: { lat: 40.6609, lng: -111.4988 },
-  },
-]
-
 const Container = styled.div`
   width: 100%;
 `
@@ -91,6 +67,7 @@ export default function PlacePicker({
   isAffiliate,
   airportOnly = false,
   disabled = false,
+  affiliateLocations = null,
 }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false)
@@ -155,25 +132,22 @@ export default function PlacePicker({
   )
 
   const handleSearch = newValue => {
-    if (!isGoogleLoaded || disabled) return
-
     setSearchTerm(newValue)
+
+    if (!isGoogleLoaded || disabled || affiliateLocations) return
+
+    // Always trigger the search for better responsiveness
     setSearchInput(newValue)
 
-    if (selectedService?.id === 'from-airport' && type === 'pickup') return
-    if (selectedService?.id === 'to-airport' && type === 'dropoff') return
-
-    onChange?.({
-      address: newValue,
-      coordinates: null,
-      isCustom: true,
-      isCottonwood: isCottonwoodLocation(newValue),
-    })
+    // Don't call onChange during search to avoid overwriting coordinates
+    // onChange will be called when user selects an option
   }
 
   // Modified to fix the deletion issue when clicking away from the select
   const handleFocus = () => {
-    if (value) {
+    if (value && value.address) {
+      setForceValue(value.address)
+    } else if (typeof value === 'string') {
       setForceValue(value)
     }
   }
@@ -204,7 +178,7 @@ export default function PlacePicker({
       }
 
       // For affiliate mode, handle special location objects
-      if (isAffiliate && option.isAffiliateLocation) {
+      if (option.isAffiliateLocation) {
         const newValue = {
           address: option.address,
           coordinates: option.coordinates || null,
@@ -267,7 +241,10 @@ export default function PlacePicker({
 
   // Update the search term when the value prop changes externally
   useEffect(() => {
-    if (value) {
+    if (value && value.address) {
+      setSearchTerm(value.address)
+      setForceValue(value.address)
+    } else if (typeof value === 'string') {
       setSearchTerm(value)
       setForceValue(value)
     } else {
@@ -280,27 +257,52 @@ export default function PlacePicker({
   const isAirportDropoff = selectedService?.id === 'to-airport' && type === 'dropoff'
   const allowCustomAddresses = !isAirportPickup && !isAirportDropoff
 
-  // For affiliate mode, use restricted options
+  // For affiliate mode, use restricted options based on affiliateLocations prop
   const affiliateOptions = useMemo(() => {
-    return AFFILIATE_LOCATIONS.map(location => ({
-      ...location,
-      isAffiliateLocation: true,
-    }))
-  }, [])
+    if (!affiliateLocations) return []
+    
+    const options = []
+    
+    if (type === 'pickup' && affiliateLocations.pickup && affiliateLocations.pickup.address) {
+      options.push({
+        value: affiliateLocations.pickup.address,
+        address: affiliateLocations.pickup.address,
+        label: affiliateLocations.pickup.address,
+        mainText: affiliateLocations.pickup.address,
+        secondaryText: 'Default Pickup',
+        isAffiliateLocation: true,
+        coordinates: affiliateLocations.pickup.coordinates,
+      })
+    }
+    
+    if (type === 'dropoff' && affiliateLocations.dropoff && affiliateLocations.dropoff.address) {
+      options.push({
+        value: affiliateLocations.dropoff.address,
+        address: affiliateLocations.dropoff.address,
+        label: affiliateLocations.dropoff.address,
+        mainText: affiliateLocations.dropoff.address,
+        secondaryText: 'Default Dropoff',
+        isAffiliateLocation: true,
+        coordinates: affiliateLocations.dropoff.coordinates,
+      })
+    }
+    
+    return options
+  }, [affiliateLocations, type])
 
   // Standard options based on search results
   const standardOptions = useMemo(
     () => [
       ...(allowCustomAddresses &&
       searchTerm &&
-      isInAllowedRegion(searchTerm) &&
+      searchTerm.length >= 3 && // Minimum 3 characters for custom address
       !filteredSuggestions.some(s => s.description.toLowerCase() === searchTerm.toLowerCase())
         ? [
             {
               value: searchTerm,
               label: searchTerm,
               mainText: searchTerm,
-              secondaryText: 'Custom Address',
+              secondaryText: 'Use as custom address',
               isCustom: true,
             },
           ]
@@ -317,14 +319,14 @@ export default function PlacePicker({
     [allowCustomAddresses, searchTerm, filteredSuggestions]
   )
 
-  const options = isAffiliate ? affiliateOptions : standardOptions
+  const options = affiliateLocations ? affiliateOptions : standardOptions
 
   let customPlaceholder = placeholder
   if (isAirportPickup) {
     customPlaceholder = 'Select an airport for pickup'
   } else if (isAirportDropoff) {
     customPlaceholder = 'Select an airport for dropoff'
-  } else if (isAffiliate) {
+  } else if (affiliateLocations) {
     customPlaceholder = type === 'pickup' ? 'Select pickup location' : 'Select dropoff location'
   }
 
@@ -347,7 +349,7 @@ export default function PlacePicker({
         value={forceValue || searchTerm || undefined}
         placeholder={customPlaceholder}
         defaultActiveFirstOption={false}
-        filterOption={isAffiliate}
+        filterOption={!!affiliateLocations}
         onSearch={handleSearch}
         onChange={handleChange}
         onFocus={handleFocus}

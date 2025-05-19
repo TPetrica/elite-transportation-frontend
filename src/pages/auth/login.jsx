@@ -3,6 +3,7 @@ import { Form, Input, Button, Card, Alert, Checkbox, Typography } from 'antd'
 import { MailOutlined, LockOutlined } from '@ant-design/icons'
 import { useNavigate, Link } from 'react-router-dom'
 import AuthService from '@/services/auth.service'
+import AuthLayout from '@/layouts/AuthLayout'
 
 const { Title, Text } = Typography
 
@@ -35,7 +36,7 @@ const LoginPage = () => {
   }
 
   return (
-    <div className="tw-min-h-screen tw-flex tw-items-center tw-justify-center tw-bg-gray-100 tw-p-4">
+    <AuthLayout>
       <Card className="tw-w-full tw-max-w-md tw-shadow-lg">
         <div className="tw-text-center tw-mb-6">
           <Title level={2} className="tw-mb-1">
@@ -100,7 +101,7 @@ const LoginPage = () => {
           </Form.Item>
         </Form>
       </Card>
-    </div>
+    </AuthLayout>
   )
 }
 

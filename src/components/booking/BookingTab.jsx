@@ -9,13 +9,6 @@ const tabs = [
     text: 'Ride Info',
     number: '01',
   },
-  // {
-  // 	id: 2,
-  // 	href: "/booking-service",
-  // 	iconClass: "icon-book icon-vehicle",
-  // 	text: "Service",
-  // 	number: "02",
-  // },
   {
     id: 2,
     href: '/booking-extra',

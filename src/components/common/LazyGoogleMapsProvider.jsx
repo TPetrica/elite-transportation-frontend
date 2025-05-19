@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 
 // Create a context for Google Maps
 const GoogleMapsContext = createContext({
@@ -96,8 +96,7 @@ const LazyGoogleMapsProvider = ({ children }) => {
 
   return (
     <GoogleMapsContext.Provider value={mapsState}>
-      {/* Invisible element to trigger map loading when scrolled into view */}
-      <div id="map-trigger" style={{ height: '1px', width: '1px', opacity: 0 }} />
+      <div id="map-trigger" />
       {children}
     </GoogleMapsContext.Provider>
   )

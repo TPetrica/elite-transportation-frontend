@@ -31,6 +31,11 @@ export const menuItems = [
 	},
 	{
 		id: 7,
+		title: "Blog",
+		link: "/blog",
+	},
+	{
+		id: 8,
 		title: "Contact",
 		link: "/contact",
 	},

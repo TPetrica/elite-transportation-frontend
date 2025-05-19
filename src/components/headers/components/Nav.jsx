@@ -31,17 +31,17 @@ export const menuItems = [
 		link: "/services",
 	},
 	{
-		id: 4,
+		id: 6,
 		title: "FAQ",
 		link: "/faq",
 	},
-	// {
-	// 	id: 6,
-	// 	title: "Blog",
-	// 	link: "/blog",
-	// },
 	{
 		id: 7,
+		title: "Blog",
+		link: "/blog",
+	},
+	{
+		id: 8,
 		title: "Contact",
 		link: "/contact",
 	},

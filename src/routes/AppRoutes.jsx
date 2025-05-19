@@ -1,7 +1,7 @@
+import GuestBookingRoute from '@/routes/GuestBookingRoute'
 import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import ProtectedRoute from './ProtectedRoute'
-import GuestBookingRoute from '@/routes/GuestBookingRoute'
 
 // Loading component for Suspense fallback
 const LoadingPage = () => <div className="loading-page">Loading...</div>
@@ -48,6 +48,7 @@ const SchedulePage = lazy(() => import('@/pages/dashboard/schedule'))
 const VehiclesPage = lazy(() => import('@/pages/dashboard/vehicles'))
 const SettingsPage = lazy(() => import('@/pages/dashboard/settings'))
 const BlogsPage = lazy(() => import('@/pages/dashboard/blogs'))
+const AffiliatesPage = lazy(() => import('@/pages/dashboard/affiliates'))
 
 const AppRoutes = () => {
   return (
@@ -121,6 +122,11 @@ const AppRoutes = () => {
           <Route path="blogs" element={
             <Suspense fallback={<LoadingPage />}>
               <BlogsPage />
+            </Suspense>
+          } />
+          <Route path="affiliates" element={
+            <Suspense fallback={<LoadingPage />}>
+              <AffiliatesPage />
             </Suspense>
           } />
           <Route path="settings" element={

@@ -1,26 +1,17 @@
+import DefaultLayout from "@/layouts/DefaultLayout";
 import BookingReceived from "@/components/booking/BookingReceived";
-import Footer1 from "@/components/footers/Footer1";
-import Header1 from "@/components/headers/Header1";
-import MobailHeader1 from "@/components/headers/MobailHeader1";
 
-import MetaComponent from "@/components/common/MetaComponent";
 const metadata = {
 	title:
-		"Booking Recieved || Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
+		"Booking Received || Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
 	description:
 		"Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
 };
 
 export default function BookingReceivedPage() {
 	return (
-		<>
-			<MetaComponent meta={metadata} />
-			<Header1 /> <MobailHeader1 />
-			<main className="main">
-				<BookingReceived />
-			</main>
-			<Footer1 />
-		</>
+		<DefaultLayout metadata={metadata}>
+			<BookingReceived />
+		</DefaultLayout>
 	);
 }
-

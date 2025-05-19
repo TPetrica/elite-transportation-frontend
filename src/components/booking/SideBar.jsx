@@ -1,8 +1,8 @@
 import TipCalculator from '@/components/booking/TipCalculator'
 import { useBooking } from '@/context/BookingContext'
-import { format } from 'date-fns'
-import { Tooltip } from 'antd'
 import { InfoCircleOutlined } from '@ant-design/icons'
+import { Tooltip } from 'antd'
+import { format } from 'date-fns'
 import moment from 'moment'
 
 // Formatting utilities
@@ -218,9 +218,6 @@ export default function SideBar() {
     passengerDetails,
     isAffiliate,
   } = useBooking()
-
-  console.log('pickupDetails', pickupDetails)
-  console.log('dropoffDetails', dropoffDetails)
 
   return (
     <div className="box-tab-right">

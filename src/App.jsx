@@ -2,6 +2,7 @@ import { useEffect, lazy, Suspense } from 'react'
 import { useLocation } from 'react-router-dom'
 import WOW from 'wow.js'
 import ScrollTopBehaviour from './components/common/ScrollTopBehaviour'
+import AffiliateHandler from './components/common/AffiliateHandler'
 import { AuthProvider } from './context/AuthContext'
 import { BookingProvider } from './context/BookingContext'
 import './styles/style.scss'
@@ -20,7 +21,7 @@ function App() {
     if (typeof window !== 'undefined') {
       // Use a more specific import to reduce bundle size
       const loadBootstrap = () => import('bootstrap/dist/js/bootstrap.esm')
-      
+
       // Only load Bootstrap after the page is fully loaded
       if (document.readyState === 'complete') {
         loadBootstrap()
@@ -35,12 +36,9 @@ function App() {
   useEffect(() => {
     // Defer WOW initialization until after critical content is loaded
     const timer = setTimeout(() => {
-      new WOW({
-        live: false,
-        offset: 100,
-      }).init()
-    }, 1000)
-    
+      new WOW({ live: false, offset: 100 }).init()
+    }, 0)
+
     return () => clearTimeout(timer)
   }, [pathname])
 
@@ -54,17 +52,19 @@ function App() {
         script.src = 'https://www.googletagmanager.com/gtag/js?id=AW-1695104702'
         script.async = true
         document.head.appendChild(script)
-        
+
         script.onload = () => {
           window.dataLayer = window.dataLayer || []
-          function gtag() { dataLayer.push(arguments) }
+          function gtag() {
+            dataLayer.push(arguments)
+          }
           gtag('js', new Date())
           gtag('config', 'G-C348R6D3XH')
           gtag('config', 'AW-1695104702')
         }
       }
     }
-    
+
     window.addEventListener('load', loadAnalytics)
     return () => window.removeEventListener('load', loadAnalytics)
   }, [])
@@ -74,6 +74,7 @@ function App() {
       <BookingProvider>
         <Suspense fallback={<div className="loading-app">Loading...</div>}>
           <LazyGoogleMapsProvider>
+            <AffiliateHandler />
             <AppRoutes />
             <ScrollTopBehaviour />
           </LazyGoogleMapsProvider>

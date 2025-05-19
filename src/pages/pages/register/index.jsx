@@ -1,18 +1,16 @@
-import Footer1 from "@/components/footers/Footer1";
-import Header1 from "@/components/headers/Header1";
-import MobailHeader1 from "@/components/headers/MobailHeader1";
+import DefaultLayout from "@/layouts/DefaultLayout";
 import Register from "@/components/otherPages/Register";
-
-import MetaComponent from "@/components/common/MetaComponent";
 import { useAuth } from "@/context/AuthContext";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+
 const metadata = {
 	title:
 		"Register || Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
 	description:
 		"Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
 };
+
 export default function RegisterPage() {
 	const { user } = useAuth();
 	const navigate = useNavigate();
@@ -24,14 +22,8 @@ export default function RegisterPage() {
 	}, [user, navigate]);
 
 	return (
-		<>
-			<MetaComponent meta={metadata} />
-			<Header1 /> <MobailHeader1 />
-			<main className="main">
-				<Register />
-			</main>
-			<Footer1 />
-		</>
+		<DefaultLayout metadata={metadata}>
+			<Register />
+		</DefaultLayout>
 	);
 }
-

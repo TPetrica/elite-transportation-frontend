@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import MobileNav from "./components/MobileNav";
 
-export default function MobailHeader1() {
+export default function MobailHeader() {
 	useEffect(() => {
 		const navbarTrigger = document.getElementsByClassName("burger-icon")[0];
 		const container = document.getElementsByClassName(

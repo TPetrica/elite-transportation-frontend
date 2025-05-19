@@ -1,41 +1,28 @@
-import React, { useState, useEffect } from 'react'
-import { User } from 'lucide-react'
-import {
-  Card,
-  Table,
-  Tag,
-  Button,
-  message,
-  Modal,
-  Dropdown,
-  Space,
-  Badge,
-  Tabs,
-  Form,
-  Input,
-  DatePicker,
-  Select,
-  Spin,
-  Empty,
-} from 'antd'
+import ApiService from '@/services/api.service'
 import { ExclamationCircleOutlined } from '@ant-design/icons'
 import {
-  Eye,
-  MailPlus,
-  Check,
-  X,
-  MoreHorizontal,
-  Edit,
-  Printer,
-  Plus,
-  Filter,
-  RefreshCw,
-  Search,
-  ArrowDown,
-  ArrowUp,
+    Badge,
+    Button,
+    Card,
+    DatePicker,
+    Dropdown,
+    Empty,
+    Form,
+    Input,
+    message,
+    Modal,
+    Select,
+    Space,
+    Table,
+    Tabs,
+    Tag
+} from 'antd'
+import {
+    Check, Edit, Eye, Filter, MailPlus, MoreHorizontal, Plus, Printer, RefreshCw,
+    Search, User, X
 } from 'lucide-react'
 import moment from 'moment'
-import ApiService from '@/services/api.service'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BookingDetailsModal from './BookingDetailsModal'
 

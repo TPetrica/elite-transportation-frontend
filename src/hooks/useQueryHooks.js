@@ -488,3 +488,117 @@ export const useBlogsByCategory = (category, params = {}) => {
     enabled: !!category,
   });
 };
+
+// ================= AFFILIATE HOOKS ===================
+
+/**
+ * Hook to fetch affiliates
+ */
+export const useAffiliates = (params = {}) => {
+  return useQuery({
+    queryKey: ['affiliates', params],
+    queryFn: async () => {
+      const response = await ApiService.get('/affiliates', { params });
+      return response.data;
+    },
+  });
+};
+
+/**
+ * Hook to fetch a single affiliate
+ */
+export const useAffiliate = (affiliateId) => {
+  return useQuery({
+    queryKey: ['affiliate', affiliateId],
+    queryFn: async () => {
+      const response = await ApiService.get(`/affiliates/${affiliateId}`);
+      return response.data;
+    },
+    enabled: !!affiliateId,
+  });
+};
+
+/**
+ * Hook to create an affiliate
+ */
+export const useCreateAffiliate = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (affiliateData) => ApiService.post('/affiliates', affiliateData),
+    onSuccess: () => {
+      message.success('Affiliate created successfully');
+      queryClient.invalidateQueries(['affiliates']);
+    },
+    onError: (error) => {
+      message.error(error.response?.data?.message || 'Failed to create affiliate');
+      console.error('Error creating affiliate:', error);
+    },
+  });
+};
+
+/**
+ * Hook to update an affiliate
+ */
+export const useUpdateAffiliate = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ affiliateId, data }) => ApiService.patch(`/affiliates/${affiliateId}`, data),
+    onSuccess: () => {
+      message.success('Affiliate updated successfully');
+      queryClient.invalidateQueries(['affiliates']);
+    },
+    onError: (error) => {
+      message.error(error.response?.data?.message || 'Failed to update affiliate');
+      console.error('Error updating affiliate:', error);
+    },
+  });
+};
+
+/**
+ * Hook to delete an affiliate
+ */
+export const useDeleteAffiliate = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (affiliateId) => ApiService.delete(`/affiliates/${affiliateId}`),
+    onSuccess: () => {
+      message.success('Affiliate deleted successfully');
+      queryClient.invalidateQueries(['affiliates']);
+    },
+    onError: (error) => {
+      message.error(error.response?.data?.message || 'Failed to delete affiliate');
+      console.error('Error deleting affiliate:', error);
+    },
+  });
+};
+
+/**
+ * Hook to track affiliate visit
+ */
+export const useTrackAffiliateVisit = () => {
+  return useMutation({
+    mutationFn: (code) => ApiService.get(`/affiliates/track/${code}`),
+    onSuccess: (data) => {
+      // Return the redirect path
+      return data;
+    },
+    onError: (error) => {
+      console.error('Error tracking affiliate visit:', error);
+    },
+  });
+};
+
+/**
+ * Hook to validate affiliate code
+ */
+export const useValidateAffiliateCode = () => {
+  return useMutation({
+    mutationFn: (code) => ApiService.get(`/affiliates/validate/${code}`),
+    onError: (error) => {
+      console.error('Error validating affiliate code:', error);
+    },
+  });
+};

@@ -1,30 +1,13 @@
-import { memo, useEffect, useState, useRef, useCallback, useMemo } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
-import moment from 'moment'
 import { Alert } from 'antd'
+import moment from 'moment'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import DatePicker from 'react-multi-date-picker'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import PlacePicker from '@/components/common/PlacePicker'
 import { useBooking } from '@/context/BookingContext'
 import calendarService from '@/services/calendar.service'
-import serviceAPI from '@/services/service.service'
 import SideBar from './SideBar'
-
-// Constants for affiliate locations
-const AFFILIATE_LOCATIONS = {
-  AIRPORT: {
-    address: 'Salt Lake City International Airport, Salt Lake City, UT, USA',
-    coordinates: { lat: 40.7899, lng: -111.9791 },
-    isCustom: false,
-    isCottonwood: false,
-  },
-  HOSTEL: {
-    address: 'Park City Hostel, Park City, UT, USA',
-    coordinates: { lat: 40.6609, lng: -111.4988 },
-    isCustom: false,
-    isCottonwood: false,
-  },
-}
 
 function BookingTime() {
   const navigate = useNavigate()
@@ -45,6 +28,8 @@ function BookingTime() {
     selectedService,
     setAffiliateMode,
     isAffiliate,
+    affiliate,
+    affiliateCode,
     resetBooking,
     services, // Get services from context
   } = useBooking()
@@ -60,39 +45,28 @@ function BookingTime() {
   const previousPickupCoordinates = useRef(null)
   const previousDropoffCoordinates = useRef(null)
 
-  // Check if services are loaded
+  // Check if services are loaded and set default service for affiliate
   useEffect(() => {
     if (services && services.length > 0) {
       setLoadingServices(false)
+
+      // If affiliate and no service selected yet, set the per-person service
+      if (isAffiliate && !selectedService && !hasSetAffiliateService.current) {
+        const perPersonService = services.find(s => s.serviceType === 'per-person' || s.title.toLowerCase().includes('per person'))
+        if (perPersonService) {
+          setSelectedService(perPersonService)
+          hasSetAffiliateService.current = true
+        }
+      }
 
       // Show passenger warning if needed
       if (selectedService && selectedService.maxPassengers) {
         setShowPassengerWarning(true)
       }
     }
-  }, [services, selectedService])
+  }, [services, selectedService, isAffiliate, setSelectedService])
 
-  // Check URL for affiliate code
-  useEffect(() => {
-    const params = new URLSearchParams(location.search)
-    const affiliateCode = params.get('affiliate')
-
-    // If URL has affiliate code, set affiliate mode
-    if (affiliateCode === 'PCH' && !isAffiliate) {
-      setAffiliateMode(affiliateCode)
-    }
-  }, [location.search, setAffiliateMode, isAffiliate])
-
-  // Set affiliate service after services are loaded and affiliate mode is set
-  useEffect(() => {
-    if (isAffiliate && services.length > 0 && !hasSetAffiliateService.current) {
-      const perPersonService = services.find(s => s.title.toLowerCase().includes('per person'))
-      if (perPersonService) {
-        setSelectedService(perPersonService)
-        hasSetAffiliateService.current = true
-      }
-    }
-  }, [isAffiliate, services, setSelectedService])
+  // Affiliate setup is now handled by AffiliateHandler component
 
   // Calculate distance between pickup and dropoff locations
   // Use ref comparison to prevent unnecessary API calls
@@ -354,51 +328,7 @@ function BookingTime() {
     [selectedDate, setSelectedTime, pickupDetails, setPickupDetails, selectedTime]
   )
 
-  // This is the key function that was causing issues
-  const handleAffiliateLocationChange = useCallback(
-    (locationType, location) => {
-      // Only proceed if we have a valid location
-      if (!location || !location.address) return
-
-      // If the selected location is the airport
-      if (location.address.includes('Salt Lake City International Airport')) {
-        if (locationType === 'pickup') {
-          // If pickup is airport, dropoff should be hostel
-          setTimeout(() => {
-            setDropoffDetails({
-              ...AFFILIATE_LOCATIONS.HOSTEL,
-            })
-          }, 0)
-        } else {
-          // If dropoff is airport, pickup should be hostel
-          setTimeout(() => {
-            setPickupDetails({
-              ...AFFILIATE_LOCATIONS.HOSTEL,
-            })
-          }, 0)
-        }
-      }
-      // If the selected location is the hostel
-      else if (location.address.includes('Park City Hostel')) {
-        if (locationType === 'pickup') {
-          // If pickup is hostel, dropoff should be airport
-          setTimeout(() => {
-            setDropoffDetails({
-              ...AFFILIATE_LOCATIONS.AIRPORT,
-            })
-          }, 0)
-        } else {
-          // If dropoff is hostel, pickup should be airport
-          setTimeout(() => {
-            setPickupDetails({
-              ...AFFILIATE_LOCATIONS.AIRPORT,
-            })
-          }, 0)
-        }
-      }
-    },
-    [setPickupDetails, setDropoffDetails]
-  )
+  // Remove this function - we don't need it anymore since affiliate locations are handled by AffiliateHandler
 
   const handleFromLocationChange = useCallback(
     location => {
@@ -412,11 +342,6 @@ function BookingTime() {
         isCustom: location.isCustom,
         isCottonwood: location.isCottonwood,
       })
-
-      // Special handling for affiliate bookings - do this after updating pickup
-      if (isAffiliate) {
-        handleAffiliateLocationChange('pickup', location)
-      }
 
       // If any location is in Cottonwood Canyons, automatically select Cottonwood service
       if (isCottonwoodService) {
@@ -432,7 +357,6 @@ function BookingTime() {
     [
       dropoffDetails,
       isAffiliate,
-      handleAffiliateLocationChange,
       services,
       selectedService,
       setSelectedService,
@@ -454,11 +378,6 @@ function BookingTime() {
         isCottonwood: location.isCottonwood,
       })
 
-      // Special handling for affiliate bookings - do this after updating dropoff
-      if (isAffiliate) {
-        handleAffiliateLocationChange('dropoff', location)
-      }
-
       // If any location is in Cottonwood Canyons, automatically select Cottonwood service
       if (isCottonwoodService) {
         const canyonsService = services.find(s => s.title.toLowerCase().includes('cottonwood'))
@@ -473,7 +392,6 @@ function BookingTime() {
     [
       pickupDetails,
       isAffiliate,
-      handleAffiliateLocationChange,
       services,
       selectedService,
       setSelectedService,
@@ -519,8 +437,10 @@ function BookingTime() {
 
   // Memoized derived values
   const filteredServices = useMemo(
-    () =>
-      isAffiliate ? services.filter(s => s.title.toLowerCase().includes('per person')) : services,
+    () => {
+      if (!services || services.length === 0) return [];
+      return isAffiliate ? services.filter(s => s.serviceType === 'per-person' || s.title.toLowerCase().includes('per person')) : services;
+    },
     [isAffiliate, services]
   )
 
@@ -555,11 +475,19 @@ function BookingTime() {
                       value={selectedService?.id || ''}
                       disabled={true}
                     >
-                      <option value="per-person">Per Person Service</option>
+                      {selectedService ? (
+                        <option value={selectedService.id}>{selectedService.title}</option>
+                      ) : (
+                        <option value="">Loading service...</option>
+                      )}
                     </select>
-                    <div className="service-description mt-2 text-sm text-gray-600">
-                      {'$65 per person'}
-                    </div>
+                    {selectedService && (
+                      <div className="service-description mt-2 text-sm text-gray-600">
+                        {isAffiliate && selectedService.serviceType === 'per-person'
+                          ? '$65 per person'
+                          : (selectedService.description || '$65 per person')}
+                      </div>
+                    )}
                   </>
                 ) : (
                   <select
@@ -615,7 +543,7 @@ function BookingTime() {
                   <div className="input-with-icon">
                     <i className="icon-from"></i>
                     <PlacePicker
-                      value={pickupDetails?.address}
+                      value={pickupDetails}
                       onChange={handleFromLocationChange}
                       type="pickup"
                       placeholder={
@@ -626,8 +554,14 @@ function BookingTime() {
                             : 'Enter pickup location'
                       }
                       selectedService={selectedService}
-                      isAffiliate={isAffiliate}
-                      airportOnly={pickupAirportOnly}
+                      affiliateLocations={
+                        isAffiliate && (affiliate || (affiliateCode && affiliateCode.affiliate))
+                          ? {
+                              pickup: (affiliate || affiliateCode.affiliate)?.defaultPickupLocation,
+                              dropoff: (affiliate || affiliateCode.affiliate)?.defaultDropoffLocation,
+                            }
+                          : null
+                      }
                       disabled={disableLocationPickers}
                     />
                   </div>
@@ -638,7 +572,7 @@ function BookingTime() {
                   <div className="input-with-icon">
                     <i className="icon-to"></i>
                     <PlacePicker
-                      value={dropoffDetails?.address}
+                      value={dropoffDetails}
                       onChange={handleToLocationChange}
                       type="dropoff"
                       placeholder={
@@ -649,8 +583,14 @@ function BookingTime() {
                             : 'Enter drop-off location'
                       }
                       selectedService={selectedService}
-                      isAffiliate={isAffiliate}
-                      airportOnly={dropoffAirportOnly}
+                      affiliateLocations={
+                        isAffiliate && (affiliate || (affiliateCode && affiliateCode.affiliate))
+                          ? {
+                              pickup: (affiliate || affiliateCode.affiliate)?.defaultPickupLocation,
+                              dropoff: (affiliate || affiliateCode.affiliate)?.defaultDropoffLocation,
+                            }
+                          : null
+                      }
                       disabled={disableLocationPickers}
                     />
                   </div>
@@ -699,7 +639,6 @@ function BookingTime() {
             </div>
 
             {error && <Alert className="mt-4" message={error} type="error" showIcon />}
-
             {selectedService && !selectedService.requiresInquiry && (
               <button
                 className="btn btn-brand-1 continue-btn mt-6"

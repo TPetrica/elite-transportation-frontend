@@ -2,7 +2,7 @@ import { legalLinks, links1, links2, links3 } from "@/data/footerLinks";
 
 import { Link } from "react-router-dom";
 
-export default function Footer1() {
+export default function Footer() {
 	return (
 		<footer className="footer">
 			<div className="footer-1">

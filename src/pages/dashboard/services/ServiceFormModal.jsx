@@ -1,24 +1,22 @@
-import React, { useState, useEffect } from 'react'
+import { InfoCircleOutlined, QuestionCircleOutlined } from '@ant-design/icons'
 import {
-  Modal,
+  Alert,
+  Button,
+  Card,
   Form,
   Input,
   InputNumber,
+  Modal,
   Select,
-  Switch,
-  Divider,
-  Typography,
   Space,
-  Tooltip,
+  Switch,
   Tabs,
-  Button,
-  Card,
   Tag,
-  AutoComplete,
-  Alert,
+  Tooltip,
+  Typography
 } from 'antd'
-import { InfoCircleOutlined, QuestionCircleOutlined } from '@ant-design/icons'
-import { Save, DollarSign, Tag as TagIcon, Users, Clock, Settings, ArrowRight } from 'lucide-react'
+import { ArrowRight, Clock, DollarSign, Save, Settings, Tag as TagIcon, Users } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 const { Option } = Select
 const { TextArea } = Input
@@ -34,7 +32,6 @@ const ServiceFormModal = ({
   editingService,
   vehicles,
 }) => {
-  console.log('editingId', editingId)
 
   const [activeTab, setActiveTab] = useState('basic')
   const [customServiceType, setCustomServiceType] = useState(false)

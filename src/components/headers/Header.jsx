@@ -1,27 +1,10 @@
 import { useAuth } from "@/context/AuthContext";
-import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Nav from "./components/Nav";
 
-export default function Header1() {
-	const [scrolled, setScrolled] = useState(false);
+export default function Header() {
 	const { user, logout } = useAuth();
 	const navigate = useNavigate();
-
-	useEffect(() => {
-		const handleScroll = () => {
-			if (window.scrollY > 200) {
-				setScrolled(true);
-			} else {
-				setScrolled(false);
-			}
-		};
-
-		window.addEventListener("scroll", handleScroll);
-		return () => {
-			window.removeEventListener("scroll", handleScroll);
-		};
-	}, []);
 
 	const handleLogout = async () => {
 		try {
@@ -33,7 +16,7 @@ export default function Header1() {
 	};
 
 	return (
-		<header className={`header sticky-bar ${scrolled ? "stick" : ""}`}>
+		<header className="header sticky-bar stick">
 			<div className="container">
 				<div className="main-header">
 					<div className="header-left">

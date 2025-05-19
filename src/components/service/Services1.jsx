@@ -3,7 +3,6 @@ import { services } from '@/data/services'
 import { Link } from 'react-router-dom'
 
 export default function Services1() {
-  console.log('services', services)
   return (
     <section className="section pt-60">
       <div className="container-sub">

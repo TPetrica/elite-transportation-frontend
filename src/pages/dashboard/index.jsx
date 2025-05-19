@@ -1,37 +1,19 @@
-import React, { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
-import { Button, message } from 'antd'
-import { Plus, CheckCircle } from 'lucide-react'
+import ApiService from '@/services/api.service'
 import {
-  Card,
-  Row,
-  Col,
-  Statistic,
+  Alert, Button, Card, Col, DatePicker,
+  Divider, Empty, Progress, Row, Select, Spin, Statistic,
   Table,
-  Tag,
-  Empty,
-  Spin,
-  Alert,
-  Select,
-  DatePicker,
-  Divider,
-  Progress,
+  Tag
 } from 'antd'
 import {
-  CarFront,
+  Activity, BarChart, Calendar, CarFront,
   Clock,
-  DollarSign,
-  Users,
-  Calendar,
-  TrendingUp,
-  ShieldCheck,
-  Map,
-  BarChart,
-  Activity,
+  DollarSign, Plus
 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
-import ApiService from '@/services/api.service'
 import moment from 'moment'
+import { useNavigate } from 'react-router-dom'
 
 const { Option } = Select
 const { RangePicker } = DatePicker

@@ -1,14 +1,13 @@
+import serviceAPI from '@/services/service.service'
+import moment from 'moment'
 import {
   createContext,
-  useContext,
-  useReducer,
-  useMemo,
   useCallback,
+  useContext,
   useEffect,
-  useState,
+  useMemo,
+  useReducer
 } from 'react'
-import moment from 'moment'
-import serviceAPI from '@/services/service.service'
 
 const BookingContext = createContext(null)
 
@@ -59,6 +58,7 @@ const initialState = {
   isWinter: false,
   isAffiliate: false,
   affiliateCode: '',
+  affiliate: null,
   services: [], // Added to store services from backend
 }
 
@@ -172,6 +172,8 @@ const updatePricingState = (
 }
 
 const bookingReducer = (state, action) => {
+  console.log('state', state)
+
   switch (action.type) {
     case 'SET_SERVICES': {
       return {
@@ -180,37 +182,6 @@ const bookingReducer = (state, action) => {
       }
     }
 
-    case 'SET_AFFILIATE_MODE': {
-      // First just set the affiliate mode
-      const newState = {
-        ...state,
-        isAffiliate: true,
-        affiliateCode: action.payload,
-      }
-
-      // Then recalculate pricing if we have a service selected
-      if (state.selectedService) {
-        const basePrice = calculateBasePrice(
-          state.selectedService,
-          state.passengerDetails.passengers,
-          state.pricing.hours,
-          state.pickupDetails.isCottonwood || state.dropoffDetails.isCottonwood,
-          true // isAffiliate is now true
-        )
-
-        let gratuity = state.pricing.gratuity
-        if (state.pricing.selectedTipPercentage) {
-          gratuity = (basePrice * state.pricing.selectedTipPercentage) / 100
-        }
-
-        return {
-          ...newState,
-          pricing: updatePricingState(state, basePrice, gratuity),
-        }
-      }
-
-      return newState
-    }
 
     case 'SET_PICKUP_DETAILS': {
       // Only update if there's an actual change
@@ -478,6 +449,14 @@ const bookingReducer = (state, action) => {
         bookingNumber: action.payload,
       }
 
+    case 'SET_AFFILIATE_MODE':
+      return {
+        ...state,
+        isAffiliate: true,
+        affiliateCode: action.payload.code,
+        affiliate: action.payload.affiliate,
+      }
+
     case 'RESET_BOOKING':
       if (
         state.isAffiliate === initialState.isAffiliate &&
@@ -495,6 +474,7 @@ const bookingReducer = (state, action) => {
         ...initialState,
         isAffiliate: state.isAffiliate,
         affiliateCode: state.affiliateCode,
+        affiliate: state.affiliate,
         services: state.services, // Keep services from backend
       }
 

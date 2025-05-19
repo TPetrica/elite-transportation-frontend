@@ -48,10 +48,10 @@ export function useGooglePlacesAutocomplete(locationType, selectedService, isGoo
           input: searchInput,
           componentRestrictions: { country: 'us' },
           sessionToken: sessionToken.current,
-          // Restrict to Salt Lake City / Park City area
+          // Bias to Salt Lake City / Park City area but don't strictly bound it
           location: new window.google.maps.LatLng(40.7608, -111.891),
-          radius: 40000, // 40km radius - covers Salt Lake City and Park City
-          strictBounds: true,
+          radius: 50000, // 50km radius - covers Salt Lake City and Park City
+          strictBounds: false, // Allow results outside the bounds for better suggestions
         }
 
         // For "from-airport" pickup, restrict to only airports
@@ -78,24 +78,32 @@ export function useGooglePlacesAutocomplete(locationType, selectedService, isGoo
         })
 
         if (results) {
-          // Further restrict to SLC/Park City area even if Google returned other places
+          // Be more inclusive with filtering - show all Utah results plus nearby areas
           const filteredResults = results.filter(place => {
             const description = place.description.toLowerCase()
             return (
+              description.includes('utah') ||
+              description.includes(', ut') ||
+              description.includes(' ut,') ||
+              description.includes(' ut ') ||
               description.includes('salt lake') ||
               description.includes('park city') ||
               description.includes('slc') ||
+              description.includes('provo') ||
+              description.includes('ogden') ||
+              description.includes('draper') ||
+              description.includes('sandy') ||
               description.includes('cottonwood') ||
               description.includes('snowbird') ||
               description.includes('alta') ||
               description.includes('solitude') ||
               description.includes('brighton') ||
-              description.includes('sundance') ||
-              (description.includes('ut') &&
-                (description.includes('salt lake') || description.includes('park city')))
+              description.includes('sundance')
             )
           })
-          setSuggestions(filteredResults)
+          setSuggestions(filteredResults.length > 0 ? filteredResults : results.slice(0, 5))
+        } else {
+          setSuggestions([])
         }
       } catch (error) {
         console.error('Error fetching suggestions:', error)

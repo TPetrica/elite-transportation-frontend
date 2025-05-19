@@ -1,120 +1,82 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import BlogService from '@/services/blog.service'
-import { Spin, Empty } from 'antd'
 import { format } from 'date-fns'
+import { ClockCircleOutlined } from '@ant-design/icons'
 
-export default function RelatedBlogs({ blogId, category }) {
-  // Fetch related blogs
-  const {
-    data: relatedBlogs,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ['relatedBlogs', blogId, category],
-    queryFn: async () => {
-      const response = await BlogService.getRelatedBlogs(blogId, 3)
-      return response.data
-    },
-    // Don't refetch on window focus for related blogs
-    refetchOnWindowFocus: false,
-    // Don't show loading state if we already have data
-    enabled: !!blogId && !!category,
-  })
-
-  // Format date
-  const formatDate = (dateString) => {
-    if (!dateString) return { day: '', monthYear: '' }
-    
-    const date = new Date(dateString)
-    return {
-      day: format(date, 'd'),
-      monthYear: format(date, 'MMM, yyyy'),
-    }
-  }
-
-  // If loading, show spinner
-  if (isLoading) {
-    return (
-      <section className="section pt-120 bg-white latest-new-white mb-90">
-        <div className="container-sub">
-          <h2 className="heading-44-medium color-text mb-60 wow fadeInUp">Related Posts</h2>
-          <div className="text-center py-16">
-            <Spin />
-            <p className="mt-3">Loading related posts...</p>
-          </div>
-        </div>
-      </section>
-    )
-  }
-
-  // If error or no related blogs, show empty state
-  if (isError || !relatedBlogs || relatedBlogs.length === 0) {
-    return (
-      <section className="section pt-120 bg-white latest-new-white mb-90">
-        <div className="container-sub">
-          <h2 className="heading-44-medium color-text mb-60 wow fadeInUp">Related Posts</h2>
-          <Empty description="No related posts found" />
-        </div>
-      </section>
-    )
-  }
-
-  return (
-    <section className="section pt-120 bg-white latest-new-white mb-90">
-      <div className="container-sub">
-        <h2 className="heading-44-medium color-text mb-60 wow fadeInUp">Related Posts</h2>
-        <div className="row">
-          {relatedBlogs.map((blog) => {
-            const { day, monthYear } = formatDate(blog.publishedAt)
-            
-            return (
-              <div key={blog.id} className="col-lg-4">
-                <div className="cardNews wow fadeInUp">
-                  <Link to={`/blog/${blog.slug}`}>
-                    <div className="cardImage">
-                      <div className="datePost">
-                        <div className="heading-52-medium color-white">{day}</div>
-                        <p className="text-14 color-white">{monthYear}</p>
-                      </div>
-                      <img 
-                        src={blog.featuredImage || '/assets/imgs/page/blog/default.jpg'} 
-                        alt={blog.title} 
-                      />
-                    </div>
-                  </Link>
-                  <div className="cardInfo">
-                    <div className="tags mb-10">
-                      <a href={`/blog?category=${blog.category}`}>{blog.category}</a>
-                    </div>
-                    <Link className="color-white" to={`/blog/${blog.slug}`}>
-                      <h3 className="text-20-medium color-white mb-20">{blog.title}</h3>
-                    </Link>
-                    <Link className="cardLink btn btn-arrow-up" to={`/blog/${blog.slug}`}>
-                      <svg
-                        className="icon-16"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                        aria-hidden="true"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"
-                        ></path>
-                      </svg>
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    </section>
-  )
+export default function RelatedBlogs({ blogs }) {
+	const formatDate = (dateString) => {
+		if (!dateString) return ''
+		const date = new Date(dateString)
+		return format(date, 'MMM dd, yyyy')
+	}
+	
+	const getExcerpt = (content, maxLength = 120) => {
+		const plainText = content.replace(/<[^>]*>/g, '')
+		if (plainText.length <= maxLength) return plainText
+		return plainText.substring(0, maxLength).trim() + '...'
+	}
+	
+	return (
+		<div className="row">
+			{blogs.map((blog) => (
+				<div key={blog.id} className="col-md-4 tw-mb-8">
+					<article className="tw-bg-white tw-rounded-lg tw-shadow-md tw-overflow-hidden tw-transition-transform tw-duration-300 hover:tw-transform hover:tw-translate-y-[-4px] tw-h-full tw-flex tw-flex-col">
+						<Link to={`/blog/${blog.slug}`}>
+							<div className="tw-relative tw-h-48 tw-overflow-hidden">
+								<img
+									src={blog.featuredImage || '/assets/imgs/page/blog/default.jpg'}
+									alt={blog.title}
+									className="tw-w-full tw-h-full tw-object-cover tw-transition-transform tw-duration-500 hover:tw-scale-110"
+								/>
+								{blog.category && (
+									<span className="tw-absolute tw-top-4 tw-left-4 tw-bg-primary tw-text-white tw-px-3 tw-py-1 tw-rounded-full tw-text-sm">
+										{blog.category}
+									</span>
+								)}
+							</div>
+						</Link>
+						
+						<div className="tw-p-6 tw-flex-1 tw-flex tw-flex-col">
+							<div className="tw-flex tw-items-center tw-text-sm tw-text-gray-500 tw-mb-3">
+								<ClockCircleOutlined className="tw-mr-2" />
+								<time dateTime={blog.publishedAt}>
+									{formatDate(blog.publishedAt)}
+								</time>
+							</div>
+							
+							<Link to={`/blog/${blog.slug}`} className="tw-group">
+								<h3 className="tw-text-lg tw-font-semibold tw-text-gray-900 tw-mb-3 group-hover:tw-text-primary tw-transition-colors">
+									{blog.title}
+								</h3>
+							</Link>
+							
+							<p className="tw-text-gray-600 tw-mb-4 tw-flex-1">
+								{getExcerpt(blog.content)}
+							</p>
+							
+							<Link
+								to={`/blog/${blog.slug}`}
+								className="tw-inline-flex tw-items-center tw-text-primary hover:tw-text-primary-09 tw-transition-colors tw-mt-auto"
+							>
+								Read More
+								<svg
+									className="tw-ml-2 tw-w-4 tw-h-4"
+									fill="none"
+									stroke="currentColor"
+									strokeWidth="2"
+									viewBox="0 0 24 24"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										d="M17 8l4 4m0 0l-4 4m4-4H3"
+									/>
+								</svg>
+							</Link>
+						</div>
+					</article>
+				</div>
+			))}
+		</div>
+	)
 }
