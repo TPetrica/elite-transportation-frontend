@@ -1,27 +1,21 @@
 import DefaultLayout from "@/layouts/DefaultLayout";
 import Breadcumb from "@/components/otherPages/about/Breadcumb";
-import TermsAndConditions from "@/components/otherPages/terms/TermsAndConditions";
+import AboutSLCTransportation from "@/components/otherPages/about/AboutSLCTransportation";
+import Facts from "@/components/common/facts/Facts";
+import Testimonials from "@/components/common/testimonials/Testimonials";
 
 const metadata = {
-	title:
-		"About || Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
-	description:
-		"Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
+  title: "SLC to Park City Transportation | Salt Lake City Airport Shuttle",
+  description: "Professional car service from Salt Lake City Airport to Park City Utah. Door-to-door shuttle service with flight tracking and 24/7 availability from SLC.",
 };
 
 export default function AboutPage1() {
-	return (
-		<DefaultLayout metadata={metadata}>
-			<Breadcumb />
-			{/* <Banner /> */}
-			<TermsAndConditions />
-			{/* <Facts /> */}
-			{/* <Features2 /> */}
-			{/* <Process />
-			<Testimonials />
-			<Partners />
-			<Faq />
-			<DownloadApp /> */}
-		</DefaultLayout>
-	);
+  return (
+    <DefaultLayout metadata={metadata}>
+      <Breadcumb />
+      <AboutSLCTransportation />
+      <Facts />
+      <Testimonials />
+    </DefaultLayout>
+  );
 }

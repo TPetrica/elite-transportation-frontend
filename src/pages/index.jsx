@@ -1,16 +1,24 @@
-import DefaultLayout from '@/layouts/DefaultLayout'
-import Process from '@/components/common/process/Process'
+import Facts from '@/components/common/facts/Facts'
+import Partners from '@/components/common/partners/Partners'
+import Blogs from '@/components/homes/common/blogs/Blogs'
+import Cta from '@/components/homes/common/cta/Cta'
 import Faq from '@/components/homes/home-1/Faq'
 import Hero from '@/components/homes/home-1/Hero'
 import Service from '@/components/homes/home-1/Service'
+import SLCTransportOptions from '@/components/homes/home-1/SLCTransportOptions'
+import HowToGetFromSLCToPC from '@/components/homes/home-1/HowToGetFromSLCToPC'
+import AirportInfo from '@/components/homes/home-1/AirportInfo'
+import ServiceAreaMap from '@/components/homes/home-1/ServiceAreaMap'
+import TravelTips from '@/components/homes/home-1/TravelTips'
+import DefaultLayout from '@/layouts/DefaultLayout'
 
 const metadata = {
-  title: 'Elite Transportation Park City - Luxury Airport Transfers & Chauffeur Services',
-  description: 'Premium luxury transportation services in Park City, Utah. Professional chauffeurs, elite vehicles, and reliable airport transfers. Book your executive car service today.',
-  keywords: 'Park City transportation, luxury airport transfers, chauffeur service, executive car service, limousine Park City, private driver Utah',
+  title: 'SLC to Park City Transportation | Salt Lake City Airport Shuttle Service',
+  description: 'Premium transportation from Salt Lake City to Park City. Professional door-to-door shuttle service from SLC airport with flight tracking. Book your Park City car service today!',
+  keywords: 'SLC to Park City, Salt Lake City airport shuttle, transportation from SLC to Park City, airport transportation Salt Lake City, car service Salt Lake City airport, how to get from SLC to Park City',
   openGraph: {
-    title: 'Elite Transportation Park City - Premier Luxury Car Service',
-    description: 'Experience the finest luxury transportation in Park City. Professional chauffeurs, premium vehicles, and exceptional service for all your travel needs.',
+    title: 'Salt Lake City to Park City Transportation | Elite SLC Airport Shuttle',
+    description: 'Book reliable shuttle service from Salt Lake City International Airport to Park City. Door-to-door transportation with flight tracking and professional drivers.',
     type: 'website',
     url: 'https://elitetransportationparkcity.com',
     images: [
@@ -18,14 +26,14 @@ const metadata = {
         url: '/assets/imgs/template/logo-optimized.webp',
         width: 1200,
         height: 630,
-        alt: 'Elite Transportation Park City',
+        alt: 'Elite Transportation Salt Lake City to Park City',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Elite Transportation Park City - Luxury Car Service',
-    description: 'Book premium transportation services in Park City, Utah. Professional chauffeurs and luxury vehicles for airport transfers and special events.',
+    title: 'SLC to Park City Transportation | Salt Lake City Airport Shuttle',
+    description: 'Book your transportation from Salt Lake City to Park City. Professional chauffeurs and luxury vehicles for comfortable, reliable airport transfers.',
     images: ['/assets/imgs/template/logo-optimized.webp'],
   },
   canonical: 'https://elitetransportationparkcity.com',
@@ -35,17 +43,17 @@ export default function Home() {
   return (
     <DefaultLayout metadata={metadata}>
       <Hero />
-      {/* <Partners /> */}
+      <Partners />
+      <SLCTransportOptions />
       <Service />
-      {/* <Feet /> */}
-      {/* <Process /> */}
-      {/* <Features /> */}
-      {/* <Facts /> */}
-      {/* <Testimonials /> */}
-      {/* <Cta /> */}
-      {/* <Blogs /> */}
+      <HowToGetFromSLCToPC />
+      <Facts />
+      <AirportInfo />
+      <ServiceAreaMap />
+      <Cta />
+      <TravelTips />
+      <Blogs />
       <Faq />
-      {/* <DownloadApp /> */}
     </DefaultLayout>
   )
 }

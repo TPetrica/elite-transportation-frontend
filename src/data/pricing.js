@@ -35,8 +35,8 @@ export const mainRates = [
     title: 'Group Rates',
     vehicle: 'Private SUV',
     capacity: 'Up to 7 people',
-    summer: 365,
-    winter: 385,
+    summer: 'Please inquire for pricing and availability',
+    winter: 'Please inquire for pricing and availability',
     description:
       'Ideal for larger groups and events. For groups over 4 passengers, please contact us directly for pricing and availability.',
     features: [

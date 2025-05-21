@@ -51,13 +51,17 @@ export default function Pricing() {
                   </tr>
                 </thead>
                 <tbody>
-                  {/* First two rates */}
-                  {mainRates.slice(0, 2).map((rate, index) => (
+                  {/* Display all rates including Group Rates */}
+                  {mainRates.map((rate, index) => (
                     <tr key={index}>
                       <td className="fw-medium">{rate.title}</td>
                       <td>{rate.capacity}</td>
-                      <td className="text-success fw-bold">${rate.summer}</td>
-                      <td className="text-primary fw-bold">${rate.winter}</td>
+                      <td className="text-success fw-bold">
+                        {typeof rate.summer === 'number' ? `$${rate.summer}` : rate.summer}
+                      </td>
+                      <td className="text-primary fw-bold">
+                        {typeof rate.winter === 'number' ? `$${rate.winter}` : rate.winter}
+                      </td>
                       <td>
                         <button
                           className="btn btn-sm btn-outline-primary rounded-pill px-3"

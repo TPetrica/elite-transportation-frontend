@@ -70,26 +70,26 @@ export const features5 = [
 	{
 		id: 1,
 		src: "/assets/imgs/page/homepage7/route.svg",
-		alt: "Elite Transportation",
-		title: "Safety First",
+		alt: "SLC to Park City Transportation",
+		title: "Salt Lake City to Park City Safety",
 		description:
-			"Your safety is our top priority. Our professional drivers ensure a secure and comfortable journey for every passenger.",
+			"Your safety is our top priority on the route from SLC to Park City. Our professional drivers ensure a secure and comfortable journey for every passenger with extensive experience in mountain transportation.",
 	},
 	{
 		id: 2,
 		src: "/assets/imgs/page/homepage7/price.svg",
-		alt: "Elite Transportation",
-		title: "Transparent Pricing",
+		alt: "Salt Lake City Airport Shuttle",
+		title: "Transparent Park City Shuttle Pricing",
 		description:
-			"We believe in clear, upfront pricing with no hidden fees. Get a precise quote for your transportation needs.",
+			"We offer the cheapest shuttle from SLC to Park City with clear, upfront pricing and no hidden fees. Get a precise quote for your transportation from Salt Lake City airport to Park City Utah.",
 	},
 	{
 		id: 3,
 		src: "/assets/imgs/page/homepage7/vehicle.svg",
-		alt: "Elite Transportation",
-		title: "Premium Service",
+		alt: "Transportation from SLC to Park City",
+		title: "Premium Park City Shuttle Service",
 		description:
-			"Experience luxury transportation with our fleet of black SUVs and dedicated family-owned service approach.",
+			"Experience luxury transportation from Salt Lake City to Park City with our fleet of black SUVs specifically designed for comfortable mountain travel to Park City Mountain Resort and Deer Valley.",
 	},
 ];
 export const features6 = [

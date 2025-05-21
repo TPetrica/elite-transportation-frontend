@@ -2,51 +2,51 @@
 export const services = [
   {
     id: 1,
-    slug: 'airport-transfers',
-    title: 'Airport Transfers',
+    slug: 'slc-to-park-city-transfers',
+    title: 'SLC to Park City Transfers',
     description:
-      'Reliable luxury transportation between Park City and Salt Lake International Airport (SLC). Professional chauffeurs track your flight and provide door-to-door service with complimentary wait time and luggage assistance. Choose our standard service starting at $120 or opt for our specialized Cottonwood Canyon transfer at $150.',
+      'Premier transportation from Salt Lake City to Park City with our reliable shuttle service. Our professional chauffeurs provide the best way to get from SLC to Park City with door-to-door service, flight tracking, and luggage assistance. Choose our standard Salt Lake City airport to Park City shuttle starting at $120 or opt for our specialized SLC airport to Park City service at $150.',
     image: '/assets/imgs/page/homepage1/service1.jpg',
     secondaryImage: '/assets/imgs/page/homepage1/service2.jpg',
     longDescription:
-      'Enjoy reliable and comfortable transportation with our professional airport transfer service. We track your flight and ensure timely pickups and dropoffs. Choose our standard service for transfers at $120, or upgrade to our Cottonwood Canyon option at $150 for scenic routes and expert local drivers.',
+      'Experience seamless transportation from Salt Lake City International Airport to Park City Utah with our professional airport shuttle service. We offer the most convenient shuttle from Salt Lake City airport to Park City with real-time flight tracking and timely pickups. Whether you need transportation from SLC to Park City UT for a ski vacation or business trip, our Park City shuttle service from airport locations ensures a comfortable journey. Choose our standard Salt Lake to Park City shuttle for $120, or upgrade to our premium transportation option at $150 for scenic routes through Deer Valley and personalized service.',
     features: [
-      'Flight tracking included',
-      'Professional chauffeurs',
-      'Complimentary wait time',
-      'Door-to-door service',
+      'SLC Airport to Park City service',
+      'Professional mountain drivers',
+      'Flight tracking & wait time',
+      'Door-to-door shuttle service',
       'Child seats available',
-      '24/7 service',
+      '24/7 Park City shuttle',
     ],
     headings: {
-      first: 'Premium Airport Service',
-      second: 'Seamless Travel Experience',
+      first: 'Premium SLC to Park City Shuttle',
+      second: 'Seamless Mountain Transportation',
     },
     serviceFeatures: [
       {
         title: 'Door-to-Door Convenience',
         description:
-          'From the moment you land until you reach your destination, experience seamless transportation service with our professional chauffeurs.',
+          'Our transportation from Salt Lake City airport to Park City Utah provides seamless service from the moment you land until you reach your destination at Park City Mountain Resort, Canyons Village, or Deer Valley.',
         image: '/assets/imgs/icons/service-feature1.svg',
       },
       {
-        title: 'Flight Monitoring',
+        title: 'SLC Flight Monitoring',
         description:
-          "We track your flight in real-time and adjust pickup times based on early arrivals or delays, ensuring we're there when you need us.",
+          "We track your Salt Lake City International flight in real-time and adjust pickup times for our shuttle service from SLC airport to Park City, ensuring we're there exactly when you need us.",
         image: '/assets/imgs/icons/service-feature2.svg',
       },
       {
-        title: 'Luxury Fleet',
+        title: 'Luxury Park City Transportation',
         description:
-          'Choose from our selection of premium vehicles, each maintained to the highest standards of comfort and safety.',
+          'Choose from our selection of premium vehicles for your journey from Salt Lake City to Park City, each maintained to the highest standards of comfort and safety for mountain travel.',
         image: '/assets/imgs/icons/service-feature3.svg',
       },
     ],
     additionalInfo: {
       professional:
-        'Our airport transfer service is backed by years of experience and a commitment to excellence. Each chauffeur is thoroughly vetted and trained to provide superior service.',
+        'Our Salt Lake City to Park City transportation service is backed by years of experience navigating the route between SLC and Park City. Each chauffeur is thoroughly vetted, trained in winter driving conditions, and knowledgeable about how to get from SLC to Park City in any weather.',
       reliable:
-        'Count on us for punctual, efficient transportation to and from the airport. Our service includes flight tracking, meet-and-greet options, and 24/7 customer support.',
+        'Count on us for punctual, efficient transportation from Salt Lake City to Park City Utah. Our airport shuttle to Park City Mountain Resort and other destinations includes flight tracking, meet-and-greet options, and 24/7 customer support for the best Park City shuttle service experience.',
     },
   },
   {
@@ -149,63 +149,65 @@ export const services = [
   },
   {
     id: 4,
-    slug: 'winter-sports-transport',
-    title: 'Winter Sports Transport',
+    slug: 'park-city-ski-shuttle',
+    title: 'Park City Ski Shuttle',
     description:
-      "Specialized transportation to Park City's premier ski resorts including Park City Mountain and Deer Valley. Expert winter drivers, equipment accommodation, and early morning service available. Contact us for rates and availability.",
+      "Specialized transportation from Salt Lake City to Park City Utah for ski and snowboard enthusiasts. Our Park City Utah airport shuttle provides expert service to premier ski destinations including Park City Mountain Resort and Deer Valley. The cheapest shuttle from SLC to Park City with ski equipment accommodation and early morning service available.",
     image: '/assets/imgs/page/homepage1/service4.jpg',
     secondaryImage: '/assets/imgs/page/homepage1/service44.jpg',
     longDescription:
-      'Our winter sports transport service offers safe and efficient transfers to major ski resorts. With vehicles equipped to handle ski and snowboard equipment and drivers experienced in winter conditions, we ensure you start your day smoothly. Please reach out for detailed pricing.',
+      "Our Park City Utah shuttle service offers safe and efficient transfers from Salt Lake City International Airport to Park City's world-class ski resorts. We provide the best way to get from SLC to Park City during winter months with vehicles specially equipped for ski and snowboard equipment transport. Our experienced drivers are experts in winter transportation from Salt Lake City to Park City Utah, ensuring you arrive safely regardless of mountain weather conditions. Contact us for detailed pricing on our transportation from SLC to Park City UT ski shuttle service.",
     features: [
-      'Ski equipment transport',
-      'Resort knowledge',
-      'Winter-ready vehicles',
-      'Early morning service',
-      'Multiple resort options',
-      'Group rates available',
+      'SLC airport to Park City ski service',
+      'Park City Mountain Resort access',
+      'Deer Valley transportation',
+      'Canyons Village shuttle',
+      'Park City Utah airport shuttle',
+      'Winter gear accommodation',
     ],
     headings: {
-      first: 'Winter Travel Experts',
-      second: 'Resort Transportation',
+      first: 'SLC to Park City Winter Experts',
+      second: 'Premium Ski Resort Shuttle',
     },
     serviceFeatures: [
       {
-        title: 'Winter Expertise',
+        title: 'Park City Ski Shuttle Expertise',
         description:
-          'Experienced drivers skilled in winter conditions and familiar with all local ski resorts.',
+          'Our drivers specialize in winter transportation from Salt Lake City to Park City, familiar with all routes between SLC airport and Park City ski resorts even in challenging weather.',
         image: '/assets/imgs/icons/service-feature10.svg',
       },
       {
-        title: 'Equipment Transport',
+        title: 'Ski Equipment Transport',
         description:
-          'Specially equipped vehicles to safely transport all your ski and snowboard gear.',
+          'Our shuttle from SLC to Park City features specially equipped vehicles to safely transport all your ski and snowboard gear from Salt Lake City airport to Park City Utah resorts.',
         image: '/assets/imgs/icons/service-feature11.svg',
       },
       {
-        title: 'Resort Access',
+        title: 'Door-to-Door Resort Access',
         description:
-          'Direct service to all major Park City ski resorts with convenient pickup locations.',
+          'Our Salt Lake City airport bus to Park City provides direct service to all major Park City ski destinations, including Park City Mountain Resort and exclusive Deer Valley locations.',
         image: '/assets/imgs/icons/service-feature12.svg',
       },
     ],
     additionalInfo: {
       professional:
-        'Our winter sports transport service combines safety and convenience with drivers experienced in winter conditions and vehicles equipped for gear transport.',
+        'Wondering how to get from SLC to Park City with all your winter sports gear? Our Park City Utah airport transportation service combines safety and convenience with drivers experienced in winter road conditions and vehicles specially designed for mountain travel and equipment transport.',
       reliable:
-        'Start your ski day right with reliable transportation to all major resorts, including early morning service and equipment accommodation.',
+        'Start your Park City ski day right with our reliable Salt Lake City airport shuttle to Park City Mountain Resort. Our transportation from SLC to Park City includes early morning service, equipment accommodation, and expert local knowledge for the ultimate mountain experience.',
     },
   },
 ]
 
 export const features7 = [
-  'Door-to-door service',
-  'Professional chauffeurs',
-  'Flight tracking',
-  'Modern luxury vehicles',
-  '24/7 customer support',
-  'Competitive rates',
-  'Easy online booking',
+  'SLC to Park City door-to-door shuttle',
+  'Salt Lake City airport transportation',
+  'Professional Park City drivers',
+  'Salt Lake City flight tracking',
+  'Transportation from SLC to Park City UT',
+  'Modern luxury Park City shuttle service',
+  '24/7 Park City Utah airport shuttle',
+  'Competitive Salt Lake to Park City rates',
+  'Easy online SLC to Park City booking',
 ]
 
 // Keep original arrays for compatibility
