@@ -1,14 +1,11 @@
-import Facts from '@/components/common/facts/Facts'
-import Partners from '@/components/common/partners/Partners'
-import Blogs from '@/components/homes/common/blogs/Blogs'
 import Cta from '@/components/homes/common/cta/Cta'
+import AirportInfo from '@/components/homes/home-1/AirportInfo'
 import Faq from '@/components/homes/home-1/Faq'
 import Hero from '@/components/homes/home-1/Hero'
-import Service from '@/components/homes/home-1/Service'
-import SLCTransportOptions from '@/components/homes/home-1/SLCTransportOptions'
 import HowToGetFromSLCToPC from '@/components/homes/home-1/HowToGetFromSLCToPC'
-import AirportInfo from '@/components/homes/home-1/AirportInfo'
+import Service from '@/components/homes/home-1/Service'
 import ServiceAreaMap from '@/components/homes/home-1/ServiceAreaMap'
+import SLCTransportOptions from '@/components/homes/home-1/SLCTransportOptions'
 import TravelTips from '@/components/homes/home-1/TravelTips'
 import DefaultLayout from '@/layouts/DefaultLayout'
 
@@ -43,16 +40,16 @@ export default function Home() {
   return (
     <DefaultLayout metadata={metadata}>
       <Hero />
-      <Partners />
+      {/* <Partners /> */}
       <SLCTransportOptions />
       <Service />
       <HowToGetFromSLCToPC />
-      <Facts />
+      {/* <Facts /> */}
       <AirportInfo />
       <ServiceAreaMap />
       <Cta />
       <TravelTips />
-      <Blogs />
+      {/* <Blogs /> */}
       <Faq />
     </DefaultLayout>
   )
