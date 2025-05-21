@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import ApiService from '@/services/api.service';
 import { message } from 'antd';
+import calendarService from '@/services/calendar.service';
 
 // ================= SERVICES HOOKS ===================
 
@@ -36,7 +37,7 @@ export const useService = (serviceId) => {
  */
 export const useCreateService = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (serviceData) => ApiService.post('/services', serviceData),
     onSuccess: () => {
@@ -55,7 +56,7 @@ export const useCreateService = () => {
  */
 export const useUpdateService = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ serviceId, data }) => ApiService.patch(`/services/${serviceId}`, data),
     onSuccess: () => {
@@ -74,7 +75,7 @@ export const useUpdateService = () => {
  */
 export const useDeleteService = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (serviceId) => ApiService.delete(`/services/${serviceId}`),
     onSuccess: () => {
@@ -88,7 +89,105 @@ export const useDeleteService = () => {
   });
 };
 
-// ================= VEHICLES HOOKS ===================
+// ================= EXTRAS HOOKS ===================
+
+/**
+ * Hook to fetch extras with caching
+ */
+export const useExtras = () => {
+  return useQuery({
+    queryKey: ['extras'],
+    queryFn: async () => {
+      try {
+        const response = await ApiService.get('/extras');
+        return {
+          success: true,
+          data: response.data,
+        };
+      } catch (error) {
+        return {
+          success: false,
+          error: error.response?.data?.message || 'Failed to fetch extras',
+        };
+      }
+    },
+    staleTime: 1000 * 60 * 30, // 30 minutes
+    cacheTime: 1000 * 60 * 60, // 1 hour
+  });
+};
+
+/**
+ * Hook to fetch a single extra
+ */
+export const useExtra = (extraId) => {
+  return useQuery({
+    queryKey: ['extra', extraId],
+    queryFn: async () => {
+      const response = await ApiService.get(`/extras/${extraId}`);
+      return response.data;
+    },
+    enabled: !!extraId,
+  });
+};
+
+/**
+ * Hook to create an extra
+ */
+export const useCreateExtra = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (extraData) => ApiService.post('/extras', extraData),
+    onSuccess: () => {
+      message.success('Extra created successfully');
+      queryClient.invalidateQueries(['extras']);
+    },
+    onError: (error) => {
+      message.error(error.response?.data?.message || 'Failed to create extra');
+      console.error('Error creating extra:', error);
+    },
+  });
+};
+
+/**
+ * Hook to update an extra
+ */
+export const useUpdateExtra = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ extraId, data }) => ApiService.patch(`/extras/${extraId}`, data),
+    onSuccess: () => {
+      message.success('Extra updated successfully');
+      queryClient.invalidateQueries(['extras']);
+    },
+    onError: (error) => {
+      message.error(error.response?.data?.message || 'Failed to update extra');
+      console.error('Error updating extra:', error);
+    },
+  });
+};
+
+/**
+ * Hook to delete an extra
+ */
+export const useDeleteExtra = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (extraId) => ApiService.delete(`/extras/${extraId}`),
+    onSuccess: () => {
+      message.success('Extra deleted successfully');
+      queryClient.invalidateQueries(['extras']);
+    },
+    onError: (error) => {
+      message.error(error.response?.data?.message || 'Failed to delete extra');
+      console.error('Error deleting extra:', error);
+    },
+  });
+};
+
+// ================= VEHICLE HOOKS ===================
 
 /**
  * Hook to fetch vehicles
@@ -122,7 +221,7 @@ export const useVehicle = (vehicleId) => {
  */
 export const useCreateVehicle = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (vehicleData) => ApiService.post('/vehicles', vehicleData),
     onSuccess: () => {
@@ -141,7 +240,7 @@ export const useCreateVehicle = () => {
  */
 export const useUpdateVehicle = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ vehicleId, data }) => ApiService.patch(`/vehicles/${vehicleId}`, data),
     onSuccess: () => {
@@ -160,7 +259,7 @@ export const useUpdateVehicle = () => {
  */
 export const useDeleteVehicle = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (vehicleId) => ApiService.delete(`/vehicles/${vehicleId}`),
     onSuccess: () => {
@@ -174,197 +273,12 @@ export const useDeleteVehicle = () => {
   });
 };
 
-// ================= BOOKINGS HOOKS ===================
-
-/**
- * Hook to fetch bookings
- */
-export const useBookings = (params = {}) => {
-  return useQuery({
-    queryKey: ['bookings', params],
-    queryFn: async () => {
-      const response = await ApiService.get('/bookings', { params });
-      return response.data;
-    },
-  });
-};
-
-/**
- * Hook to fetch a single booking
- */
-export const useBooking = (bookingId) => {
-  return useQuery({
-    queryKey: ['booking', bookingId],
-    queryFn: async () => {
-      const response = await ApiService.get(`/bookings/${bookingId}`);
-      return response.data;
-    },
-    enabled: !!bookingId,
-  });
-};
-
-/**
- * Hook to create a booking
- */
-export const useCreateBooking = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (bookingData) => ApiService.post('/bookings', bookingData),
-    onSuccess: () => {
-      message.success('Booking created successfully');
-      queryClient.invalidateQueries(['bookings']);
-    },
-    onError: (error) => {
-      message.error(error.response?.data?.message || 'Failed to create booking');
-      console.error('Error creating booking:', error);
-    },
-  });
-};
-
-/**
- * Hook to update a booking
- */
-export const useUpdateBooking = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: ({ bookingId, data }) => ApiService.patch(`/bookings/${bookingId}`, data),
-    onSuccess: () => {
-      message.success('Booking updated successfully');
-      queryClient.invalidateQueries(['bookings']);
-    },
-    onError: (error) => {
-      message.error(error.response?.data?.message || 'Failed to update booking');
-      console.error('Error updating booking:', error);
-    },
-  });
-};
-
-/**
- * Hook to delete a booking
- */
-export const useDeleteBooking = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (bookingId) => ApiService.delete(`/bookings/${bookingId}`),
-    onSuccess: () => {
-      message.success('Booking deleted successfully');
-      queryClient.invalidateQueries(['bookings']);
-    },
-    onError: (error) => {
-      message.error(error.response?.data?.message || 'Failed to delete booking');
-      console.error('Error deleting booking:', error);
-    },
-  });
-};
-
-// ================= EXTRAS HOOKS ===================
-
-/**
- * Hook to fetch extras
- */
-export const useExtras = (params = {}) => {
-  return useQuery({
-    queryKey: ['extras', params],
-    queryFn: async () => {
-      const response = await ApiService.get('/extras', { params });
-      return response.data;
-    },
-  });
-};
-
-/**
- * Hook to fetch a single extra
- */
-export const useExtra = (extraId) => {
-  return useQuery({
-    queryKey: ['extra', extraId],
-    queryFn: async () => {
-      const response = await ApiService.get(`/extras/${extraId}`);
-      return response.data;
-    },
-    enabled: !!extraId,
-  });
-};
-
-/**
- * Hook to create an extra
- */
-export const useCreateExtra = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (extraData) => ApiService.post('/extras', extraData),
-    onSuccess: () => {
-      message.success('Extra created successfully');
-      queryClient.invalidateQueries(['extras']);
-    },
-    onError: (error) => {
-      message.error(error.response?.data?.message || 'Failed to create extra');
-      console.error('Error creating extra:', error);
-    },
-  });
-};
-
-/**
- * Hook to update an extra
- */
-export const useUpdateExtra = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: ({ extraId, data }) => ApiService.patch(`/extras/${extraId}`, data),
-    onSuccess: () => {
-      message.success('Extra updated successfully');
-      queryClient.invalidateQueries(['extras']);
-    },
-    onError: (error) => {
-      message.error(error.response?.data?.message || 'Failed to update extra');
-      console.error('Error updating extra:', error);
-    },
-  });
-};
-
-/**
- * Hook to delete an extra
- */
-export const useDeleteExtra = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (extraId) => ApiService.delete(`/extras/${extraId}`),
-    onSuccess: () => {
-      message.success('Extra deleted successfully');
-      queryClient.invalidateQueries(['extras']);
-    },
-    onError: (error) => {
-      message.error(error.response?.data?.message || 'Failed to delete extra');
-      console.error('Error deleting extra:', error);
-    },
-  });
-};
-
 // ================= BLOG HOOKS ===================
 
 /**
- * Hook to fetch published blogs
+ * Hook to fetch blogs
  */
-export const usePublishedBlogs = (params = {}) => {
-  return useQuery({
-    queryKey: ['publishedBlogs', params],
-    queryFn: async () => {
-      const response = await ApiService.get('/blogs/public', { params });
-      return response.data;
-    },
-  });
-};
-
-/**
- * Hook to fetch all blogs (admin)
- */
-export const useAllBlogs = (params = {}) => {
+export const useBlogs = (params = {}) => {
   return useQuery({
     queryKey: ['blogs', params],
     queryFn: async () => {
@@ -375,21 +289,7 @@ export const useAllBlogs = (params = {}) => {
 };
 
 /**
- * Hook to fetch a blog by slug
- */
-export const useBlogBySlug = (slug) => {
-  return useQuery({
-    queryKey: ['blog', slug],
-    queryFn: async () => {
-      const response = await ApiService.get(`/blogs/public/slug/${slug}`);
-      return response.data;
-    },
-    enabled: !!slug,
-  });
-};
-
-/**
- * Hook to fetch a blog by id (admin)
+ * Hook to fetch a single blog
  */
 export const useBlog = (blogId) => {
   return useQuery({
@@ -407,7 +307,7 @@ export const useBlog = (blogId) => {
  */
 export const useCreateBlog = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (blogData) => ApiService.post('/blogs', blogData),
     onSuccess: () => {
@@ -426,7 +326,7 @@ export const useCreateBlog = () => {
  */
 export const useUpdateBlog = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ blogId, data }) => ApiService.patch(`/blogs/${blogId}`, data),
     onSuccess: () => {
@@ -445,7 +345,7 @@ export const useUpdateBlog = () => {
  */
 export const useDeleteBlog = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (blogId) => ApiService.delete(`/blogs/${blogId}`),
     onSuccess: () => {
@@ -456,36 +356,6 @@ export const useDeleteBlog = () => {
       message.error(error.response?.data?.message || 'Failed to delete blog');
       console.error('Error deleting blog:', error);
     },
-  });
-};
-
-/**
- * Hook to fetch related blogs
- */
-export const useRelatedBlogs = (blogId, limit = 3) => {
-  return useQuery({
-    queryKey: ['relatedBlogs', blogId, limit],
-    queryFn: async () => {
-      const response = await ApiService.get(`/blogs/public/related/${blogId}`, { 
-        params: { limit } 
-      });
-      return response.data;
-    },
-    enabled: !!blogId,
-  });
-};
-
-/**
- * Hook to fetch blogs by category
- */
-export const useBlogsByCategory = (category, params = {}) => {
-  return useQuery({
-    queryKey: ['blogsByCategory', category, params],
-    queryFn: async () => {
-      const response = await ApiService.get(`/blogs/public/category/${category}`, { params });
-      return response.data;
-    },
-    enabled: !!category,
   });
 };
 
@@ -596,9 +466,31 @@ export const useTrackAffiliateVisit = () => {
  */
 export const useValidateAffiliateCode = () => {
   return useMutation({
-    mutationFn: (code) => ApiService.get(`/affiliates/validate/${code}`),
+    mutationFn: (code) => ApiService.post(`/affiliates/validate/${code}`),
+    onSuccess: (data) => {
+      return data;
+    },
     onError: (error) => {
       console.error('Error validating affiliate code:', error);
     },
+  });
+};
+
+// ================= AVAILABILITY HOOKS ===================
+
+/**
+ * Hook to fetch available time slots with caching
+ */
+export const useTimeSlots = (date) => {
+  return useQuery({
+    queryKey: ['timeSlots', date],
+    queryFn: async () => {
+      const result = await calendarService.getAvailableTimeSlots(date);
+      return result; // Return the full result object with success/data/error properties
+    },
+    enabled: !!date,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    cacheTime: 1000 * 60 * 30, // 30 minutes
+    keepPreviousData: true,
   });
 };

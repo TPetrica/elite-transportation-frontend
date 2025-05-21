@@ -6,6 +6,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 
 import PlacePicker from '@/components/common/PlacePicker'
 import { useBooking } from '@/context/BookingContext'
+import { useTimeSlots } from '@/hooks/useQueryHooks'
 import calendarService from '@/services/calendar.service'
 import SideBar from './SideBar'
 
@@ -119,50 +120,34 @@ function BookingTime() {
     calculateDistance()
   }, [pickupDetails?.coordinates, dropoffDetails?.coordinates, setDistanceAndDuration])
 
-  // Fetch available time slots when date is selected - with debounce
-  const previousDateRef = useRef(null)
+  // Use cached time slots query when date changes
+  const dateString = selectedDate ? selectedDate.format('YYYY-MM-DD') : undefined
+  const {
+    data: timeSlots,
+    isLoading: isSlotsLoading,
+    error: slotsError
+  } = useTimeSlots(dateString)
 
+  // Update available time slots when query returns data
   useEffect(() => {
-    if (!selectedDate) return
+    // Update loading state
+    setIsLoading(isSlotsLoading);
 
-    // Skip if date hasn't changed
-    const dateString = selectedDate.format('YYYY-MM-DD')
-    if (dateString === previousDateRef.current) return
-    previousDateRef.current = dateString
-
-    let isMounted = true
-    const timeoutId = setTimeout(async () => {
-      setIsLoading(true)
-      setError('')
-
-      try {
-        // Ensure we're sending the date as a string in YYYY-MM-DD format
-        const result = await calendarService.getAvailableTimeSlots(dateString)
-
-        if (!isMounted) return
-
-        if (result.success) {
-          const formattedSlots = calendarService.formatAvailableSlots(result.data)
-          setAvailableTimeSlots(formattedSlots)
-        } else {
-          setError(result.error || 'Error fetching available times')
-        }
-      } catch (error) {
-        if (!isMounted) return
-        console.error('Error fetching time slots:', error)
-        setError('Failed to fetch available time slots')
-      } finally {
-        if (isMounted) {
-          setIsLoading(false)
-        }
+    // Process response when available
+    if (timeSlots) {
+      if (timeSlots.success && timeSlots.data) {
+        const formattedSlots = calendarService.formatAvailableSlots(timeSlots.data);
+        setAvailableTimeSlots(formattedSlots);
+        setError(''); // Clear any previous errors
+      } else if (timeSlots.error) {
+        setError(timeSlots.error || 'Failed to load available time slots');
+        console.error('Error in time slots response:', timeSlots.error);
       }
-    }, 300) // 300ms debounce
-
-    return () => {
-      isMounted = false
-      clearTimeout(timeoutId)
+    } else if (slotsError) {
+      setError('Failed to load available time slots');
+      console.error('Error fetching time slots:', slotsError);
     }
-  }, [selectedDate])
+  }, [timeSlots, isSlotsLoading, slotsError])
 
   // Memoized helper functions to avoid recreation on each render
   const isAirportService = useCallback(service => {
@@ -283,7 +268,7 @@ function BookingTime() {
   )
 
   const handleTimeSelect = useCallback(
-    async time => {
+    time => {
       // If time is already selected, don't do anything
       if (selectedTime === time) {
         return
@@ -291,38 +276,18 @@ function BookingTime() {
 
       setError('')
 
-      try {
-        // Pass the date as string format to avoid timezone issues
-        const result = await calendarService.checkAvailability(
-          selectedDate.format('YYYY-MM-DD'),
-          time
-        )
+      // Immediately set the selected time without checking with backend
+      // Since we're only showing available time slots anyway
+      setSelectedTime(time)
+      setPickupDetails({
+        ...pickupDetails,
+        time: time,
+      })
 
-        if (result.success && result.data) {
-          setSelectedTime(time)
-          setPickupDetails({
-            ...pickupDetails,
-            time: time,
-          })
-
-          // Check if it's a night service (11 PM - 7 AM)
-          const hour = parseInt(time.split(':')[0], 10)
-          if (hour >= 23 || hour < 7) {
-            setError('Night service fee will be applied for services between 11 PM and 7 AM')
-          }
-        } else {
-          setError('This time slot is no longer available')
-          const slotsResult = await calendarService.getAvailableTimeSlots(
-            selectedDate.format('YYYY-MM-DD')
-          )
-
-          if (slotsResult.success) {
-            setAvailableTimeSlots(calendarService.formatAvailableSlots(slotsResult.data))
-          }
-        }
-      } catch (error) {
-        console.error('Error selecting time:', error)
-        setError('Failed to verify time slot availability')
+      // Check if it's a night service (11 PM - 7 AM)
+      const hour = parseInt(time.split(':')[0], 10)
+      if (hour >= 23 || hour < 7) {
+        setError('Night service fee will be applied for services between 11 PM and 7 AM')
       }
     },
     [selectedDate, setSelectedTime, pickupDetails, setPickupDetails, selectedTime]
@@ -412,28 +377,18 @@ function BookingTime() {
     return Boolean(hasValidPickup && hasValidDropoff && pickupDetails?.date && pickupDetails?.time)
   }, [selectedService, pickupDetails, dropoffDetails])
 
-  const handleContinue = useCallback(async () => {
+  const handleContinue = useCallback(() => {
     if (!canProceed()) {
       setError('Please fill in all required fields')
       return
     }
 
-    try {
-      // Pass the date as string to avoid timezone issues
-      const result = await calendarService.checkAvailability(pickupDetails.date, pickupDetails.time)
+    // We already know the time slot is available, as we're only showing available time slots
+    // No need to check availability again, just proceed to the next step
 
-      if (!result.success || !result.data) {
-        setError('Selected time slot is no longer available. Please choose another time.')
-        return
-      }
-
-      // Pass state to preserve booking data
-      navigate('/booking-extra', { state: { preserveBookingData: true } })
-    } catch (error) {
-      console.error('Error proceeding to next step:', error)
-      setError('Failed to verify time slot availability')
-    }
-  }, [canProceed, navigate, pickupDetails])
+    // Pass state to preserve booking data
+    navigate('/booking-extra', { state: { preserveBookingData: true } })
+  }, [canProceed, navigate, setError])
 
   // Memoized derived values
   const filteredServices = useMemo(

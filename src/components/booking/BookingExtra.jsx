@@ -1,6 +1,6 @@
 import { useBooking } from "@/context/BookingContext";
 import { useFormFocus } from "@/hooks/useFormFocus";
-import ExtraService from "@/services/extra.service";
+import { useExtras } from "@/hooks/useQueryHooks";
 import { Alert } from "antd";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -71,69 +71,77 @@ export default function BookingExtra() {
 		setSelectedExtras(formattedExtras);
 	};
 
+	// Use cached extras query
+	const { data: extrasData, isLoading: extrasLoading, error: extrasError } = useExtras();
+
+	// Process extras data when it's loaded
 	useEffect(() => {
-		const fetchExtras = async () => {
+		// Handle loading state
+		setLoading(extrasLoading);
+
+		// Handle error state
+		if (extrasError) {
+			console.error("Error fetching extras:", extrasError);
+			setError("Failed to load extras");
+			return;
+		}
+
+		// Process data when it's available
+		if (extrasData && extrasData.success && extrasData.data) {
 			try {
-				const result = await ExtraService.getExtras();
-				if (result.success && result.data) {
-					const filteredData = result.data.filter(
-						(extra) =>
-							!isNightTime(pickupDetails?.time) ||
-							extra.name.toLowerCase() !== "night service"
-					);
+				const filteredData = extrasData.data.filter(
+					(extra) =>
+						!isNightTime(pickupDetails?.time) ||
+						extra.name.toLowerCase() !== "night service"
+				);
 
-					const quantity = filteredData
-						.filter((extra) => extra.maxQuantity > 1)
-						.map((item) => {
-							const previousSelection = selectedExtras.find(
-								(selected) => selected.item === item.id
-							);
-							return {
-								id: item.id,
-								name: item.name,
-								price: item.price,
-								description: item.description,
-								quantity: previousSelection?.quantity || 0,
-								maxQuantity: item.maxQuantity,
-								type: "quantity",
-							};
-						});
+				const quantity = filteredData
+					.filter((extra) => extra.maxQuantity > 1)
+					.map((item) => {
+						const previousSelection = selectedExtras.find(
+							(selected) => selected.item === item.id
+						);
+						return {
+							id: item.id,
+							name: item.name,
+							price: item.price,
+							description: item.description,
+							quantity: previousSelection?.quantity || 0,
+							maxQuantity: item.maxQuantity,
+							type: "quantity",
+						};
+					});
 
-					const selection = filteredData
-						.filter((extra) => extra.maxQuantity === 1)
-						.map((item) => {
-							const previousSelection = selectedExtras.find(
-								(selected) => selected.item === item.id
-							);
-							return {
-								id: item.id,
-								name: item.name,
-								price: item.price,
-								description: item.description,
-								selected: !!previousSelection,
-								type: "selection",
-							};
-						});
+				const selection = filteredData
+					.filter((extra) => extra.maxQuantity === 1)
+					.map((item) => {
+						const previousSelection = selectedExtras.find(
+							(selected) => selected.item === item.id
+						);
+						return {
+							id: item.id,
+							name: item.name,
+							price: item.price,
+							description: item.description,
+							selected: !!previousSelection,
+							type: "selection",
+						};
+					});
 
-					if (selectedService?.id.includes("airport-transfer")) {
-						setFlightNumber("");
-					}
-
-					setQuantityItems(quantity);
-					setSelectItems(selection);
-				} else {
-					setError("No extras available");
+				if (selectedService?.id?.includes("airport-transfer")) {
+					setFlightNumber("");
 				}
+
+				setQuantityItems(quantity);
+				setSelectItems(selection);
+				setLoading(false);
 			} catch (err) {
-				console.error("Error fetching extras:", err);
+				console.error("Error processing extras:", err);
 				setError("Failed to load extras");
-			} finally {
 				setLoading(false);
 			}
-		};
-
-		fetchExtras();
-	}, [selectedService, selectedExtras]);
+		}
+	}, [extrasData, extrasLoading, extrasError, selectedExtras, pickupDetails?.time, selectedService?.id]);
 
 	const handleQuantity = (qty, i) => {
 		if (qty < 0 || qty > quantityItems[i].maxQuantity) return;
