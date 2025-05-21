@@ -1,28 +1,27 @@
-import React, { useState } from 'react'
 import {
-  Table,
+  useBlogs,
+  useCreateBlog,
+  useDeleteBlog,
+  useUpdateBlog
+} from '@/hooks/useQueryHooks'
+import { useQueryClient } from '@tanstack/react-query'
+import {
+  Badge,
   Button,
-  Modal,
-  Space,
-  message,
   Card,
   Empty,
+  Modal,
+  Space,
+  Table,
   Tag,
   Tooltip,
-  Badge,
-  Typography,
+  Typography
 } from 'antd'
-import { PlusCircle, Edit, Trash2, Eye, FileText, Tag as TagIcon } from 'lucide-react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { 
-  useAllBlogs, 
-  useCreateBlog, 
-  useUpdateBlog, 
-  useDeleteBlog 
-} from '@/hooks/useQueryHooks'
-import BlogFormModal from './BlogFormModal'
-import { Link } from 'react-router-dom'
 import { formatDistanceToNow } from 'date-fns'
+import { Edit, Eye, PlusCircle, Trash2 } from 'lucide-react'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import BlogFormModal from './BlogFormModal'
 
 const { Title, Text } = Typography
 
@@ -38,7 +37,7 @@ const BlogsPage = () => {
     isLoading,
     isError,
     error,
-  } = useAllBlogs()
+  } = useBlogs()
 
   // Extract blogs from the response
   const blogs = blogsData?.results || []
