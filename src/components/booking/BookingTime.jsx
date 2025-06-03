@@ -480,11 +480,11 @@ function BookingTime() {
                         </>
                       )}
                     </select>
-                    {selectedService && (
+                    {/* {selectedService && (
                       <div className="service-description mt-2 text-sm text-gray-600">
                         {selectedService.description}
                       </div>
-                    )}
+                    )} */}
                   </>
                 ) : (
                   <select
