@@ -3,10 +3,8 @@ import Breadcumb from "@/components/service/Breadcumb";
 import Services2 from "@/components/service/Services2";
 
 const metadata = {
-	title:
-		"Service Grid 2 || Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
-	description:
-		"Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
+	title: "Our Services | Elite Transportation Park City",
+	description: "Explore our premium transportation services: airport transfers, ski resort shuttles, corporate travel, and special events in Park City area.",
 };
 
 export default function ServiceGridPage2() {

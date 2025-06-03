@@ -249,6 +249,21 @@ const Affiliates = () => {
             </p>
             <p><strong>Redirect Path:</strong> {selectedAffiliate.redirectPath}</p>
             <p><strong>Preferred Service:</strong> {selectedAffiliate.preferredService || "None"}</p>
+            
+            {selectedAffiliate.servicePricingList && selectedAffiliate.servicePricingList.length > 0 && (
+              <>
+                <hr />
+                <h4>Service Pricing Configuration</h4>
+                {selectedAffiliate.servicePricingList.map((pricing, index) => (
+                  <div key={index} style={{ marginBottom: 10 }}>
+                    <p style={{ fontWeight: 'bold' }}>{pricing.serviceType}</p>
+                    <p>Base Price: ${pricing.basePrice}</p>
+                    {pricing.minPassengers > 0 && <p>Min Passengers: {pricing.minPassengers}</p>}
+                  </div>
+                ))}
+              </>
+            )}
+            
             <hr />
             <h4>Default Locations</h4>
             {selectedAffiliate.defaultPickupLocation?.address && (

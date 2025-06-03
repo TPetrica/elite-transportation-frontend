@@ -2,10 +2,8 @@ import Invoice from "@/components/Invoice";
 
 import MetaComponent from "@/components/common/MetaComponent";
 const metadata = {
-	title:
-		"Invoice || Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
-	description:
-		"Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
+	title: "Invoice & Receipt | Elite Transportation Park City",
+	description: "View and download your booking invoice and receipt. Complete trip details and payment confirmation for your Park City transportation.",
 };
 export default function InvoicePage() {
 	return (

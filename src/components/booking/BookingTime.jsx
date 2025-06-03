@@ -51,12 +51,22 @@ function BookingTime() {
     if (services && services.length > 0) {
       setLoadingServices(false)
 
-      // If affiliate and no service selected yet, set the per-person service
-      if (isAffiliate && !selectedService && !hasSetAffiliateService.current) {
-        const perPersonService = services.find(s => s.serviceType === 'per-person' || s.title.toLowerCase().includes('per person'))
-        if (perPersonService) {
-          setSelectedService(perPersonService)
-          hasSetAffiliateService.current = true
+      // If affiliate and no service selected yet, set the preferred service
+      if (isAffiliate && !selectedService && !hasSetAffiliateService.current && affiliate) {
+        // First check if affiliate has a preferredService
+        if (affiliate.preferredService) {
+          const preferredService = services.find(s => s.serviceType === affiliate.preferredService)
+          if (preferredService) {
+            setSelectedService(preferredService)
+            hasSetAffiliateService.current = true
+          }
+        } else {
+          // Fall back to per-person service
+          const perPersonService = services.find(s => s.serviceType === 'per-person' || s.title.toLowerCase().includes('per person'))
+          if (perPersonService) {
+            setSelectedService(perPersonService)
+            hasSetAffiliateService.current = true
+          }
         }
       }
 
@@ -65,7 +75,15 @@ function BookingTime() {
         setShowPassengerWarning(true)
       }
     }
-  }, [services, selectedService, isAffiliate, setSelectedService])
+  }, [services, selectedService, isAffiliate, affiliate, setSelectedService])
+
+  // Force pricing recalculation when affiliate data changes
+  useEffect(() => {
+    if (isAffiliate && affiliate && selectedService) {
+      // Force a re-selection of the service to trigger pricing recalculation
+      setSelectedService(selectedService)
+    }
+  }, [affiliate])
 
   // Affiliate setup is now handled by AffiliateHandler component
 
@@ -394,9 +412,18 @@ function BookingTime() {
   const filteredServices = useMemo(
     () => {
       if (!services || services.length === 0) return [];
-      return isAffiliate ? services.filter(s => s.serviceType === 'per-person' || s.title.toLowerCase().includes('per person')) : services;
+      
+      // For affiliates, show services they have pricing for
+      if (isAffiliate && affiliate?.servicePricingList && affiliate.servicePricingList.length > 0) {
+        const configuredServiceTypes = affiliate.servicePricingList.map(sp => sp.serviceType);
+        return services.filter(s => configuredServiceTypes.includes(s.serviceType));
+      }
+      
+      // For affiliates without specific pricing list, show all services
+      // This allows affiliates to use all services even without custom pricing
+      return services;
     },
-    [isAffiliate, services]
+    [isAffiliate, affiliate, services]
   )
 
   const disableLocationPickers = !selectedService && !isAffiliate
@@ -428,19 +455,34 @@ function BookingTime() {
                     <select
                       className="form-control"
                       value={selectedService?.id || ''}
-                      disabled={true}
+                      onChange={handleServiceSelect}
+                      disabled={filteredServices.length <= 1}
                     >
-                      {selectedService ? (
-                        <option value={selectedService.id}>{selectedService.title}</option>
+                      {filteredServices.length === 0 ? (
+                        <option value="">No services configured</option>
+                      ) : selectedService ? (
+                        <>
+                          {filteredServices.length > 1 && <option value="">Select a service</option>}
+                          {filteredServices.map(service => (
+                            <option key={service.id} value={service.id}>
+                              {service.title}
+                            </option>
+                          ))}
+                        </>
                       ) : (
-                        <option value="">Loading service...</option>
+                        <>
+                          <option value="">Select a service</option>
+                          {filteredServices.map(service => (
+                            <option key={service.id} value={service.id}>
+                              {service.title}
+                            </option>
+                          ))}
+                        </>
                       )}
                     </select>
                     {selectedService && (
                       <div className="service-description mt-2 text-sm text-gray-600">
-                        {isAffiliate && selectedService.serviceType === 'per-person'
-                          ? '$65 per person'
-                          : (selectedService.description || '$65 per person')}
+                        {selectedService.description}
                       </div>
                     )}
                   </>

@@ -3,10 +3,8 @@ import Map2 from "@/components/contact/Map2";
 import DefaultLayout from "@/layouts/DefaultLayout";
 
 const metadata = {
-	title:
-		"Contact Us || Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
-	description:
-		"Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
+	title: "Get in Touch | Elite Transportation Park City",
+	description: "Reach out for Park City and SLC airport transportation services. Easy booking, competitive rates, and exceptional customer support available.",
 };
 
 export default function ContactPage2() {

@@ -80,19 +80,7 @@ const DistanceInfo = ({ distance, duration }) => (
   </div>
 )
 
-const ServiceInfo = ({ selectedService, isAffiliate }) => {
-  // Create a description based on service type
-  const getDescription = () => {
-    if (!selectedService) return ''
-
-    // For affiliate per-person service
-    if (isAffiliate && selectedService.serviceType === 'per-person') {
-      return `$${selectedService.basePrice} per person`
-    }
-
-    return selectedService.description || ''
-  }
-
+const ServiceInfo = ({ selectedService }) => {
   if (!selectedService) return null
 
   return (
@@ -108,8 +96,12 @@ const ServiceInfo = ({ selectedService, isAffiliate }) => {
         <br />
         <span className="text-14-medium color-text">
           {selectedService.title}
-          <br />
-          <span className="text-sm">{getDescription()}</span>
+          {selectedService.description && (
+            <>
+              <br />
+              <span className="text-sm">{selectedService.description}</span>
+            </>
+          )}
         </span>
       </div>
     </>
@@ -236,7 +228,7 @@ export default function SideBar() {
 
         {/* Service Details */}
         {selectedService && (
-          <ServiceInfo selectedService={selectedService} isAffiliate={isAffiliate} />
+          <ServiceInfo selectedService={selectedService} />
         )}
 
         {/* Passenger Details */}

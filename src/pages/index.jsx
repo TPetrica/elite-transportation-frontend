@@ -1,10 +1,5 @@
-import Cta from '@/components/homes/common/cta/Cta'
-import AirportInfo from '@/components/homes/home-1/AirportInfo'
-import Faq from '@/components/homes/home-1/Faq'
 import Hero from '@/components/homes/home-1/Hero'
-import HowToGetFromSLCToPC from '@/components/homes/home-1/HowToGetFromSLCToPC'
 import Service from '@/components/homes/home-1/Service'
-import ServiceAreaMap from '@/components/homes/home-1/ServiceAreaMap'
 import SLCTransportOptions from '@/components/homes/home-1/SLCTransportOptions'
 import TravelTips from '@/components/homes/home-1/TravelTips'
 import DefaultLayout from '@/layouts/DefaultLayout'
@@ -43,14 +38,14 @@ export default function Home() {
       {/* <Partners /> */}
       <SLCTransportOptions />
       <Service />
-      <HowToGetFromSLCToPC />
+      {/* Removed HowToGetFromSLCToPC section per SEO requirements */}
       {/* <Facts /> */}
-      <AirportInfo />
-      <ServiceAreaMap />
-      <Cta />
+      {/* Removed AirportInfo section per SEO requirements */}
+      {/* <BookingBar /> */}
+      {/* Removed Cta (Get Instant Quote) section per SEO requirements */}
       <TravelTips />
       {/* <Blogs /> */}
-      <Faq />
+      {/* Removed Faq section - already exists as separate page */}
     </DefaultLayout>
   )
 }

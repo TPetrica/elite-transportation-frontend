@@ -7,10 +7,10 @@ export default function TravelTips() {
       <div className="container-sub">
         <div className="tw-text-center tw-mb-16">
           <h2 className="heading-44-medium color-text tw-mb-3 wow fadeInUp">
-            Salt Lake City to Park City Travel Tips
+            Park City Travel Tips
           </h2>
           <p className="tw-text-lg tw-text-gray-700 wow fadeInUp tw-max-w-3xl tw-mx-auto">
-            Essential advice for a smooth journey between SLC and Park City
+            Essential advice for your Park City visit
           </p>
         </div>
         

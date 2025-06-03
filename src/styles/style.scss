@@ -8,3 +8,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Service card overlay fix for snow background */
+.cardService:hover .cardInfo {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.cardService .cardInfo {
+  transition: background 0.3s ease;
+}

@@ -3,10 +3,8 @@ import BookingTab from "@/components/booking/BookingTab";
 import PassengerDetails from "@/components/booking/PassengerDetails";
 
 const metadata = {
-	title:
-		"Booking Passenger || Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
-	description:
-		"Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
+	title: "Passenger Details | Elite Transportation Park City",
+	description: "Enter passenger information for your SLC to Park City transfer. Quick checkout process with secure booking and instant confirmation.",
 };
 
 export default function BookingPassengerPage() {

@@ -9,10 +9,8 @@ import { cars } from "@/data/cars";
 import { useParams } from "react-router-dom";
 
 const metadata = {
-	title:
-		"Fleet Single || Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
-	description:
-		"Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
+	title: "Vehicle Details | Elite Transportation Park City",
+	description: "Detailed specifications and features of our luxury vehicles. Book the perfect SUV or sedan for your Salt Lake City airport transfer.",
 };
 
 export default function FleetSinglePage() {

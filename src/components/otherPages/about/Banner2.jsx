@@ -7,22 +7,9 @@ export default function Banner2() {
         <div className="row">
           <div className="col-lg-5 col-md-12">
             <div className="padding-box">
-              <h1 className="heading-44-medium color-white mb-5">
-                SLC to Park City Transportation Services
-              </h1>
-              <div className="box-breadcrumb">
-                <ul>
-                  <li>
-                    <Link to="/">Home</Link>
-                  </li>
-                  <li>
-                    <Link to="/about-2">About Our Salt Lake City Airport Shuttle</Link>
-                  </li>
-                </ul>
-              </div>
               <div className="mt-60 wow fadeInUp">
                 <h2 className="heading-44-medium mb-30 color-white title-fleet">
-                  Premier Transportation from Salt Lake City to Park City
+                  Luxury Transportation from Salt Lake City to Park City
                 </h2>
                 <div className="content-single">
                   <p className="color-white">

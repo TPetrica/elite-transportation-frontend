@@ -68,11 +68,34 @@ const calculateBasePrice = (
   numPassengers = 1,
   hours = 1,
   isCottonwood = false,
-  isAffiliate = false
+  isAffiliate = false,
+  affiliate = null
 ) => {
   if (!service) return 0
 
   const passengerCount = parseInt(numPassengers) || 1
+
+  // If affiliate has custom pricing for this service type, use it
+  if (isAffiliate && affiliate && affiliate.servicePricingList) {
+    const affiliatePricing = affiliate.servicePricingList.find(
+      sp => sp.serviceType === service.serviceType
+    )
+    
+    if (affiliatePricing && affiliatePricing.basePrice !== undefined) {
+      // Use affiliate's custom pricing
+      const affiliateMinPassengers = affiliatePricing.minPassengers || 0
+      
+      switch (service.serviceType) {
+        case 'per-person':
+          const effectivePassengers = Math.max(passengerCount, affiliateMinPassengers)
+          return effectivePassengers * affiliatePricing.basePrice
+        case 'hourly':
+          return affiliatePricing.basePrice * hours
+        default:
+          return affiliatePricing.basePrice
+      }
+    }
+  }
 
   // If either pickup or dropoff is in Cottonwood Canyons, use Cottonwood pricing
   if (isCottonwood && service.serviceType !== 'canyons') {
@@ -89,8 +112,8 @@ const calculateBasePrice = (
     case 'canyons':
       return service.basePrice
     case 'per-person':
-      // Get minimum passenger count from service
-      const minPersons = isAffiliate ? 1 : service.minPassengers || 2
+      // Get minimum passenger count from service or affiliate config
+      const minPersons = service.minPassengers || 2
       const effectivePassengers = Math.max(passengerCount, minPersons)
       return effectivePassengers * service.basePrice
     case 'hourly':
@@ -172,8 +195,6 @@ const updatePricingState = (
 }
 
 const bookingReducer = (state, action) => {
-  console.log('state', state)
-
   switch (action.type) {
     case 'SET_SERVICES': {
       return {
@@ -199,7 +220,8 @@ const bookingReducer = (state, action) => {
         state.passengerDetails.passengers,
         state.pricing.hours,
         isCottonwood,
-        state.isAffiliate
+        state.isAffiliate,
+        state.affiliate
       )
 
       let gratuity = state.pricing.gratuity
@@ -229,7 +251,8 @@ const bookingReducer = (state, action) => {
         state.passengerDetails.passengers,
         state.pricing.hours,
         isCottonwood,
-        state.isAffiliate
+        state.isAffiliate,
+        state.affiliate
       )
 
       let gratuity = state.pricing.gratuity
@@ -295,7 +318,8 @@ const bookingReducer = (state, action) => {
         state.passengerDetails.passengers,
         state.pricing.hours,
         isCottonwood,
-        state.isAffiliate
+        state.isAffiliate,
+        state.affiliate
       )
 
       let gratuity = state.pricing.gratuity
@@ -322,7 +346,8 @@ const bookingReducer = (state, action) => {
         state.passengerDetails.passengers,
         hours,
         isCottonwood,
-        state.isAffiliate
+        state.isAffiliate,
+        state.affiliate
       )
 
       let gratuity = state.pricing.gratuity
@@ -374,7 +399,8 @@ const bookingReducer = (state, action) => {
         newPassengerDetails.passengers,
         state.pricing.hours,
         isCottonwood,
-        state.isAffiliate
+        state.isAffiliate,
+        state.affiliate
       )
 
       let gratuity = state.pricing.gratuity
@@ -449,13 +475,37 @@ const bookingReducer = (state, action) => {
         bookingNumber: action.payload,
       }
 
-    case 'SET_AFFILIATE_MODE':
+    case 'SET_AFFILIATE_MODE': {
+      // When setting affiliate mode, recalculate pricing if a service is already selected
+      let newPricing = state.pricing;
+      
+      if (state.selectedService) {
+        const isCottonwood = state.pickupDetails.isCottonwood || state.dropoffDetails.isCottonwood;
+        const basePrice = calculateBasePrice(
+          state.selectedService,
+          state.passengerDetails.passengers,
+          state.pricing.hours,
+          isCottonwood,
+          true, // isAffiliate
+          action.payload.affiliate
+        );
+        
+        let gratuity = state.pricing.gratuity;
+        if (state.pricing.selectedTipPercentage) {
+          gratuity = (basePrice * state.pricing.selectedTipPercentage) / 100;
+        }
+        
+        newPricing = updatePricingState(state, basePrice, gratuity);
+      }
+      
       return {
         ...state,
         isAffiliate: true,
         affiliateCode: action.payload.code,
         affiliate: action.payload.affiliate,
+        pricing: newPricing,
       }
+    }
 
     case 'RESET_BOOKING':
       if (

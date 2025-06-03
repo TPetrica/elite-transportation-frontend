@@ -5,10 +5,8 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const metadata = {
-	title:
-		"Register || Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
-	description:
-		"Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
+	title: "Create Account | Elite Transportation Park City",
+	description: "Register for Elite Transportation Park City. Create your account for faster bookings, reservation management, and exclusive member benefits.",
 };
 
 export default function RegisterPage() {

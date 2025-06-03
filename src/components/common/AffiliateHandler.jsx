@@ -47,11 +47,10 @@ const AffiliateHandler = () => {
                   setDropoffDetails(affiliateData.defaultDropoffLocation);
                 }
                 
-                // Store preferred service and pricing to set later when services are loaded
+                // Store preferred service to set later when services are loaded
                 if (affiliateData?.preferredService) {
                   preferredServiceRef.current = {
                     serviceType: affiliateData.preferredService,
-                    pricing: affiliateData.servicePricing,
                   };
                 }
                 
@@ -78,19 +77,14 @@ const AffiliateHandler = () => {
   // Watch for services to load and set preferred service
   useEffect(() => {
     if (preferredServiceRef.current && services && services.length > 0) {
-      const { serviceType, pricing } = preferredServiceRef.current;
+      const { serviceType } = preferredServiceRef.current;
       const preferredService = services.find(
         s => s.serviceType === serviceType
       );
       if (preferredService) {
-        // Apply custom pricing if available
-        const serviceWithCustomPricing = {
-          ...preferredService,
-          ...(pricing?.basePrice && { basePrice: pricing.basePrice }),
-          ...(pricing?.minPassengers !== undefined && { minPassengers: pricing.minPassengers }),
-          ...(pricing?.customDescription && { description: pricing.customDescription }),
-        };
-        setSelectedService(serviceWithCustomPricing);
+        // Just set the service without modifying pricing
+        // The BookingContext will handle affiliate pricing through calculateBasePrice
+        setSelectedService(preferredService);
         preferredServiceRef.current = null; // Clear after setting
       }
     }

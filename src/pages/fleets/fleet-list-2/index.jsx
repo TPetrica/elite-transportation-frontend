@@ -2,10 +2,8 @@ import DefaultLayout from "@/layouts/DefaultLayout";
 import FeetList2 from "@/components/fleet-list/FeetList2";
 
 const metadata = {
-	title:
-		"Fleet List 2 || Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
-	description:
-		"Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
+	title: "Vehicle Fleet | Elite Transportation Park City",
+	description: "Select from our modern fleet of luxury vehicles. Comfortable SUVs and sedans perfect for airport transfers and mountain transportation.",
 };
 
 export default function FleetListPage2() {

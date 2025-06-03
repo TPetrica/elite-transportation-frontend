@@ -1,10 +1,5 @@
 import AboutFamily from "@/components/otherPages/about/AboutFamily";
-import AboutTravelOptions from "@/components/otherPages/about/AboutTravelOptions";
-import AirportServices from "@/components/otherPages/about/AirportServices";
 import Banner2 from "@/components/otherPages/about/Banner2";
-import Faq from "@/components/otherPages/about/Faq";
-import ParkCityTransportInfo from "@/components/otherPages/about/ParkCityTransportInfo";
-import SLCAirportInfo from "@/components/otherPages/about/SLCAirportInfo";
 import DefaultLayout from "@/layouts/DefaultLayout";
 
 const metadata = {
@@ -18,12 +13,12 @@ export default function AboutPage2() {
       <main className="main">
         <Banner2 />
         <AboutFamily />
-        <AirportServices />
+        {/* <AirportServices />
         <ParkCityTransportInfo />
         <SLCAirportInfo />
-        <AboutTravelOptions />
+        <AboutTravelOptions /> */}
         {/* <Testimonials /> */}
-        <Faq />
+        {/* <Faq /> */}
       </main>
     </DefaultLayout>
   );

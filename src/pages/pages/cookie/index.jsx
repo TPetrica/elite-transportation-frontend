@@ -3,10 +3,8 @@ import CookiePolicy from "@/components/otherPages/cookie";
 import Breadcumb from "@/components/otherPages/cookie/Breadcumb";
 
 const metadata = {
-	title:
-		"Cookie Policy || Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
-	description:
-		"Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
+	title: "Cookie Policy | Elite Transportation Park City",
+	description: "Cookie usage policy for Elite Transportation Park City website. Information about how we use cookies to improve your booking experience.",
 };
 
 export default function CookiePolicyPage() {

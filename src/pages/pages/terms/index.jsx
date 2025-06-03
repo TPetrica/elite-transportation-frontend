@@ -3,10 +3,8 @@ import Breadcumb from "@/components/otherPages/terms/Breadcumb";
 import TermsAndConditions from "@/components/otherPages/terms/TermsAndConditions";
 
 const metadata = {
-	title:
-		"Terms & Conditions || Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
-	description:
-		"Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
+	title: "Terms & Conditions | Elite Transportation Park City",
+	description: "Terms of service and conditions for Elite Transportation Park City luxury transportation services. Read our booking and service policies.",
 };
 
 export default function TermsAndConditionsPage() {

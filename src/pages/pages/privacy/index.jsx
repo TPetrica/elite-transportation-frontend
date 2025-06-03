@@ -3,10 +3,8 @@ import PrivacyPolicy from "@/components/otherPages/privacy";
 import Breadcumb from "@/components/otherPages/privacy/Breadcumb";
 
 const metadata = {
-	title:
-		"Privacy Policy || Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
-	description:
-		"Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
+	title: "Privacy Policy | Elite Transportation Park City",
+	description: "Privacy policy for Elite Transportation Park City. Learn how we protect your personal information and booking data with secure practices.",
 };
 
 export default function PrivacyPolicyPage() {

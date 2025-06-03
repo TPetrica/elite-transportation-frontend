@@ -3,9 +3,8 @@ import BookingTime from "@/components/booking/BookingTime";
 import DefaultLayout from "@/layouts/DefaultLayout";
 
 const metadata = {
-	title:
-		"Select Date & Time || Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
-	description: "Select your preferred date and time for your journey",
+	title: "Select Date & Time | Elite Transportation Park City",
+	description: "Choose your pickup date and time for SLC Airport to Park City transfer. Real-time availability and instant booking confirmation.",
 };
 
 export default function BookingTimePage() {

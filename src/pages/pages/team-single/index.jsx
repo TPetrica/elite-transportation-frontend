@@ -6,10 +6,8 @@ import { teamMembers } from "@/data/team";
 import { useParams } from "react-router-dom";
 
 const metadata = {
-	title:
-		"Team Single || Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
-	description:
-		"Elite Transportation Park City Chauffeur Limousine Transport and Car Hire",
+	title: "Team Member Profile | Elite Transportation Park City",
+	description: "Learn about our experienced chauffeurs and team members. Professional drivers committed to luxury service in Salt Lake City and Park City.",
 };
 
 export default function TeamSinglePage() {

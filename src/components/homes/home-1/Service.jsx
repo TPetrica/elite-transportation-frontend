@@ -22,11 +22,8 @@ export default function Service() {
     slidesPerGroup: 1,
     // initialSlide: 1,
     loop: true,
-    navigation: {
-      nextEl: '.snbn3',
-      prevEl: '.snbp3',
-    },
-    modules: [Navigation, Autoplay],
+    // Navigation disabled as only 4 services
+    modules: [Autoplay],
 
     autoplay: {
       delay: 10000,
@@ -57,35 +54,10 @@ export default function Service() {
   return (
     <section className="section pt-90 pb-120 bg-our-service">
       <div className="container-sub">
-        <div className="row align-items-center">
-          <div className="col-lg-6 col-sm-7 col-7">
-            <h2 className="heading-44-medium title-fleet wow fadeInUp swiper-title">
-              Our Services
-            </h2>
-          </div>
-          <div className="col-lg-6 col-sm-5 col-5 text-end">
-            <Link
-              className="text-16-medium color-primary d-flex align-items-center justify-content-end wow fadeInUp"
-              to="/services"
-            >
-              More Services
-              <svg
-                className="icon-16 ml-5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"
-                ></path>
-              </svg>
-            </Link>
-          </div>
+        <div className="text-center mb-5">
+          <h2 className="heading-44-medium title-fleet wow fadeInUp">
+            Our Services
+          </h2>
         </div>
       </div>
       <div className="box-slide-fleet mt-50 swiper-padding">
@@ -128,40 +100,7 @@ export default function Service() {
               </SwiperSlide>
             ))}
 
-            <div className="box-pagination-fleet">
-              <div className="swiper-button-prev swiper-button-prev-fleet snbp3">
-                <svg
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
-                  ></path>
-                </svg>
-              </div>
-              <div className="swiper-button-next swiper-button-next-fleet snbn3">
-                <svg
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                  ></path>
-                </svg>
-              </div>
-            </div>
+            {/* Navigation arrows removed as there are only 4 services */}
           </Swiper>
         </div>
       </div>
