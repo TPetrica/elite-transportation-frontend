@@ -10,7 +10,7 @@ const LoadingPage = () => <div className="loading-page">Loading...</div>
 const Home = lazy(() => import('@/pages'))
 const BlogsGridPage1 = lazy(() => import('@/pages/blogs/blog-grid'))
 const BlogsSinglePage = lazy(() => import('@/pages/blogs/blog-single'))
-const FleetSinglePage = lazy(() => import('@/pages/fleets/fleet-single'))
+// const FleetSinglePage = lazy(() => import('@/pages/fleets/fleet-single'))
 const PageNotFoundPage = lazy(() => import('@/pages/page-not-found'))
 const AboutPage2 = lazy(() => import('@/pages/pages/about-2'))
 const CommingSoonPage = lazy(() => import('@/pages/pages/coming-soon'))
