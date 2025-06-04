@@ -33,18 +33,18 @@ export const links1 = [
 	// { id: 7, text: "Gift cards", href: "#" },
 ];
 export const links2 = [
-	{ id: 1, name: "Salt Lake, Park City", href: "#" },
-	{ id: 2, name: "Utah, US", href: "#" },
+	// { id: 1, name: "Salt Lake, Park City", href: "#" },
+	// { id: 2, name: "Utah, US", href: "#" },
 	// { id: 2, name: "London", href: "#" },
 	// { id: 3, name: "Berlin", href: "#" },
 	// { id: 4, name: "Los Angeles", href: "#" },
 	// { id: 5, name: "Paris", href: "#" },
 ];
 export const links3 = [
-	{ id: 1, name: "Airport Transfers", href: "/service-single/1" },
-	{ id: 2, name: "Hourly Charter", href: "/service-single/2" },
-	{ id: 3, name: "Group Transportation", href: "/service-single/3" },
-	{ id: 4, name: "Winter Sports Transport", href: "/service-single/4" },
+	{ id: 1, name: "Airport Transfers", href: "/services/slc-to-park-city-transfers" },
+	{ id: 2, name: "Hourly Charter", href: "/services/hourly-charter" },
+	{ id: 3, name: "Group Transportation", href: "/services/group-transportation" },
+	{ id: 4, name: "Winter Sports Transport", href: "/services/park-city-ski-shuttle" },
 	// { id: 5, name: "Ground transportation", href: "#" },
 	// { id: 6, name: "Airport transfer", href: "#" },
 ];

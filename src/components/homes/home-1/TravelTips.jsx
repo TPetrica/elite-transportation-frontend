@@ -1,5 +1,4 @@
-import React from 'react'
-import { Snowflake, Luggage, Mountain, Clock, Plane, Bus } from 'lucide-react'
+import { Bus, Clock, Luggage, Mountain, Plane, Snowflake } from 'lucide-react'
 
 export default function TravelTips() {
   return (
@@ -71,8 +70,8 @@ export default function TravelTips() {
         </div>
         
         <div className="tw-text-center tw-mt-12 wow fadeInUp">
-          <a className="btn btn-link hover-up tw-inline-flex tw-items-center" href="/places-to-see-in-salt-lake" aria-label="Discover attractions in Salt Lake City and Park City">
-            Discover Things to Do in Salt Lake City and Park City
+          <a target='_blank' className="btn btn-link hover-up tw-inline-flex tw-items-center" href="https://www.visitparkcity.com/things-to-do/" aria-label="Discover attractions in Salt Lake City and Park City">
+            Park City
             <svg className="tw-w-4 tw-h-4 tw-ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
             </svg>

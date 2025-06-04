@@ -100,7 +100,7 @@ export const services = [
   },
   {
     id: 3,
-    slug: 'grout-transportation',
+    slug: 'group-transportation',
     title: 'Group Transportation',
     description:
       'Premium group transportation in spacious luxury SUVs accommodating up to 7 passengers. Ideal for corporate events, wedding parties, family gatherings, and special occasions. For groups over 4 passengers, please contact us directly for pricing and availability.',
