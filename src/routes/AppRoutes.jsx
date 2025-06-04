@@ -187,11 +187,6 @@ const AppRoutes = () => {
             <CommingSoonPage />
           </Suspense>
         } />
-        <Route path="fleet" element={
-          <Suspense fallback={<LoadingPage />}>
-            <FleetSinglePage />
-          </Suspense>
-        } />
         <Route path="services" element={
           <Suspense fallback={<LoadingPage />}>
             <ServiceGridPage1 />
