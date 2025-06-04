@@ -29,14 +29,7 @@ const banners = [
     title: 'Park City Mountain Resort Transfers',
     text: 'Luxury Transportation from SLC to Park City Ski Resorts',
     position: 'center center',
-  },
-  {
-    id: 4,
-    url: '/assets/imgs/page/homepage1/car3-optimized.webp',
-    title: 'Private Car Service Salt Lake City',
-    text: 'Door-to-Door Transportation from SLC Airport to Park City',
-    position: 'center center',
-  },
+  }
 ]
 
 export default function Hero() {
