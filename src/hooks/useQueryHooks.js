@@ -187,91 +187,6 @@ export const useDeleteExtra = () => {
   });
 };
 
-// ================= VEHICLE HOOKS ===================
-
-/**
- * Hook to fetch vehicles
- */
-export const useVehicles = (params = {}) => {
-  return useQuery({
-    queryKey: ['vehicles', params],
-    queryFn: async () => {
-      const response = await ApiService.get('/vehicles', { params });
-      return response.data;
-    },
-  });
-};
-
-/**
- * Hook to fetch a single vehicle
- */
-export const useVehicle = (vehicleId) => {
-  return useQuery({
-    queryKey: ['vehicle', vehicleId],
-    queryFn: async () => {
-      const response = await ApiService.get(`/vehicles/${vehicleId}`);
-      return response.data;
-    },
-    enabled: !!vehicleId,
-  });
-};
-
-/**
- * Hook to create a vehicle
- */
-export const useCreateVehicle = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (vehicleData) => ApiService.post('/vehicles', vehicleData),
-    onSuccess: () => {
-      message.success('Vehicle created successfully');
-      queryClient.invalidateQueries(['vehicles']);
-    },
-    onError: (error) => {
-      message.error(error.response?.data?.message || 'Failed to create vehicle');
-      console.error('Error creating vehicle:', error);
-    },
-  });
-};
-
-/**
- * Hook to update a vehicle
- */
-export const useUpdateVehicle = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ vehicleId, data }) => ApiService.patch(`/vehicles/${vehicleId}`, data),
-    onSuccess: () => {
-      message.success('Vehicle updated successfully');
-      queryClient.invalidateQueries(['vehicles']);
-    },
-    onError: (error) => {
-      message.error(error.response?.data?.message || 'Failed to update vehicle');
-      console.error('Error updating vehicle:', error);
-    },
-  });
-};
-
-/**
- * Hook to delete a vehicle
- */
-export const useDeleteVehicle = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (vehicleId) => ApiService.delete(`/vehicles/${vehicleId}`),
-    onSuccess: () => {
-      message.success('Vehicle deleted successfully');
-      queryClient.invalidateQueries(['vehicles']);
-    },
-    onError: (error) => {
-      message.error(error.response?.data?.message || 'Failed to delete vehicle');
-      console.error('Error deleting vehicle:', error);
-    },
-  });
-};
 
 // ================= BLOG HOOKS ===================
 
@@ -492,5 +407,106 @@ export const useTimeSlots = (date) => {
     staleTime: 1000 * 60 * 5, // 5 minutes
     cacheTime: 1000 * 60 * 30, // 30 minutes
     keepPreviousData: true,
+  });
+};
+
+// ================= MANUAL BOOKINGS HOOKS ===================
+
+/**
+ * Hook to fetch manual bookings
+ */
+export const useManualBookings = (params = {}) => {
+  return useQuery({
+    queryKey: ['manualBookings', params],
+    queryFn: async () => {
+      const response = await ApiService.get('/manual-bookings', { params });
+      return response.data;
+    },
+  });
+};
+
+/**
+ * Hook to fetch a single manual booking
+ */
+export const useManualBooking = (bookingId) => {
+  return useQuery({
+    queryKey: ['manualBooking', bookingId],
+    queryFn: async () => {
+      const response = await ApiService.get(`/manual-bookings/${bookingId}`);
+      return response.data;
+    },
+    enabled: !!bookingId,
+  });
+};
+
+/**
+ * Hook to create a manual booking
+ */
+export const useCreateManualBooking = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (bookingData) => ApiService.post('/manual-bookings', bookingData),
+    onSuccess: () => {
+      message.success('Manual booking created successfully');
+      queryClient.invalidateQueries(['manualBookings']);
+      queryClient.invalidateQueries(['timeSlots']); // Invalidate time slots cache
+    },
+    onError: (error) => {
+      message.error(error.response?.data?.message || 'Failed to create manual booking');
+      console.error('Error creating manual booking:', error);
+    },
+  });
+};
+
+/**
+ * Hook to update a manual booking
+ */
+export const useUpdateManualBooking = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }) => ApiService.patch(`/manual-bookings/${id}`, data),
+    onSuccess: () => {
+      message.success('Manual booking updated successfully');
+      queryClient.invalidateQueries(['manualBookings']);
+      queryClient.invalidateQueries(['timeSlots']); // Invalidate time slots cache
+    },
+    onError: (error) => {
+      message.error(error.response?.data?.message || 'Failed to update manual booking');
+      console.error('Error updating manual booking:', error);
+    },
+  });
+};
+
+/**
+ * Hook to delete a manual booking
+ */
+export const useDeleteManualBooking = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (bookingId) => ApiService.delete(`/manual-bookings/${bookingId}`),
+    onSuccess: () => {
+      message.success('Manual booking deleted successfully');
+      queryClient.invalidateQueries(['manualBookings']);
+      queryClient.invalidateQueries(['timeSlots']); // Invalidate time slots cache
+    },
+    onError: (error) => {
+      message.error(error.response?.data?.message || 'Failed to delete manual booking');
+      console.error('Error deleting manual booking:', error);
+    },
+  });
+};
+
+/**
+ * Hook to check time conflict for manual bookings
+ */
+export const useCheckTimeConflict = () => {
+  return useMutation({
+    mutationFn: (conflictData) => ApiService.post('/manual-bookings/check-conflict', conflictData),
+    onError: (error) => {
+      console.error('Error checking time conflict:', error);
+    },
   });
 };

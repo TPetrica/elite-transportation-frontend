@@ -23,7 +23,6 @@ const DashboardHome = () => {
   const [stats, setStats] = useState({
     totalBookings: 0,
     todayBookings: 0,
-    activeVehicles: 0,
     monthlyRevenue: 0,
     statusBreakdown: [],
     upcomingBookings: 0,
@@ -66,7 +65,6 @@ const DashboardHome = () => {
       setStats({
         totalBookings: calculateTotalBookings(statsData.statusBreakdown || []),
         todayBookings: await fetchTodayBookingsCount(),
-        activeVehicles: await fetchActiveVehiclesCount(),
         monthlyRevenue: calculateTotalRevenue(statsData.statusBreakdown || []),
         statusBreakdown: statsData.statusBreakdown || [],
         upcomingBookings: statsData.upcomingBookings || 0,
@@ -112,20 +110,6 @@ const DashboardHome = () => {
     }
   }
 
-  const fetchActiveVehiclesCount = async () => {
-    try {
-      const response = await ApiService.get('/vehicles', {
-        params: {
-          isActive: true,
-          limit: 1, // We just need the count
-        },
-      })
-      return response.data.totalResults || 0
-    } catch (error) {
-      console.error('Error fetching active vehicles:', error)
-      return 0
-    }
-  }
 
   const calculateTotalBookings = statusBreakdown => {
     return statusBreakdown.reduce((total, item) => total + (item.count || 0), 0)
@@ -306,25 +290,6 @@ const DashboardHome = () => {
           </Card>
         </Col>
 
-        <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} className="tw-h-full tw-shadow-sm tw-relative tw-overflow-hidden">
-            <div className="tw-absolute tw-right-0 tw-top-0 tw-p-4 tw-opacity-10">
-              <CarFront size={48} className="tw-text-orange-500" />
-            </div>
-            <Statistic
-              title={
-                <span className="tw-flex tw-items-center">
-                  <CarFront size={20} className="tw-text-orange-500 tw-mr-2" />
-                  Active Vehicles
-                </span>
-              }
-              value={stats.activeVehicles}
-            />
-            <div className="tw-mt-2 tw-text-gray-500">
-              <small>Available for booking</small>
-            </div>
-          </Card>
-        </Col>
 
         <Col xs={24} sm={12} lg={6}>
           <Card bordered={false} className="tw-h-full tw-shadow-sm tw-relative tw-overflow-hidden">
@@ -527,11 +492,11 @@ const DashboardHome = () => {
 
               <Card
                 className="tw-bg-purple-50 tw-border-purple-100 tw-cursor-pointer hover:tw-shadow-md tw-transition-all"
-                onClick={() => navigate('/dashboard/vehicles')}
+                onClick={() => navigate('/dashboard/schedule')}
               >
                 <div className="tw-flex tw-flex-col tw-items-center tw-text-center">
-                  <CarFront size={24} className="tw-text-purple-500 tw-mb-2" />
-                  <div className="tw-font-medium">Manage Vehicles</div>
+                  <Calendar size={24} className="tw-text-purple-500 tw-mb-2" />
+                  <div className="tw-font-medium">Schedule & Calendar</div>
                 </div>
               </Card>
 

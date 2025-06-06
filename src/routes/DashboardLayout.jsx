@@ -26,7 +26,6 @@ const navigation = [
   { name: 'Services', href: '/dashboard/services', icon: Car },
   { name: 'Extras', href: '/dashboard/extras', icon: Plus },
   { name: 'Schedule', href: '/dashboard/schedule', icon: Calendar },
-  { name: 'Vehicles', href: '/dashboard/vehicles', icon: ShoppingBag },
   { name: 'Blog Posts', href: '/dashboard/blogs', icon: FileText },
   { name: 'Affiliates', href: '/dashboard/affiliates', icon: Link2 },
   { name: 'Settings', href: '/dashboard/settings', icon: SettingsIcon },

@@ -1,29 +1,25 @@
-import React, { useState, useEffect } from 'react'
+import ApiService from '@/services/api.service'
 import {
-  Table,
   Button,
-  Modal,
-  Form,
-  Input,
-  InputNumber,
-  Select,
-  Space,
-  message,
-  Switch,
   Card,
   Empty,
+  Form,
+  message,
+  Modal,
+  Select,
+  Space,
+  Table,
   Tag,
-  Tooltip,
+  Tooltip
 } from 'antd'
-import { PlusCircle, Edit, Trash2, DollarSign, Users, Settings, Shield } from 'lucide-react'
-import ApiService from '@/services/api.service'
+import { DollarSign, Edit, PlusCircle, Trash2, Users } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import ServiceFormModal from './ServiceFormModal'
 
 const { Option } = Select
 
 const Services = () => {
   const [services, setServices] = useState([])
-  const [vehicles, setVehicles] = useState([])
   const [loading, setLoading] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
   const [form] = Form.useForm()
@@ -33,9 +29,8 @@ const Services = () => {
   const fetchServices = async () => {
     try {
       setLoading(true)
-      const [servicesRes, vehiclesRes] = await Promise.all([
+      const [servicesRes] = await Promise.all([
         ApiService.get('/services'),
-        ApiService.get('/vehicles'),
       ])
 
       // Ensure services is an array before setting state
@@ -45,21 +40,12 @@ const Services = () => {
           ? servicesRes.data.results
           : []
 
-      // Ensure vehicles is an array
-      const vehiclesData = Array.isArray(vehiclesRes.data)
-        ? vehiclesRes.data
-        : Array.isArray(vehiclesRes.data.results)
-          ? vehiclesRes.data.results
-          : []
-
       setServices(servicesData)
-      setVehicles(vehiclesData)
     } catch (error) {
       console.error('Failed to fetch services:', error)
       message.error('Failed to fetch services')
       // Set empty arrays to prevent errors
       setServices([])
-      setVehicles([])
     } finally {
       setLoading(false)
     }
@@ -196,7 +182,6 @@ const Services = () => {
     // Set form values including the service type
     form.setFieldsValue({
       ...record,
-      vehicle: record.vehicle?.id,
     })
     setModalVisible(true)
   }
@@ -303,7 +288,6 @@ const Services = () => {
         onFinish={handleFormSubmit}
         editingId={editingId}
         editingService={editingService}
-        vehicles={vehicles}
       />
     </div>
   )

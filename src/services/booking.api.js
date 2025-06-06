@@ -2,8 +2,6 @@ import apiClient from "../config/axios";
 
 const BookingAPI = {
 	// Vehicle-related endpoints
-	getVehicles: () => apiClient.get("/vehicles"),
-	getVehicleById: (id) => apiClient.get(`/vehicles/${id}`),
 	calculateVehiclePrice: (id, distance) =>
 		apiClient.get(`/vehicles/${id}/price?distance=${distance}`),
 

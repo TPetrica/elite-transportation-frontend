@@ -1,4 +1,4 @@
-import { Form, Input, InputNumber, Modal, Select, Switch, message, Divider, Row, Col, List, Card, Typography } from "antd";
+import { Form, Input, InputNumber, Modal, Select, Switch, message, Divider, Row, Col, List, Card, Typography, Space } from "antd";
 import { useEffect, useState } from "react";
 import PlacePicker from "@/components/common/PlacePicker";
 import { useCreateAffiliate, useUpdateAffiliate, useServices } from "../../../hooks/useQueryHooks";
@@ -42,11 +42,10 @@ const AffiliateFormModal = ({ visible, onCancel, affiliate, onSuccess }) => {
         companyEmail: affiliate.companyEmail,
         commissionPercentage: affiliate.commissionPercentage,
         isActive: affiliate.isActive,
+        sendNotificationEmails: affiliate.sendNotificationEmails,
         trackingUrl: affiliate.trackingUrl,
         redirectPath: affiliate.redirectPath,
         preferredService: affiliate.preferredService,
-        defaultPickupLocation: affiliate.defaultPickupLocation,
-        defaultDropoffLocation: affiliate.defaultDropoffLocation,
       });
 
       // Set service pricing map
@@ -57,6 +56,9 @@ const AffiliateFormModal = ({ visible, onCancel, affiliate, onSuccess }) => {
             enabled: true,
             basePrice: sp.basePrice,
             minPassengers: sp.minPassengers || 0,
+            customDescription: sp.customDescription || '',
+            defaultPickupLocation: sp.defaultPickupLocation || null,
+            defaultDropoffLocation: sp.defaultDropoffLocation || null,
           });
         });
       } else if (affiliate.servicePricing && affiliate.preferredService) {
@@ -65,6 +67,10 @@ const AffiliateFormModal = ({ visible, onCancel, affiliate, onSuccess }) => {
           enabled: true,
           basePrice: affiliate.servicePricing.basePrice,
           minPassengers: affiliate.servicePricing.minPassengers || 0,
+          customDescription: affiliate.servicePricing.customDescription || '',
+          // Use global locations for backward compatibility
+          defaultPickupLocation: affiliate.defaultPickupLocation || null,
+          defaultDropoffLocation: affiliate.defaultDropoffLocation || null,
         });
       }
       setServicePricingMap(pricingMap);
@@ -87,6 +93,9 @@ const AffiliateFormModal = ({ visible, onCancel, affiliate, onSuccess }) => {
         enabled: true,
         basePrice: defaultService?.basePrice || 0,
         minPassengers: defaultService?.minPassengers || 0,
+        customDescription: '',
+        defaultPickupLocation: null,
+        defaultDropoffLocation: null,
       });
       // Auto-select this service
       setSelectedServiceType(serviceType);
@@ -117,21 +126,31 @@ const AffiliateFormModal = ({ visible, onCancel, affiliate, onSuccess }) => {
     try {
       const values = await form.validateFields();
       
-      // Clean up location data
-      if (values.defaultPickupLocation && !values.defaultPickupLocation.address) {
-        values.defaultPickupLocation = null;
-      }
-      
-      if (values.defaultDropoffLocation && !values.defaultDropoffLocation.address) {
-        values.defaultDropoffLocation = null;
-      }
+      // Note: Location data is now handled per-service in servicePricingList
       
       // Convert pricing map to array
-      values.servicePricingList = Array.from(servicePricingMap.entries()).map(([serviceType, pricing]) => ({
-        serviceType,
-        basePrice: pricing.basePrice,
-        minPassengers: pricing.minPassengers,
-      }));
+      values.servicePricingList = Array.from(servicePricingMap.entries()).map(([serviceType, pricing]) => {
+        const serviceConfig = {
+          serviceType,
+          basePrice: pricing.basePrice,
+          minPassengers: pricing.minPassengers,
+        };
+        
+        // Add optional fields only if they have values
+        if (pricing.customDescription && pricing.customDescription.trim()) {
+          serviceConfig.customDescription = pricing.customDescription.trim();
+        }
+        
+        if (pricing.defaultPickupLocation && pricing.defaultPickupLocation.address) {
+          serviceConfig.defaultPickupLocation = pricing.defaultPickupLocation;
+        }
+        
+        if (pricing.defaultDropoffLocation && pricing.defaultDropoffLocation.address) {
+          serviceConfig.defaultDropoffLocation = pricing.defaultDropoffLocation;
+        }
+        
+        return serviceConfig;
+      });
       
       if (affiliate) {
         await updateAffiliateMutation.mutateAsync({
@@ -260,6 +279,19 @@ const AffiliateFormModal = ({ visible, onCancel, affiliate, onSuccess }) => {
           </Col>
         </Row>
 
+        <Row gutter={16}>
+          <Col span={24}>
+            <Form.Item
+              name="sendNotificationEmails"
+              label="Send Booking Notifications"
+              valuePropName="checked"
+              help="Send booking confirmation emails to the company email address"
+            >
+              <Switch />
+            </Form.Item>
+          </Col>
+        </Row>
+
         <Divider>Service Configuration and Pricing</Divider>
 
         <Row gutter={24}>
@@ -331,13 +363,40 @@ const AffiliateFormModal = ({ visible, onCancel, affiliate, onSuccess }) => {
                   />
                 </Form.Item>
                 
-                <Form.Item label="Minimum Passengers" style={{ marginBottom: 0 }}>
+                <Form.Item label="Minimum Passengers" style={{ marginBottom: 16 }}>
                   <InputNumber
                     style={{ width: "100%" }}
                     min={0}
                     value={currentServicePricing.minPassengers}
                     onChange={(value) => handlePricingChange('minPassengers', value)}
                     placeholder="Enter minimum passengers"
+                  />
+                </Form.Item>
+                
+                <Form.Item label="Custom Description" style={{ marginBottom: 16 }}>
+                  <TextArea
+                    rows={3}
+                    value={currentServicePricing.customDescription}
+                    onChange={(e) => handlePricingChange('customDescription', e.target.value)}
+                    placeholder="Enter custom description for this service (optional)"
+                  />
+                </Form.Item>
+                
+                <Form.Item label="Pickup Location" style={{ marginBottom: 16 }}>
+                  <PlacePicker
+                    type="pickup"
+                    placeholder="Enter default pickup location for this service"
+                    value={currentServicePricing.defaultPickupLocation}
+                    onChange={(value) => handlePricingChange('defaultPickupLocation', value)}
+                  />
+                </Form.Item>
+                
+                <Form.Item label="Dropoff Location" style={{ marginBottom: 0 }}>
+                  <PlacePicker
+                    type="dropoff"
+                    placeholder="Enter default dropoff location for this service"
+                    value={currentServicePricing.defaultDropoffLocation}
+                    onChange={(value) => handlePricingChange('defaultDropoffLocation', value)}
                   />
                 </Form.Item>
               </Card>
@@ -375,29 +434,6 @@ const AffiliateFormModal = ({ visible, onCancel, affiliate, onSuccess }) => {
           </Select>
         </Form.Item>
 
-        <Divider>Default Locations</Divider>
-
-        <Form.Item
-          name="defaultPickupLocation"
-          label="Default Pickup Location"
-        >
-          <PlacePicker
-            type="pickup"
-            placeholder="Enter default pickup location"
-          />
-        </Form.Item>
-
-        <Form.Item
-          name="defaultDropoffLocation"
-          label="Default Dropoff Location"
-        >
-          <PlacePicker
-            type="dropoff"
-            placeholder="Enter default dropoff location"
-          />
-        </Form.Item>
-
-        <Divider></Divider>
 
         <Form.Item
           name="redirectPath"

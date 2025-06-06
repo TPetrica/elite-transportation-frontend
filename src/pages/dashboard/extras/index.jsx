@@ -30,8 +30,6 @@ const ExtraServicePage = () => {
   const [editingId, setEditingId] = useState(null)
   const [form] = Form.useForm()
   const [categoryFilter, setCategoryFilter] = useState('all')
-  const [fileList, setFileList] = useState([])
-  const [uploadLoading, setUploadLoading] = useState(false)
   const [searchText, setSearchText] = useState('')
   const [pagination, setPagination] = useState({
     current: 1,
@@ -183,24 +181,7 @@ const ExtraServicePage = () => {
 
   const handleSubmit = async values => {
     try {
-      setUploadLoading(true)
-      let imageUrl = null
-
-      // If there's a file to upload
-      if (fileList.length > 0 && fileList[0].originFileObj) {
-        const formData = new FormData()
-        formData.append('file', fileList[0].originFileObj)
-        const uploadResponse = await ApiService.post('/upload', formData)
-        imageUrl = uploadResponse.data.url
-      } else if (fileList.length > 0 && fileList[0].url) {
-        // Keep existing image
-        imageUrl = fileList[0].url
-      }
-
-      const extraData = {
-        ...values,
-        ...(imageUrl && { image: imageUrl }),
-      }
+      const extraData = { ...values }
 
       if (editingId) {
         await ApiService.put(`/extras/${editingId}`, extraData)
@@ -219,7 +200,6 @@ const ExtraServicePage = () => {
       console.error('Error saving extra:', error)
       message.error('Failed to save extra')
     } finally {
-      setUploadLoading(false)
     }
   }
 
@@ -468,9 +448,6 @@ const ExtraServicePage = () => {
         form={form}
         onFinish={handleSubmit}
         editingId={editingId}
-        fileList={fileList}
-        setFileList={setFileList}
-        uploadLoading={uploadLoading}
       />
     </div>
   )

@@ -48,6 +48,7 @@ import moment from 'moment'
 import dayjs from 'dayjs'
 import ApiService from '@/services/api.service'
 import DatePicker from '@/components/dashboard/DatePicker'
+import CalendarView from './CalendarView'
 
 const { Title, Text } = Typography
 const { TabPane } = Tabs
@@ -65,7 +66,7 @@ const SchedulePage = () => {
   const [exceptionModalVisible, setExceptionModalVisible] = useState(false)
   const [editingException, setEditingException] = useState(null)
   const [exceptionForm] = Form.useForm()
-  const [activeTab, setActiveTab] = useState('1')
+  const [activeTab, setActiveTab] = useState('calendar')
 
   const daysOfWeek = [
     { name: 'Sunday', value: 0 },
@@ -450,19 +451,29 @@ const SchedulePage = () => {
         <TabPane
           tab={
             <span className="tw-flex tw-items-center">
-              <Clock size={16} className="tw-mr-2" />
-              Regular Weekly Schedule
+              <CalendarIcon size={16} className="tw-mr-2" />
+              Calendar & Exceptions
             </span>
           }
-          key="1"
+          key="calendar"
+        >
+          <CalendarView />
+        </TabPane>
+
+        <TabPane
+          tab={
+            <span className="tw-flex tw-items-center">
+              <Clock size={16} className="tw-mr-2" />
+              Regular Schedule
+            </span>
+          }
+          key="schedule"
         >
           <Alert
             message="Weekly Schedule Information"
             description={
               <span>
-                Set your available hours for each day of the week. You can add multiple time ranges
-                per day (e.g., morning and evening shifts). Bookings will only be allowed during
-                these hours.
+                Set your available hours for each day of the week. These are your default operating hours.
               </span>
             }
             type="info"
@@ -481,23 +492,23 @@ const SchedulePage = () => {
               <div className="tw-mb-4">
                 <Form.List name="days">
                   {fields => (
-                    <div className="tw-space-y-4">
+                    <div className="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-3">
                       {fields.map((field, index) => (
                         <div
                           key={field.key}
-                          className="tw-border tw-border-gray-200 tw-rounded-md tw-p-4"
+                          className="tw-border tw-border-gray-200 tw-rounded-md tw-p-3"
                         >
                           <div className="tw-flex tw-justify-between tw-items-center tw-mb-2">
-                            <Title level={5} className="tw-m-0">
+                            <Text strong className="tw-text-sm">
                               {daysOfWeek[index].name}
-                            </Title>
+                            </Text>
                             <Form.Item
                               {...field}
                               name={[field.name, 'isEnabled']}
                               valuePropName="checked"
                               className="tw-mb-0"
                             >
-                              <Switch checkedChildren="Open" unCheckedChildren="Closed" />
+                              <Switch size="small" checkedChildren="Open" unCheckedChildren="Closed" />
                             </Form.Item>
                           </div>
 
@@ -534,57 +545,6 @@ const SchedulePage = () => {
                 </Button>
               </div>
             </Form>
-          </Card>
-        </TabPane>
-
-        <TabPane
-          tab={
-            <span className="tw-flex tw-items-center">
-              <CalendarIcon size={16} className="tw-mr-2" />
-              Date Exceptions
-            </span>
-          }
-          key="2"
-        >
-          <Alert
-            message="Date Exceptions Information"
-            description={
-              <span>
-                Configure special dates like holidays, events, or maintenance days. You can mark
-                dates as closed or set custom operating hours that override the regular weekly
-                schedule.
-              </span>
-            }
-            type="info"
-            showIcon
-            icon={<Info size={16} />}
-            className="tw-mb-4"
-          />
-
-          <Card className="tw-shadow-sm">
-            <div className="tw-flex tw-justify-between tw-items-center tw-mb-4">
-              <Title level={5} className="tw-m-0">
-                Date Exceptions
-              </Title>
-              <Button
-                type="primary"
-                icon={<Plus size={16} className="tw-mr-1" />}
-                onClick={handleCreateException}
-              >
-                Add Date Exception
-              </Button>
-            </div>
-
-            <Table
-              columns={exceptionColumns}
-              dataSource={dateExceptions}
-              rowKey="_id"
-              loading={exceptionLoading}
-              pagination={{ pageSize: 10 }}
-              locale={{
-                emptyText: <Empty description="No date exceptions found" />,
-              }}
-            />
           </Card>
         </TabPane>
       </Tabs>

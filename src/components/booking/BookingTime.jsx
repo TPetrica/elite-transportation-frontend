@@ -1,4 +1,4 @@
-import { Alert } from 'antd'
+import { Alert, Checkbox } from 'antd'
 import moment from 'moment'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import DatePicker from 'react-multi-date-picker'
@@ -33,6 +33,12 @@ function BookingTime() {
     affiliateCode,
     resetBooking,
     services, // Get services from context
+    isRoundTrip,
+    returnDetails,
+    setRoundTrip,
+    setReturnDetails,
+    setServiceHours,
+    pricing,
   } = useBooking()
 
   const [error, setError] = useState('')
@@ -40,6 +46,8 @@ function BookingTime() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassengerWarning, setShowPassengerWarning] = useState(false)
   const [loadingServices, setLoadingServices] = useState(true)
+  const [returnAvailableTimeSlots, setReturnAvailableTimeSlots] = useState([])
+  const [isReturnLoading, setIsReturnLoading] = useState(false)
 
   // Use ref to prevent infinite loops with affiliate mode
   const hasSetAffiliateService = useRef(false)
@@ -145,6 +153,14 @@ function BookingTime() {
     isLoading: isSlotsLoading,
     error: slotsError
   } = useTimeSlots(dateString)
+  
+  // Return trip time slots
+  const returnDateString = returnDetails?.date ? moment(returnDetails.date).format('YYYY-MM-DD') : undefined
+  const {
+    data: returnTimeSlots,
+    isLoading: isReturnSlotsLoading,
+    error: returnSlotsError
+  } = useTimeSlots(returnDateString)
 
   // Update available time slots when query returns data
   useEffect(() => {
@@ -166,6 +182,22 @@ function BookingTime() {
       console.error('Error fetching time slots:', slotsError);
     }
   }, [timeSlots, isSlotsLoading, slotsError])
+  
+  // Update return trip time slots
+  useEffect(() => {
+    setIsReturnLoading(isReturnSlotsLoading);
+    
+    if (returnTimeSlots) {
+      if (returnTimeSlots.success && returnTimeSlots.data) {
+        const formattedSlots = calendarService.formatAvailableSlots(returnTimeSlots.data);
+        setReturnAvailableTimeSlots(formattedSlots);
+      } else if (returnTimeSlots.error) {
+        console.error('Error in return time slots response:', returnTimeSlots.error);
+      }
+    } else if (returnSlotsError) {
+      console.error('Error fetching return time slots:', returnSlotsError);
+    }
+  }, [returnTimeSlots, isReturnSlotsLoading, returnSlotsError])
 
   // Memoized helper functions to avoid recreation on each render
   const isAirportService = useCallback(service => {
@@ -244,13 +276,16 @@ function BookingTime() {
         if (!selectedService || selectedService.id !== service.id) {
           setSelectedService(service)
           setShowPassengerWarning(!!service.maxPassengers)
+          
+          // Reset round trip checkbox when changing service
+          setRoundTrip(false)
 
           // Clear locations when switching between airport and non-airport services
           handleServiceTypeChange(service, selectedService)
         }
       }
     },
-    [services, setSelectedService, handleServiceTypeChange, selectedService]
+    [services, setSelectedService, handleServiceTypeChange, selectedService, setRoundTrip]
   )
 
   const handleDateSelect = useCallback(
@@ -309,6 +344,57 @@ function BookingTime() {
       }
     },
     [selectedDate, setSelectedTime, pickupDetails, setPickupDetails, selectedTime]
+  )
+  
+  const handleReturnDateSelect = useCallback(
+    date => {
+      if (!date) return
+
+      const momentDate = moment({
+        year: date.year,
+        month: date.month.number - 1,
+        day: date.day,
+      })
+
+      setReturnDetails({
+        ...returnDetails,
+        date: momentDate.format('YYYY-MM-DD'),
+        time: null, // Reset time when date changes
+      })
+    },
+    [returnDetails, setReturnDetails]
+  )
+  
+  const handleReturnTimeSelect = useCallback(
+    time => {
+      setReturnDetails({
+        ...returnDetails,
+        time: time,
+      })
+    },
+    [returnDetails, setReturnDetails]
+  )
+  
+  const handleRoundTripChange = useCallback(
+    (e) => {
+      const checked = e.target.checked
+      setRoundTrip(checked)
+      
+      if (checked) {
+        // Auto-populate return trip details with swapped pickup/dropoff
+        setReturnDetails({
+          pickupAddress: dropoffDetails?.address || '',
+          pickupCoordinates: dropoffDetails?.coordinates || null,
+          dropoffAddress: pickupDetails?.address || '',
+          dropoffCoordinates: pickupDetails?.coordinates || null,
+          date: null,
+          time: null,
+          isCustom: false,
+          isCottonwood: dropoffDetails?.isCottonwood || pickupDetails?.isCottonwood || false,
+        })
+      }
+    },
+    [setRoundTrip, setReturnDetails, pickupDetails, dropoffDetails]
   )
 
   // Remove this function - we don't need it anymore since affiliate locations are handled by AffiliateHandler
@@ -391,9 +477,21 @@ function BookingTime() {
       pickupDetails?.address && (pickupDetails?.coordinates || pickupDetails?.isCustom)
     const hasValidDropoff =
       dropoffDetails?.address && (dropoffDetails?.coordinates || dropoffDetails?.isCustom)
-
-    return Boolean(hasValidPickup && hasValidDropoff && pickupDetails?.date && pickupDetails?.time)
-  }, [selectedService, pickupDetails, dropoffDetails])
+    
+    const hasValidOutbound = Boolean(hasValidPickup && hasValidDropoff && pickupDetails?.date && pickupDetails?.time)
+    
+    if (!isRoundTrip) {
+      return hasValidOutbound
+    }
+    
+    // For round trip, also check return details
+    const hasValidReturn = Boolean(
+      returnDetails?.pickupAddress && returnDetails?.dropoffAddress &&
+      returnDetails?.date && returnDetails?.time
+    )
+    
+    return hasValidOutbound && hasValidReturn
+  }, [selectedService, pickupDetails, dropoffDetails, isRoundTrip, returnDetails])
 
   const handleContinue = useCallback(() => {
     if (!canProceed()) {
@@ -480,11 +578,11 @@ function BookingTime() {
                         </>
                       )}
                     </select>
-                    {/* {selectedService && (
+                    {selectedService && (
                       <div className="service-description mt-2 text-sm text-gray-600">
                         {selectedService.description}
                       </div>
-                    )} */}
+                    )}
                   </>
                 ) : (
                   <select
@@ -631,6 +729,90 @@ function BookingTime() {
                       <div className="no-slots">No available time slots for this date</div>
                     )}
                   </div>
+                  
+                  {/* Round Trip Checkbox - Only show for non-hourly services */}
+                  {selectedService && selectedService.serviceType !== 'hourly' && (
+                    <div className="mt-6">
+                      <Checkbox 
+                        checked={isRoundTrip} 
+                        onChange={handleRoundTripChange}
+                        className="text-16"
+                      >
+                        Round Trip
+                      </Checkbox>
+                    </div>
+                  )}
+                  
+                  {/* Hours selection for hourly service */}
+                  {selectedService && selectedService.serviceType === 'hourly' && (
+                    <div className="mt-6">
+                      <span className="field-label">Number of Hours</span>
+                      <select 
+                        className="form-control mt-2"
+                        value={pricing.hours || 1}
+                        onChange={(e) => setServiceHours(parseInt(e.target.value))}
+                      >
+                        {[1,2,3,4,5,6,7,8,9,10,11,12].map(hour => (
+                          <option key={hour} value={hour}>{hour} hour{hour > 1 ? 's' : ''}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  
+                  {/* Return Trip Section */}
+                  {isRoundTrip && (
+                    <div className="return-trip-section mt-6">
+                      <h5 className="mb-4">Return Trip Details</h5>
+                      
+                      <div className="mb-4">
+                        <span className="field-label">Return Date</span>
+                        <DatePicker
+                          onChange={handleReturnDateSelect}
+                          format="MMMM DD YYYY"
+                          minDate={new Date()}
+                          maxDate={new Date().setFullYear(new Date().getFullYear() + 1)}
+                          className="custom-datepicker"
+                          placeholder="Select return date"
+                          editable={false}
+                          calendarPosition="bottom-center"
+                          value={returnDetails?.date ? new Date(returnDetails.date) : null}
+                        />
+                      </div>
+                      
+                      {returnDetails?.date && (
+                        <div className="return-time-slots">
+                          <h6>Return Times</h6>
+                          {isReturnLoading ? (
+                            <div className="loading">Loading return times...</div>
+                          ) : returnAvailableTimeSlots.length > 0 ? (
+                            <div className="slots-grid">
+                              {returnAvailableTimeSlots.map(slot => (
+                                <button
+                                  key={`return-${slot.formattedTime}`}
+                                  className={`time-slot ${returnDetails?.time === slot.time ? 'selected' : ''}`}
+                                  onClick={() => handleReturnTimeSelect(slot.time)}
+                                >
+                                  {slot.formattedTime}
+                                </button>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="no-slots">No available return time slots for this date</div>
+                          )}
+                        </div>
+                      )}
+                      
+                      <div className="return-locations mt-4">
+                        <div className="text-sm text-gray-600">
+                          <strong>Return Pickup:</strong> {returnDetails?.pickupAddress || 'Not set'}<br/>
+                          <strong>Return Dropoff:</strong> {returnDetails?.dropoffAddress || 'Not set'}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-2">
+                          Return locations are automatically set as the reverse of your outbound trip
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -642,7 +824,7 @@ function BookingTime() {
                 onClick={handleContinue}
                 disabled={!canProceed()}
               >
-                Continue to Vehicle Selection
+Continue
               </button>
             )}
           </div>

@@ -9,12 +9,11 @@ import {
   Button,
   Space,
   Divider,
-  Upload,
   Tooltip,
   Card,
 } from 'antd'
-import { UploadOutlined, InfoCircleOutlined } from '@ant-design/icons'
-import { Image, Save, X } from 'lucide-react'
+import { InfoCircleOutlined } from '@ant-design/icons'
+import { Save, X } from 'lucide-react'
 
 const { Option } = Select
 const { TextArea } = Input
@@ -25,32 +24,7 @@ const ExtrasFormModal = ({
   form,
   onFinish,
   editingId,
-  fileList = [],
-  setFileList,
-  uploadLoading,
 }) => {
-  const uploadProps = {
-    onRemove: () => {
-      setFileList([])
-    },
-    beforeUpload: file => {
-      const isImage = file.type.startsWith('image/')
-      if (!isImage) {
-        message.error('You can only upload image files!')
-        return Upload.LIST_IGNORE
-      }
-
-      const isLt2M = file.size / 1024 / 1024 < 2
-      if (!isLt2M) {
-        message.error('Image must be smaller than 2MB!')
-        return Upload.LIST_IGNORE
-      }
-
-      setFileList([file])
-      return false
-    },
-    fileList,
-  }
 
   return (
     <Modal
@@ -211,22 +185,6 @@ const ExtrasFormModal = ({
             </Form.Item>
           </div>
 
-          <Form.Item
-            label={
-              <span>
-                Image
-                <Tooltip title="Upload an image for this extra service (optional)">
-                  <InfoCircleOutlined className="tw-ml-1" />
-                </Tooltip>
-              </span>
-            }
-          >
-            <Upload {...uploadProps} listType="picture" maxCount={1} className="tw-w-full">
-              <Button icon={<Image size={16} className="tw-mr-2" />} className="tw-w-full">
-                {fileList.length ? 'Change Image' : 'Upload Image'}
-              </Button>
-            </Upload>
-          </Form.Item>
 
           <div className="tw-flex tw-justify-end tw-mt-6">
             <Space>
@@ -236,7 +194,6 @@ const ExtrasFormModal = ({
               <Button
                 type="primary"
                 htmlType="submit"
-                loading={uploadLoading}
                 icon={<Save size={16} className="tw-mr-2" />}
               >
                 {editingId ? 'Update Extra' : 'Create Extra'}

@@ -30,7 +30,6 @@ const ServiceFormModal = ({
   onFinish,
   editingId,
   editingService,
-  vehicles,
 }) => {
 
   const [activeTab, setActiveTab] = useState('basic')
@@ -437,20 +436,6 @@ const ServiceFormModal = ({
                   Additional Configuration
                 </Title>
               </div>
-
-              <Form.Item
-                name="vehicle"
-                label="Default Vehicle"
-                tooltip="The default vehicle to use for this service"
-              >
-                <Select placeholder="Select a vehicle" allowClear>
-                  {vehicles.map(vehicle => (
-                    <Option key={vehicle._id} value={vehicle._id}>
-                      {vehicle.name} ({vehicle.capacity} passengers)
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
 
               <Form.Item name="isActive" label="Service Status" valuePropName="checked">
                 <Switch

@@ -38,7 +38,8 @@ const AffiliateHandler = () => {
                   affiliate: affiliateData
                 });
                 
-                // Set default locations if provided
+                // Set default locations if provided (global fallback)
+                // Note: Service-specific locations will be set when a service is selected
                 if (affiliateData?.defaultPickupLocation?.address) {
                   setPickupDetails(affiliateData.defaultPickupLocation);
                 }

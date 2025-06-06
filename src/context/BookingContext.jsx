@@ -29,6 +29,18 @@ const initialState = {
     isCustom: false,
     isCottonwood: false,
   },
+  // Round trip details
+  isRoundTrip: false,
+  returnDetails: {
+    pickupAddress: '',
+    pickupCoordinates: null,
+    dropoffAddress: '',
+    dropoffCoordinates: null,
+    date: null,
+    time: null,
+    isCustom: false,
+    isCottonwood: false,
+  },
   selectedDate: null,
   selectedTime: null,
   selectedService: null,
@@ -327,9 +339,48 @@ const bookingReducer = (state, action) => {
         gratuity = (basePrice * state.pricing.selectedTipPercentage) / 100
       }
 
+      // Handle service-specific affiliate locations and descriptions
+      let newPickupDetails = state.pickupDetails
+      let newDropoffDetails = state.dropoffDetails
+      let newSelectedService = action.payload
+      
+      if (state.isAffiliate && state.affiliate && action.payload) {
+        // Find affiliate configuration for this service type
+        const serviceConfig = state.affiliate.servicePricingList?.find(
+          sp => sp.serviceType === action.payload.serviceType
+        )
+        
+        if (serviceConfig) {
+          // Override service description with affiliate custom description if available
+          if (serviceConfig.customDescription && serviceConfig.customDescription.trim()) {
+            newSelectedService = {
+              ...action.payload,
+              description: serviceConfig.customDescription.trim()
+            }
+          }
+          
+          // Set service-specific locations if they exist
+          if (serviceConfig.defaultPickupLocation?.address) {
+            newPickupDetails = {
+              ...state.pickupDetails,
+              ...serviceConfig.defaultPickupLocation
+            }
+          }
+          
+          if (serviceConfig.defaultDropoffLocation?.address) {
+            newDropoffDetails = {
+              ...state.dropoffDetails,
+              ...serviceConfig.defaultDropoffLocation
+            }
+          }
+        }
+      }
+
       return {
         ...state,
-        selectedService: action.payload,
+        selectedService: newSelectedService,
+        pickupDetails: newPickupDetails,
+        dropoffDetails: newDropoffDetails,
         pricing: updatePricingState(state, basePrice, gratuity),
       }
     }
@@ -478,6 +529,9 @@ const bookingReducer = (state, action) => {
     case 'SET_AFFILIATE_MODE': {
       // When setting affiliate mode, recalculate pricing if a service is already selected
       let newPricing = state.pricing;
+      let newPickupDetails = state.pickupDetails;
+      let newDropoffDetails = state.dropoffDetails;
+      let newSelectedService = state.selectedService;
       
       if (state.selectedService) {
         const isCottonwood = state.pickupDetails.isCottonwood || state.dropoffDetails.isCottonwood;
@@ -496,6 +550,36 @@ const bookingReducer = (state, action) => {
         }
         
         newPricing = updatePricingState(state, basePrice, gratuity);
+        
+        // Apply service-specific configurations if available
+        const serviceConfig = action.payload.affiliate.servicePricingList?.find(
+          sp => sp.serviceType === state.selectedService.serviceType
+        );
+        
+        if (serviceConfig) {
+          // Override service description with affiliate custom description if available
+          if (serviceConfig.customDescription && serviceConfig.customDescription.trim()) {
+            newSelectedService = {
+              ...state.selectedService,
+              description: serviceConfig.customDescription.trim()
+            };
+          }
+          
+          // Set service-specific locations if they exist and current locations are empty
+          if (serviceConfig.defaultPickupLocation?.address && !state.pickupDetails.address) {
+            newPickupDetails = {
+              ...state.pickupDetails,
+              ...serviceConfig.defaultPickupLocation
+            };
+          }
+          
+          if (serviceConfig.defaultDropoffLocation?.address && !state.dropoffDetails.address) {
+            newDropoffDetails = {
+              ...state.dropoffDetails,
+              ...serviceConfig.defaultDropoffLocation
+            };
+          }
+        }
       }
       
       return {
@@ -503,7 +587,36 @@ const bookingReducer = (state, action) => {
         isAffiliate: true,
         affiliateCode: action.payload.code,
         affiliate: action.payload.affiliate,
+        selectedService: newSelectedService,
+        pickupDetails: newPickupDetails,
+        dropoffDetails: newDropoffDetails,
         pricing: newPricing,
+      }
+    }
+
+    case 'SET_ROUND_TRIP': {
+      if (action.payload === state.isRoundTrip) {
+        return state
+      }
+      
+      return {
+        ...state,
+        isRoundTrip: action.payload,
+        // Clear return details if disabling round trip
+        returnDetails: action.payload ? state.returnDetails : initialState.returnDetails,
+      }
+    }
+
+    case 'SET_RETURN_DETAILS': {
+      const newReturnDetails = { ...state.returnDetails, ...action.payload }
+      
+      if (JSON.stringify(newReturnDetails) === JSON.stringify(state.returnDetails)) {
+        return state
+      }
+      
+      return {
+        ...state,
+        returnDetails: newReturnDetails,
       }
     }
 
@@ -625,6 +738,16 @@ export const BookingProvider = ({ children }) => {
     []
   )
 
+  const setRoundTrip = useCallback(
+    payload => dispatch({ type: 'SET_ROUND_TRIP', payload }),
+    []
+  )
+
+  const setReturnDetails = useCallback(
+    payload => dispatch({ type: 'SET_RETURN_DETAILS', payload }),
+    []
+  )
+
   // Memoize the context value to prevent unnecessary rerenders
   const contextValue = useMemo(
     () => ({
@@ -644,6 +767,8 @@ export const BookingProvider = ({ children }) => {
       resetBooking,
       updateTipSettings,
       setAffiliateMode,
+      setRoundTrip,
+      setReturnDetails,
     }),
     [
       state,
@@ -662,6 +787,8 @@ export const BookingProvider = ({ children }) => {
       resetBooking,
       updateTipSettings,
       setAffiliateMode,
+      setRoundTrip,
+      setReturnDetails,
     ]
   )
 

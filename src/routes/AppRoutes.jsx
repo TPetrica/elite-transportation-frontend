@@ -45,7 +45,6 @@ const BookingsPage = lazy(() => import('@/pages/dashboard/bookings'))
 const EditBookingPage = lazy(() => import('@/pages/dashboard/bookings/EditBookingPage'))
 const ExtraServicePage = lazy(() => import('@/pages/dashboard/extras'))
 const SchedulePage = lazy(() => import('@/pages/dashboard/schedule'))
-const VehiclesPage = lazy(() => import('@/pages/dashboard/vehicles'))
 const SettingsPage = lazy(() => import('@/pages/dashboard/settings'))
 const BlogsPage = lazy(() => import('@/pages/dashboard/blogs'))
 const AffiliatesPage = lazy(() => import('@/pages/dashboard/affiliates'))
@@ -112,11 +111,6 @@ const AppRoutes = () => {
           <Route path="schedule" element={
             <Suspense fallback={<LoadingPage />}>
               <SchedulePage />
-            </Suspense>
-          } />
-          <Route path="vehicles" element={
-            <Suspense fallback={<LoadingPage />}>
-              <VehiclesPage />
             </Suspense>
           } />
           <Route path="blogs" element={
