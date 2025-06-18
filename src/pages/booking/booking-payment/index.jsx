@@ -1,6 +1,8 @@
-import DefaultLayout from "@/layouts/DefaultLayout";
 import BookingPayment from "@/components/booking/BookingPayment";
 import BookingTab from "@/components/booking/BookingTab";
+import AffiliateLayout from "@/layouts/AffiliateLayout";
+import DefaultLayout from "@/layouts/DefaultLayout";
+import { useSearchParams } from "react-router-dom";
 
 const metadata = {
 	title: "Secure Payment | Elite Transportation Park City",
@@ -8,14 +10,20 @@ const metadata = {
 };
 
 export default function BookingPaymentPage() {
+	const [searchParams] = useSearchParams();
+	const affiliateCode = searchParams.get('affiliate');
+	const isAffiliate = !!affiliateCode;
+
+	const Layout = isAffiliate ? AffiliateLayout : DefaultLayout;
+
 	return (
-		<DefaultLayout metadata={metadata}>
+		<Layout metadata={metadata}>
 			<section className="section">
-				<div className="container-sub">
+				<div className="container-sub booking-wrapper">
 					<BookingTab />
 					<BookingPayment />
 				</div>
 			</section>
-		</DefaultLayout>
+		</Layout>
 	);
 }

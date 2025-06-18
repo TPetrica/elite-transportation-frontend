@@ -3,11 +3,12 @@ import { useFormFocus } from "@/hooks/useFormFocus";
 import { useExtras } from "@/hooks/useQueryHooks";
 import { Alert } from "antd";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import SideBar from "./SideBar";
 
 export default function BookingExtra() {
 	const navigate = useNavigate();
+	const location = useLocation();
 	const {
 		selectedService,
 		setSelectedExtras,
@@ -40,10 +41,13 @@ export default function BookingExtra() {
 
 	useEffect(() => {
 		if (!selectedService) {
-			navigate("/booking-time");
+			const searchParams = new URLSearchParams(location.search);
+			const affiliateParam = searchParams.get('affiliate');
+			const nextUrl = affiliateParam ? `/booking-time?affiliate=${affiliateParam}` : '/booking-time';
+			navigate(nextUrl);
 			return;
 		}
-	}, [selectedService, navigate]);
+	}, [selectedService, navigate, location.search]);
 
 	const updateContextExtras = (newQuantityItems, newSelectItems) => {
 		const selectedQuantityItems = newQuantityItems.filter(
@@ -174,7 +178,10 @@ export default function BookingExtra() {
 				}));
 			}
 
-			navigate("/booking-passenger");
+			const searchParams = new URLSearchParams(location.search);
+			const affiliateParam = searchParams.get('affiliate');
+			const nextUrl = affiliateParam ? `/booking-passenger?affiliate=${affiliateParam}` : '/booking-passenger';
+			navigate(nextUrl);
 		} catch (err) {
 			setError("Failed to process extras");
 		}

@@ -1,6 +1,8 @@
-import DefaultLayout from "@/layouts/DefaultLayout";
 import BookingExtra from "@/components/booking/BookingExtra";
 import BookingTab from "@/components/booking/BookingTab";
+import AffiliateLayout from "@/layouts/AffiliateLayout";
+import DefaultLayout from "@/layouts/DefaultLayout";
+import { useSearchParams } from "react-router-dom";
 
 const metadata = {
 	title: "Add Extra Services | Elite Transportation Park City",
@@ -8,14 +10,20 @@ const metadata = {
 };
 
 export default function BookingExtraPage() {
+	const [searchParams] = useSearchParams();
+	const affiliateCode = searchParams.get('affiliate');
+	const isAffiliate = !!affiliateCode;
+
+	const Layout = isAffiliate ? AffiliateLayout : DefaultLayout;
+
 	return (
-		<DefaultLayout metadata={metadata}>
+		<Layout metadata={metadata}>
 			<section className="section">
-				<div className="container-sub">
+				<div className="container-sub booking-wrapper">
 					<BookingTab />
 					<BookingExtra />
 				</div>
 			</section>
-		</DefaultLayout>
+		</Layout>
 	);
 }

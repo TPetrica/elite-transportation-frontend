@@ -1,5 +1,6 @@
 import ApiService from './api.service'
 import moment from 'moment'
+// import { formatSaltLakeDate, formatSaltLakeTime } from '@/utils/timezone'
 
 class AvailabilityService {
   async getSchedule() {
@@ -35,12 +36,24 @@ class AvailabilityService {
   async getAvailableTimeSlots(date) {
     try {
       // Ensure the date is in the correct format
-      const formattedDate =
-        typeof date === 'string'
-          ? date
-          : moment.isMoment(date)
-            ? date.format('YYYY-MM-DD')
-            : moment(date).format('YYYY-MM-DD')
+      let formattedDate
+      if (typeof date === 'string') {
+        formattedDate = date
+      } else if (moment.isMoment(date)) {
+        formattedDate = date.format('YYYY-MM-DD')
+      } else if (date) {
+        const momentDate = moment(date)
+        formattedDate = momentDate.isValid() ? momentDate.format('YYYY-MM-DD') : null
+      } else {
+        formattedDate = null
+      }
+
+      if (!formattedDate) {
+        return {
+          success: false,
+          error: 'Invalid date provided'
+        }
+      }
 
       const response = await ApiService.get(`/availability/time-slots?date=${formattedDate}`)
       return {
@@ -58,12 +71,24 @@ class AvailabilityService {
   async checkTimeSlotAvailability(date, time) {
     try {
       // Ensure the date is in the correct format
-      const formattedDate =
-        typeof date === 'string'
-          ? date
-          : moment.isMoment(date)
-            ? date.format('YYYY-MM-DD')
-            : moment(date).format('YYYY-MM-DD')
+      let formattedDate
+      if (typeof date === 'string') {
+        formattedDate = date
+      } else if (moment.isMoment(date)) {
+        formattedDate = date.format('YYYY-MM-DD')
+      } else if (date) {
+        const momentDate = moment(date)
+        formattedDate = momentDate.isValid() ? momentDate.format('YYYY-MM-DD') : null
+      } else {
+        formattedDate = null
+      }
+
+      if (!formattedDate) {
+        return {
+          success: false,
+          error: 'Invalid date provided'
+        }
+      }
 
       const response = await ApiService.get(
         `/availability/check?date=${formattedDate}&time=${time}`

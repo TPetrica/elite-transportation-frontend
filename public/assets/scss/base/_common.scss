@@ -476,11 +476,11 @@ img {
 	}
 }
 .form-control {
-	height: 54px;
+	height: 46px;
 	border-radius: 8px;
 	color: $color-gray-500;
 	border: 1px solid $color-gray-80;
-	padding: 18px 20px;
+	padding: 10px 20px;
 	&:focus {
 		border-color: $color-success;
 	}

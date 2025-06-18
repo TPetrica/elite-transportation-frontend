@@ -63,6 +63,33 @@ const DateTimeInfo = ({ pickupDetails }) => (
   </div>
 )
 
+const ReturnTripDetails = ({ returnDetails, isRoundTrip }) => {
+  if (!isRoundTrip) return null
+  
+  return (
+    <div className="mt-20 wow fadeInUp">
+      <div className="border-bottom mt-20 mb-15"></div>
+      <span className="text-14 color-grey">Return Trip</span>
+      <ul className="list-icons mt-10">
+        <li>
+          <span className="icon-item icon-plan"></span>
+          <span className="info-location text-14-medium">
+            {formatDateTime(returnDetails?.date) || 'Return date not selected'}
+          </span>
+        </li>
+        <li>
+          <span className="icon-item icon-time"></span>
+          <span className="info-location text-14-medium">
+            {returnDetails?.time
+              ? moment(returnDetails.time, 'HH:mm').format('h:mm A')
+              : 'Return time not selected'}
+          </span>
+        </li>
+      </ul>
+    </div>
+  )
+}
+
 const DistanceInfo = ({ distance, duration }) => (
   <div className="mt-20 wow fadeInUp">
     <div className="box-info-route">
@@ -96,12 +123,6 @@ const ServiceInfo = ({ selectedService }) => {
         <br />
         <span className="text-14-medium color-text">
           {selectedService.title}
-          {selectedService.description && (
-            <>
-              <br />
-              <span className="text-sm">{selectedService.description}</span>
-            </>
-          )}
         </span>
       </div>
     </>
@@ -132,7 +153,24 @@ const PassengerInfo = ({ passengerDetails }) => {
               <br />
             </>
           )}
-          {passengerDetails.phone && passengerDetails.phone}
+          {passengerDetails.phone && (
+            <>
+              {passengerDetails.phone}
+              <br />
+            </>
+          )}
+          {passengerDetails.flightNumber && (
+            <>
+              Flight: {passengerDetails.flightNumber}
+              {passengerDetails.flightTime && ` at ${passengerDetails.flightTime}`}
+              <br />
+            </>
+          )}
+          {passengerDetails.notes && (
+            <>
+              <span className="text-12 color-grey">Notes: {passengerDetails.notes}</span>
+            </>
+          )}
         </span>
       </div>
     </>
@@ -209,6 +247,8 @@ export default function SideBar() {
     pricing,
     passengerDetails,
     isAffiliate,
+    isRoundTrip,
+    returnDetails,
   } = useBooking()
 
   return (
@@ -222,6 +262,7 @@ export default function SideBar() {
         {/* Journey Details */}
         <RouteDetails pickupDetails={pickupDetails} dropoffDetails={dropoffDetails} />
         <DateTimeInfo pickupDetails={pickupDetails} />
+        <ReturnTripDetails returnDetails={returnDetails} isRoundTrip={isRoundTrip} />
 
         {/* Distance and Duration */}
         {(distance || duration) && <DistanceInfo distance={distance} duration={duration} />}

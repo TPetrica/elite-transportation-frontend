@@ -68,6 +68,10 @@ const ExtraServicePage = () => {
           ? response.data.results
           : []
 
+      // Debug logging
+      console.log('Extras response:', response.data)
+      console.log('Extras data:', extrasData)
+      
       setExtras(extrasData)
 
       // Update pagination
@@ -160,6 +164,11 @@ const ExtraServicePage = () => {
   }
 
   const handleDelete = async id => {
+    if (!id) {
+      message.error('Invalid extra ID')
+      return
+    }
+    
     Modal.confirm({
       title: 'Are you sure you want to delete this extra?',
       content: 'This action cannot be undone.',
@@ -295,7 +304,10 @@ const ExtraServicePage = () => {
             <Button
               type="text"
               icon={<Trash2 size={16} />}
-              onClick={() => handleDelete(record._id)}
+              onClick={() => {
+                console.log('Delete clicked for:', record._id, 'Full record:', record)
+                handleDelete(record._id)
+              }}
               className="tw-text-red-500 hover:tw-text-red-700"
             />
           </Tooltip>

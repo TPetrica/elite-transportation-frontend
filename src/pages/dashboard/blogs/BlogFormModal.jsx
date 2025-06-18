@@ -394,12 +394,13 @@ const BlogFormModal = ({ visible, onCancel, onFinish, editingId, editingBlog, is
               label={
                 <span className="tw-flex tw-items-center">
                   Featured Image URL
-                  <Tooltip title="The main image for the blog post. Should be at least 1200x630px.">
+                  <Tooltip title="The main image for the blog post. Should be at least 1200x630px for best SEO results.">
                     <QuestionCircleOutlined className="tw-ml-2" />
                   </Tooltip>
                 </span>
               }
-              extra="URL path to the image. Upload your images to the /public/assets/imgs/page/blog/ folder."
+              extra="URL path to the image. Upload your images to the /public/assets/imgs/page/blog/ folder or use a full URL."
+              initialValue="/assets/imgs/page/blog/default.jpg"
             >
               <Input
                 placeholder="/assets/imgs/page/blog/slc-to-park-city.jpg"

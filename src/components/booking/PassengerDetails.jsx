@@ -91,17 +91,7 @@ export default function PassengerDetails() {
 		else if (!phoneRegex.test(formData.phone))
 			newErrors.phone = "Invalid phone format";
 
-		if (
-			selectedService?.id === "from-airport" ||
-			selectedService?.id === "to-airport"
-		) {
-			if (!formData.flightNumber.trim()) {
-				newErrors.flightNumber = "Flight number is required";
-			}
-			if (!formData.flightTime.trim()) {
-				newErrors.flightTime = "Flight time is required";
-			}
-		}
+		// Flight number and time are now optional for all services
 
 		setErrors(newErrors);
 		return Object.keys(newErrors).length === 0;
@@ -256,61 +246,37 @@ export default function PassengerDetails() {
 									</div>
 								</div>
 
-								{(selectedService?.id === "from-airport" ||
-									selectedService?.id === "to-airport") && (
-									<>
-										<div className="col-lg-6">
-											<div
-												className={`form-group ${
-													errors.flightNumber ? "has-error" : ""
-												}`}
-											>
-												<label className="form-label" htmlFor="flightNumber">
-													Flight Number *
-												</label>
-												<input
-													className="form-control"
-													id="flightNumber"
-													name="flightNumber"
-													type="text"
-													value={formData.flightNumber}
-													onChange={handleChange}
-												/>
-												{errors.flightNumber && (
-													<div className="error-message">
-														{errors.flightNumber}
-													</div>
-												)}
-											</div>
-										</div>
-										<div className="col-lg-6">
-											<div
-												className={`form-group ${
-													errors.flightTime ? "has-error" : ""
-												}`}
-											>
-												<label className="form-label" htmlFor="flightTime">
-													{selectedService?.id === "from-airport"
-														? "Arrival Time *"
-														: "Departure Time *"}
-												</label>
-												<input
-													className="form-control"
-													id="flightTime"
-													name="flightTime"
-													type="time"
-													value={formData.flightTime}
-													onChange={handleChange}
-												/>
-												{errors.flightTime && (
-													<div className="error-message">
-														{errors.flightTime}
-													</div>
-												)}
-											</div>
-										</div>
-									</>
-								)}
+								<div className="col-lg-6">
+									<div className="form-group">
+										<label className="form-label" htmlFor="flightNumber">
+											Flight Number (Optional)
+										</label>
+										<input
+											className="form-control"
+											id="flightNumber"
+											name="flightNumber"
+											type="text"
+											placeholder="e.g. AA1234"
+											value={formData.flightNumber}
+											onChange={handleChange}
+										/>
+									</div>
+								</div>
+								<div className="col-lg-6">
+									<div className="form-group">
+										<label className="form-label" htmlFor="flightTime">
+											Flight Time (Optional)
+										</label>
+										<input
+											className="form-control"
+											id="flightTime"
+											name="flightTime"
+											type="time"
+											value={formData.flightTime}
+											onChange={handleChange}
+										/>
+									</div>
+								</div>
 
 								<div className="col-lg-12">
 									<div className="row">

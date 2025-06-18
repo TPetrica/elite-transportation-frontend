@@ -52,6 +52,11 @@ const initialState = {
     lastName: '',
     email: '',
     phone: '',
+    flightNumber: '',
+    flightTime: '',
+    luggage: 0,
+    skiBags: 0,
+    notes: '',
     specialRequests: '',
   },
   distance: null,
@@ -81,11 +86,13 @@ const calculateBasePrice = (
   hours = 1,
   isCottonwood = false,
   isAffiliate = false,
-  affiliate = null
+  affiliate = null,
+  isRoundTrip = false
 ) => {
   if (!service) return 0
 
   const passengerCount = parseInt(numPassengers) || 1
+  let price = 0
 
   // If affiliate has custom pricing for this service type, use it
   if (isAffiliate && affiliate && affiliate.servicePricingList) {
@@ -100,44 +107,62 @@ const calculateBasePrice = (
       switch (service.serviceType) {
         case 'per-person':
           const effectivePassengers = Math.max(passengerCount, affiliateMinPassengers)
-          return effectivePassengers * affiliatePricing.basePrice
+          price = effectivePassengers * affiliatePricing.basePrice
+          break
         case 'hourly':
-          return affiliatePricing.basePrice * hours
+          price = affiliatePricing.basePrice * hours
+          break
         default:
-          return affiliatePricing.basePrice
+          price = affiliatePricing.basePrice
       }
     }
   }
 
-  // If either pickup or dropoff is in Cottonwood Canyons, use Cottonwood pricing
-  if (isCottonwood && service.serviceType !== 'canyons') {
-    // Find canyons service from context state
-    const canyonsService = service.canyonsPrice || 150 // Fallback to 150 if not found
-    return canyonsService
+  // If no affiliate pricing was found, use standard pricing
+  if (price === 0) {
+    // If either pickup or dropoff is in Cottonwood Canyons, use Cottonwood pricing
+    if (isCottonwood && service.serviceType !== 'canyons') {
+      // Find canyons service from context state
+      const canyonsService = service.canyonsPrice || 150 // Fallback to 150 if not found
+      price = canyonsService
+    } else {
+      // Calculate price based on service type
+      switch (service.serviceType) {
+        case 'from-airport':
+        case 'to-airport':
+          price = service.basePrice
+          break
+        case 'canyons':
+          price = service.basePrice
+          break
+        case 'per-person':
+          // Get minimum passenger count from service or affiliate config
+          const minPersons = service.minPassengers || 2
+          const effectivePassengers = Math.max(passengerCount, minPersons)
+          price = effectivePassengers * service.basePrice
+          break
+        case 'hourly':
+          price = service.basePrice * hours
+          break
+        case 'round-trip':
+          price = service.basePrice
+          break
+        case 'group':
+          price = service.basePrice || 0
+          break
+        default:
+          // Fallback to base price if available
+          price = service.basePrice || 0
+      }
+    }
   }
 
-  // Calculate price based on service type
-  switch (service.serviceType) {
-    case 'from-airport':
-    case 'to-airport':
-      return service.basePrice
-    case 'canyons':
-      return service.basePrice
-    case 'per-person':
-      // Get minimum passenger count from service or affiliate config
-      const minPersons = service.minPassengers || 2
-      const effectivePassengers = Math.max(passengerCount, minPersons)
-      return effectivePassengers * service.basePrice
-    case 'hourly':
-      return service.basePrice * hours
-    case 'round-trip':
-      return service.basePrice
-    case 'group':
-      return service.basePrice || 0
-    default:
-      // Fallback to base price if available
-      return service.basePrice || 0
+  // Double the price for round trip services (except hourly services)
+  if (isRoundTrip && service.serviceType !== 'hourly') {
+    price = price * 2
   }
+
+  return price
 }
 
 // Calculate night service fee
@@ -233,7 +258,8 @@ const bookingReducer = (state, action) => {
         state.pricing.hours,
         isCottonwood,
         state.isAffiliate,
-        state.affiliate
+        state.affiliate,
+        state.isRoundTrip
       )
 
       let gratuity = state.pricing.gratuity
@@ -264,7 +290,8 @@ const bookingReducer = (state, action) => {
         state.pricing.hours,
         isCottonwood,
         state.isAffiliate,
-        state.affiliate
+        state.affiliate,
+        state.isRoundTrip
       )
 
       let gratuity = state.pricing.gratuity
@@ -331,7 +358,8 @@ const bookingReducer = (state, action) => {
         state.pricing.hours,
         isCottonwood,
         state.isAffiliate,
-        state.affiliate
+        state.affiliate,
+        state.isRoundTrip
       )
 
       let gratuity = state.pricing.gratuity
@@ -398,7 +426,8 @@ const bookingReducer = (state, action) => {
         hours,
         isCottonwood,
         state.isAffiliate,
-        state.affiliate
+        state.affiliate,
+        state.isRoundTrip
       )
 
       let gratuity = state.pricing.gratuity
@@ -451,7 +480,8 @@ const bookingReducer = (state, action) => {
         state.pricing.hours,
         isCottonwood,
         state.isAffiliate,
-        state.affiliate
+        state.affiliate,
+        state.isRoundTrip
       )
 
       let gratuity = state.pricing.gratuity
@@ -541,7 +571,8 @@ const bookingReducer = (state, action) => {
           state.pricing.hours,
           isCottonwood,
           true, // isAffiliate
-          action.payload.affiliate
+          action.payload.affiliate,
+          state.isRoundTrip
         );
         
         let gratuity = state.pricing.gratuity;
@@ -599,11 +630,30 @@ const bookingReducer = (state, action) => {
         return state
       }
       
+      // Recalculate pricing when round trip is toggled
+      const isCottonwood = state.pickupDetails.isCottonwood || state.dropoffDetails.isCottonwood
+      
+      const basePrice = calculateBasePrice(
+        state.selectedService,
+        state.passengerDetails.passengers,
+        state.pricing.hours,
+        isCottonwood,
+        state.isAffiliate,
+        state.affiliate,
+        action.payload // new round trip value
+      )
+      
+      let gratuity = state.pricing.gratuity
+      if (state.pricing.selectedTipPercentage) {
+        gratuity = (basePrice * state.pricing.selectedTipPercentage) / 100
+      }
+      
       return {
         ...state,
         isRoundTrip: action.payload,
         // Clear return details if disabling round trip
         returnDetails: action.payload ? state.returnDetails : initialState.returnDetails,
+        pricing: updatePricingState(state, basePrice, gratuity),
       }
     }
 

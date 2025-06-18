@@ -8,6 +8,8 @@ import PlacePicker from '@/components/common/PlacePicker'
 import { useBooking } from '@/context/BookingContext'
 import { useTimeSlots } from '@/hooks/useQueryHooks'
 import calendarService from '@/services/calendar.service'
+import CustomTimePicker from './CustomTimePicker'
+// import { createSaltLakeDate, formatSaltLakeDate } from '@/utils/timezone'
 import SideBar from './SideBar'
 
 function BookingTime() {
@@ -147,7 +149,7 @@ function BookingTime() {
   }, [pickupDetails?.coordinates, dropoffDetails?.coordinates, setDistanceAndDuration])
 
   // Use cached time slots query when date changes
-  const dateString = selectedDate ? selectedDate.format('YYYY-MM-DD') : undefined
+  const dateString = selectedDate && selectedDate.isValid() ? selectedDate.format('YYYY-MM-DD') : undefined
   const {
     data: timeSlots,
     isLoading: isSlotsLoading,
@@ -155,7 +157,7 @@ function BookingTime() {
   } = useTimeSlots(dateString)
   
   // Return trip time slots
-  const returnDateString = returnDetails?.date ? moment(returnDetails.date).format('YYYY-MM-DD') : undefined
+  const returnDateString = returnDetails?.date && moment(returnDetails.date).isValid() ? moment(returnDetails.date).format('YYYY-MM-DD') : undefined
   const {
     data: returnTimeSlots,
     isLoading: isReturnSlotsLoading,
@@ -295,7 +297,7 @@ function BookingTime() {
       // Check if date is null or undefined
       if (!date.year || !date.month || !date.day) return
 
-      // Create a moment object without any timezone adjustments
+      // Create a consistent date
       const momentDate = moment({
         year: date.year,
         month: date.month.number - 1,
@@ -350,6 +352,7 @@ function BookingTime() {
     date => {
       if (!date) return
 
+      // Create a consistent date format
       const momentDate = moment({
         year: date.year,
         month: date.month.number - 1,
@@ -412,6 +415,15 @@ function BookingTime() {
         isCottonwood: location.isCottonwood,
       })
 
+      // Update return dropoff if round trip is selected (pickup location becomes return dropoff)
+      if (isRoundTrip) {
+        setReturnDetails(prev => ({
+          ...prev,
+          dropoffAddress: location.address,
+          dropoffCoordinates: location.coordinates,
+        }))
+      }
+
       // If any location is in Cottonwood Canyons, automatically select Cottonwood service
       if (isCottonwoodService) {
         const canyonsService = services.find(s => s.title.toLowerCase().includes('cottonwood'))
@@ -431,6 +443,8 @@ function BookingTime() {
       setSelectedService,
       pickupDetails,
       setPickupDetails,
+      isRoundTrip,
+      setReturnDetails,
     ]
   )
 
@@ -446,6 +460,15 @@ function BookingTime() {
         isCustom: location.isCustom,
         isCottonwood: location.isCottonwood,
       })
+
+      // Update return pickup if round trip is selected (dropoff location becomes return pickup)
+      if (isRoundTrip) {
+        setReturnDetails(prev => ({
+          ...prev,
+          pickupAddress: location.address,
+          pickupCoordinates: location.coordinates,
+        }))
+      }
 
       // If any location is in Cottonwood Canyons, automatically select Cottonwood service
       if (isCottonwoodService) {
@@ -466,6 +489,8 @@ function BookingTime() {
       setSelectedService,
       dropoffDetails,
       setDropoffDetails,
+      isRoundTrip,
+      setReturnDetails,
     ]
   )
 
@@ -502,9 +527,14 @@ function BookingTime() {
     // We already know the time slot is available, as we're only showing available time slots
     // No need to check availability again, just proceed to the next step
 
+    // Preserve affiliate parameter in navigation
+    const searchParams = new URLSearchParams(location.search)
+    const affiliateParam = searchParams.get('affiliate')
+    const nextUrl = affiliateParam ? `/booking-extra?affiliate=${affiliateParam}` : '/booking-extra'
+
     // Pass state to preserve booking data
-    navigate('/booking-extra', { state: { preserveBookingData: true } })
-  }, [canProceed, navigate, setError])
+    navigate(nextUrl, { state: { preserveBookingData: true } })
+  }, [canProceed, navigate, setError, location.search])
 
   // Memoized derived values
   const filteredServices = useMemo(
@@ -578,11 +608,6 @@ function BookingTime() {
                         </>
                       )}
                     </select>
-                    {selectedService && (
-                      <div className="service-description mt-2 text-sm text-gray-600">
-                        {selectedService.description}
-                      </div>
-                    )}
                   </>
                 ) : (
                   <select
@@ -598,12 +623,6 @@ function BookingTime() {
                       </option>
                     ))}
                   </select>
-                )}
-
-                {!isAffiliate && selectedService?.description && (
-                  <div className="service-description mt-2 text-sm text-gray-600">
-                    {selectedService.description}
-                  </div>
                 )}
 
                 {showPassengerWarning && selectedService?.maxPassengers && !isAffiliate && (
@@ -694,40 +713,43 @@ function BookingTime() {
 
               {selectedService && !selectedService.requiresInquiry && (
                 <div className="datetime-section">
-                  <div className="calendar-section">
-                    <span className="field-label">Select Date</span>
-                    <DatePicker
-                      onChange={handleDateSelect}
-                      format="MMMM DD YYYY"
-                      minDate={new Date()}
-                      maxDate={new Date().setFullYear(new Date().getFullYear() + 1)}
-                      className="custom-datepicker"
-                      placeholder="Select the date"
-                      editable={false}
-                      calendarPosition="bottom-center"
-                      value={pickupDetails?.date ? new Date(pickupDetails.date) : null}
-                    />
-                  </div>
-
-                  <div className="time-slots">
-                    <h5>Available Times</h5>
-                    {isLoading ? (
-                      <div className="loading">Loading available times...</div>
-                    ) : availableTimeSlots.length > 0 ? (
-                      <div className="slots-grid">
-                        {availableTimeSlots.map(slot => (
-                          <button
-                            key={slot.formattedTime}
-                            className={`time-slot ${selectedTime === slot.time ? 'selected' : ''}`}
-                            onClick={() => handleTimeSelect(slot.time)}
-                          >
-                            {slot.formattedTime}
-                          </button>
-                        ))}
+                  <div className="date-time-section">
+                    <div className="date-time-row" style={{ display: 'flex', gap: '12px', marginTop: '8px', flexWrap: 'wrap' }}>
+                      <div style={{ flex: 1, minWidth: '200px' }}>
+                        <span className="field-label">Select Date</span>
+                        <DatePicker
+                          onChange={handleDateSelect}
+                          format="MMMM DD YYYY"
+                          minDate={new Date(new Date().setHours(0, 0, 0, 0))}
+                          maxDate={new Date().setFullYear(new Date().getFullYear() + 1)}
+                          className="custom-datepicker"
+                          placeholder="Select the date"
+                          editable={false}
+                          calendarPosition="bottom-center"
+                          value={pickupDetails?.date ? new Date(pickupDetails.date) : null}
+                          style={{ width: '100%' }}
+                        />
                       </div>
-                    ) : (
-                      <div className="no-slots">No available time slots for this date</div>
-                    )}
+                      <div style={{ flex: 1, minWidth: '200px' }}>
+                        <span className="field-label">Select Time</span>
+                        {isLoading ? (
+                          <div className="loading" style={{ padding: '10px', textAlign: 'center' }}>Loading times...</div>
+                        ) : (
+                          <CustomTimePicker
+                            value={selectedTime}
+                            onChange={handleTimeSelect}
+                            availableTimeSlots={availableTimeSlots}
+                            disabled={!selectedDate || availableTimeSlots.length === 0}
+                            placeholder={
+                              !selectedDate ? 'Select a date first' : 
+                              availableTimeSlots.length === 0 ? 'No available times' : 
+                              'Select a time'
+                            }
+                            className="tw-w-full"
+                          />
+                        )}
+                      </div>
+                    </div>
                   </div>
                   
                   {/* Round Trip Checkbox - Only show for non-hourly services */}
@@ -765,47 +787,47 @@ function BookingTime() {
                       <h5 className="mb-4">Return Trip Details</h5>
                       
                       <div className="mb-4">
-                        <span className="field-label">Return Date</span>
-                        <DatePicker
-                          onChange={handleReturnDateSelect}
-                          format="MMMM DD YYYY"
-                          minDate={new Date()}
-                          maxDate={new Date().setFullYear(new Date().getFullYear() + 1)}
-                          className="custom-datepicker"
-                          placeholder="Select return date"
-                          editable={false}
-                          calendarPosition="bottom-center"
-                          value={returnDetails?.date ? new Date(returnDetails.date) : null}
-                        />
-                      </div>
-                      
-                      {returnDetails?.date && (
-                        <div className="return-time-slots">
-                          <h6>Return Times</h6>
-                          {isReturnLoading ? (
-                            <div className="loading">Loading return times...</div>
-                          ) : returnAvailableTimeSlots.length > 0 ? (
-                            <div className="slots-grid">
-                              {returnAvailableTimeSlots.map(slot => (
-                                <button
-                                  key={`return-${slot.formattedTime}`}
-                                  className={`time-slot ${returnDetails?.time === slot.time ? 'selected' : ''}`}
-                                  onClick={() => handleReturnTimeSelect(slot.time)}
-                                >
-                                  {slot.formattedTime}
-                                </button>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="no-slots">No available return time slots for this date</div>
-                          )}
+                        <span className="field-label">Return Date & Time</span>
+                        <div className="date-time-row" style={{ display: 'flex', gap: '12px', marginTop: '8px', flexWrap: 'wrap' }}>
+                          <div style={{ flex: 1, minWidth: '200px' }}>
+                            <DatePicker
+                              onChange={handleReturnDateSelect}
+                              format="MMMM DD YYYY"
+                              minDate={new Date(new Date().setHours(0, 0, 0, 0))}
+                              maxDate={new Date().setFullYear(new Date().getFullYear() + 1)}
+                              className="custom-datepicker"
+                              placeholder="Select return date"
+                              editable={false}
+                              calendarPosition="bottom-center"
+                              value={returnDetails?.date ? new Date(returnDetails.date) : null}
+                              style={{ width: '100%' }}
+                            />
+                          </div>
+                          <div style={{ flex: 1, minWidth: '200px' }}>
+                            {returnDetails?.date && (
+                              isReturnLoading ? (
+                                <div className="loading" style={{ padding: '10px', textAlign: 'center' }}>Loading times...</div>
+                              ) : (
+                                <CustomTimePicker
+                                  value={returnDetails?.time}
+                                  onChange={handleReturnTimeSelect}
+                                  availableTimeSlots={returnAvailableTimeSlots}
+                                  disabled={returnAvailableTimeSlots.length === 0}
+                                  placeholder={
+                                    returnAvailableTimeSlots.length === 0 ? 'No available times' : 'Select return time'
+                                  }
+                                  className="tw-w-full"
+                                />
+                              )
+                            )}
+                          </div>
                         </div>
-                      )}
+                      </div>
                       
                       <div className="return-locations mt-4">
                         <div className="text-sm text-gray-600">
-                          <strong>Return Pickup:</strong> {returnDetails?.pickupAddress || 'Not set'}<br/>
-                          <strong>Return Dropoff:</strong> {returnDetails?.dropoffAddress || 'Not set'}
+                          <strong>Return Pickup:</strong> {dropoffDetails?.address || 'Select dropoff location first'}<br/>
+                          <strong>Return Dropoff:</strong> {pickupDetails?.address || 'Select pickup location first'}
                         </div>
                         <div className="text-xs text-gray-500 mt-2">
                           Return locations are automatically set as the reverse of your outbound trip
