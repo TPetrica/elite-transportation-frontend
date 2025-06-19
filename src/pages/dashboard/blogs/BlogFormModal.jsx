@@ -109,11 +109,19 @@ const BlogFormModal = ({ visible, onCancel, onFinish, editingId, editingBlog, is
 
   // Handle form submission
   const handleSubmit = values => {
-    // Convert dayjs to ISO string
+    // Prepare form data
     const formData = {
       ...values,
       tags,
-      publishedAt: values.publishedAt ? values.publishedAt.toISOString() : null,
+    }
+
+    // For new blogs, convert dayjs to ISO string for publishedAt
+    // For updates, exclude publishedAt as it's not allowed by backend validation
+    if (!editingId && values.publishedAt) {
+      formData.publishedAt = values.publishedAt.toISOString()
+    } else if (editingId) {
+      // Remove publishedAt for updates
+      delete formData.publishedAt
     }
 
     onFinish(formData)
@@ -330,7 +338,10 @@ const BlogFormModal = ({ visible, onCancel, onFinish, editingId, editingBlog, is
               rules={[{ required: true, message: 'Please enter the content' }]}
               extra="Use the editor to format your content with headings, lists, links, and more."
             >
-              <RichTextEditor placeholder="Write your blog post content here..." />
+              <RichTextEditor 
+                key={editingId || 'new'} 
+                placeholder="Write your blog post content here..." 
+              />
             </Form.Item>
           </TabPane>
 
@@ -394,19 +405,66 @@ const BlogFormModal = ({ visible, onCancel, onFinish, editingId, editingBlog, is
               label={
                 <span className="tw-flex tw-items-center">
                   Featured Image URL
-                  <Tooltip title="The main image for the blog post. Should be at least 1200x630px for best SEO results.">
+                  <Tooltip title="The main image for the blog post. Should be at least 1200x630px for best SEO results. Use any image hosting service (Cloudinary, Unsplash, etc.)." >
                     <QuestionCircleOutlined className="tw-ml-2" />
                   </Tooltip>
                 </span>
               }
-              extra="URL path to the image. Upload your images to the /public/assets/imgs/page/blog/ folder or use a full URL."
-              initialValue="/assets/imgs/page/blog/default.jpg"
+              extra={
+                <div>
+                  <Text type="secondary" className="tw-text-xs">
+                    Use any image URL (Cloudinary, Unsplash, etc.). Recommended: 1200x630px minimum for social sharing.
+                  </Text>
+                  <br />
+                  <Text type="secondary" className="tw-text-xs">
+                    Examples: Cloudinary, Unsplash, or any direct image URL
+                  </Text>
+                </div>
+              }
+              rules={[
+                {
+                  validator: (_, value) => {
+                    if (!value || value.trim() === '') {
+                      return Promise.resolve();
+                    }
+                    if (value.startsWith('http://') || value.startsWith('https://')) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(new Error('URL must start with http:// or https://'));
+                  }
+                }
+              ]}
+              initialValue=""
             >
               <Input
-                placeholder="/assets/imgs/page/blog/slc-to-park-city.jpg"
+                placeholder="https://res.cloudinary.com/your-cloud/image/upload/..."
                 addonBefore={<ImageIcon size={14} />}
               />
             </Form.Item>
+
+            {/* Featured Image Preview */}
+            {form.getFieldValue('featuredImage') && form.getFieldValue('featuredImage').trim() !== '' && (
+              <div className="tw-mb-4">
+                <Text type="secondary" className="tw-text-sm tw-mb-2 tw-block">
+                  Featured Image Preview:
+                </Text>
+                <div className="tw-border tw-rounded-lg tw-p-2 tw-bg-gray-50">
+                  <img 
+                    src={form.getFieldValue('featuredImage')} 
+                    alt="Featured preview"
+                    className="tw-w-full tw-max-h-64 tw-object-cover tw-rounded"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'block';
+                    }}
+                  />
+                  <div className="tw-text-center tw-text-gray-400 tw-py-8" style={{ display: 'none' }}>
+                    <ImageIcon size={48} className="tw-mx-auto tw-mb-2" />
+                    <Text type="secondary">Invalid image URL</Text>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <Divider orientation="left">
               <TagIcon size={14} className="tw-mr-2" />

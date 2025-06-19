@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { EditorState, ContentState, convertToRaw } from 'draft-js';
 import { Editor } from 'react-draft-wysiwyg';
 import htmlToDraft from 'html-to-draftjs';
@@ -11,8 +11,8 @@ import './RichTextEditor.css'; // Import custom styling
 const cleanHtmlOutput = (html) => {
   if (!html) return '';
   
-  // Remove all inline style attributes
-  let cleaned = html.replace(/style="[^"]*"/g, '');
+  // Remove all inline style attributes except from images
+  let cleaned = html.replace(/<(?!img)([^>]+)style="[^"]*"([^>]*)>/g, '<$1$2>');
   
   // Remove malformed span attributes (handle broken font declarations)
   cleaned = cleaned.replace(/<span[^>]*Apple Color Emoji[^>]*>/g, '<span>');
@@ -42,6 +42,15 @@ const cleanHtmlOutput = (html) => {
   // Unwrap unnecessary spans
   cleaned = cleaned.replace(/<span>([^<]+)<\/span>/g, '$1');
   
+  // Add prose-img class to all images
+  cleaned = cleaned.replace(/<img([^>]*)>/g, (match, attributes) => {
+    if (!attributes.includes('class=')) {
+      return `<img class="prose-img"${attributes}>`;
+    } else {
+      return match.replace(/class="([^"]*)"/, 'class="$1 prose-img"');
+    }
+  });
+  
   // Ensure proper spacing and structure
   cleaned = cleaned.replace(/<\/h([1-6])>\s*<p>/g, '</h$1>\n\n<p>');
   cleaned = cleaned.replace(/<\/p>\s*<h([1-6])/g, '</p>\n\n<h$1');
@@ -57,12 +66,14 @@ const cleanHtmlOutput = (html) => {
 };
 
 const RichTextEditor = ({ value, onChange, placeholder = 'Write your content here...' }) => {
+  // Keep track of the initial value to avoid unnecessary updates
+  const initialValue = useRef(value);
+  
   const [editorState, setEditorState] = useState(() => {
     if (!value) {
       return EditorState.createEmpty();
     }
     
-    // First, try to parse as HTML
     try {
       const blocksFromHtml = htmlToDraft(value);
       if (blocksFromHtml) {
@@ -74,27 +85,15 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Write your content her
       console.warn('Failed to parse HTML content', error);
     }
     
-    // If HTML parsing fails, treat it as plain text
     const contentState = ContentState.createFromText(value);
     return EditorState.createWithContent(contentState);
   });
 
+  // Only run this effect once when the component mounts
   useEffect(() => {
-    if (!value) {
-      setEditorState(EditorState.createEmpty());
-    } else if (value !== draftToHtml(convertToRaw(editorState.getCurrentContent()))) {
-      try {
-        const blocksFromHtml = htmlToDraft(value);
-        if (blocksFromHtml) {
-          const { contentBlocks, entityMap } = blocksFromHtml;
-          const contentState = ContentState.createFromBlockArray(contentBlocks, entityMap);
-          setEditorState(EditorState.createWithContent(contentState));
-        }
-      } catch (error) {
-        console.warn('Failed to parse HTML content in useEffect', error);
-      }
-    }
-  }, [value]);
+    // If the initial value changes (switching between blogs), this component
+    // will be remounted with a new key, so we don't need to handle updates here
+  }, []);
 
   const handleEditorChange = (state) => {
     setEditorState(state);
@@ -104,7 +103,7 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Write your content her
   };
 
   const toolbarOptions = {
-    options: ['inline', 'blockType', 'list', 'textAlign', 'link', 'history'],
+    options: ['inline', 'blockType', 'list', 'textAlign', 'link', 'image', 'history'],
     inline: {
       options: ['bold', 'italic', 'underline', 'strikethrough'],
       bold: { className: 'custom-button-style' },
@@ -132,6 +131,19 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Write your content her
       options: ['link', 'unlink'],
       link: { className: 'custom-button-style' },
       unlink: { className: 'custom-button-style' },
+    },
+    image: {
+      className: 'custom-button-style',
+      urlEnabled: true,
+      uploadEnabled: false,
+      alignmentEnabled: true,
+      previewImage: true,
+      inputAccept: 'image/gif,image/jpeg,image/jpg,image/png,image/svg',
+      alt: { present: true, mandatory: false },
+      defaultSize: {
+        height: 'auto',
+        width: '100%',
+      },
     },
     history: {
       options: ['undo', 'redo'],

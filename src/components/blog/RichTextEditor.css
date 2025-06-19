@@ -5,10 +5,7 @@
 }
 
 .rich-text-editor {
-  min-height: 200px;
-  max-height: 500px;
-  overflow-y: auto;
-  padding: 0.5rem;
+  position: relative;
 }
 
 .rich-text-toolbar {
@@ -18,7 +15,9 @@
 
 .rich-text-editor-content {
   padding: 0.75rem 1rem !important;
-  min-height: 200px !important;
+  min-height: 300px !important;
+  max-height: 500px !important;
+  overflow-y: auto !important;
   font-size: 16px !important;
 }
 
@@ -62,4 +61,59 @@
   background: #3b82f6 !important;
   color: white !important;
   border-radius: 0.25rem !important;
+}
+/* Image modal styling */
+.rdw-image-modal {
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+  background: white !important;
+  border-radius: 0.375rem !important;
+}
+
+.rdw-image-modal-btn {
+  background: #3b82f6 !important;
+  color: white !important;
+  border-radius: 0.25rem !important;
+  padding: 0.5rem 1rem !important;
+  border: none !important;
+  cursor: pointer !important;
+}
+
+.rdw-image-modal-btn:hover {
+  background: #2563eb !important;
+}
+
+.rdw-image-modal-btn:disabled {
+  background: #9ca3af !important;
+  cursor: not-allowed !important;
+}
+
+/* Image alignment in editor */
+.rdw-image-alignment-options-popup {
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Editor content images */
+.rich-text-editor-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+}
+
+.rich-text-editor-content img.rdw-image-alignment-left {
+  float: left;
+  margin-right: 1rem;
+}
+
+.rich-text-editor-content img.rdw-image-alignment-right {
+  float: right;
+  margin-left: 1rem;
+}
+
+.rich-text-editor-content img.rdw-image-alignment-center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
