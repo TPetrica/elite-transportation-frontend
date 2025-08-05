@@ -18,122 +18,74 @@ import {
 import { InfoCircleOutlined } from '@ant-design/icons'
 import { Plus, Image, Edit, Trash2, Search, Filter, RefreshCw } from 'lucide-react'
 import ApiService from '@/services/api.service'
+import { useExtras, useCreateExtra, useUpdateExtra, useDeleteExtra } from '@/hooks/useQueryHooks'
 import ExtrasFormModal from './ExtrasFormModal'
 
 const { TabPane } = Tabs
 const { Search: AntSearch } = Input
 
 const ExtraServicePage = () => {
-  const [extras, setExtras] = useState([])
-  const [loading, setLoading] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [form] = Form.useForm()
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [searchText, setSearchText] = useState('')
+  const [fileList, setFileList] = useState([])
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
     total: 0,
   })
 
-  const fetchExtras = async (params = {}) => {
-    setLoading(true)
-    try {
-      let url = '/extras'
-
-      // Build query parameters
-      const queryParams = { ...params }
-
-      // Add category filter
-      if (categoryFilter !== 'all') {
-        queryParams.category = categoryFilter
-      }
-
-      // Add search filter
-      if (searchText) {
-        queryParams.name = searchText
-      }
-
-      // Add pagination
-      queryParams.page = params.page || pagination.current
-      queryParams.limit = params.pageSize || pagination.pageSize
-
-      const response = await ApiService.get(url, { params: queryParams })
-
-      // Make sure we have an array of extras
-      const extrasData = Array.isArray(response.data)
-        ? response.data
-        : Array.isArray(response.data.results)
-          ? response.data.results
-          : []
-
-      // Debug logging
-      console.log('Extras response:', response.data)
-      console.log('Extras data:', extrasData)
-      
-      setExtras(extrasData)
-
-      // Update pagination
-      setPagination({
-        ...pagination,
-        current: response.data.page || 1,
-        total: response.data.totalResults || extrasData.length,
-      })
-    } catch (error) {
-      console.error('Error fetching extras:', error)
-      message.error('Failed to fetch extras')
-      setExtras([])
-    } finally {
-      setLoading(false)
-    }
+  // Build query parameters for the API
+  const queryParams = {
+    page: pagination.current,
+    limit: pagination.pageSize,
+    ...(categoryFilter !== 'all' && { category: categoryFilter }),
+    ...(searchText && { name: searchText }),
   }
 
-  useEffect(() => {
-    fetchExtras()
-  }, [categoryFilter]) // Re-fetch when category filter changes
+  // Use cached hooks
+  const { data: extrasResponse, isLoading: loading, error } = useExtras()
+  const createExtraMutation = useCreateExtra()
+  const updateExtraMutation = useUpdateExtra()
+  const deleteExtraMutation = useDeleteExtra()
 
-  const handleTableChange = (pagination, filters, sorter) => {
-    fetchExtras({
-      page: pagination.current,
-      pageSize: pagination.pageSize,
-      sortField: sorter.field,
-      sortOrder: sorter.order,
-      ...filters,
-    })
+  // Process the extras data
+  const extrasData = extrasResponse?.success ? extrasResponse.data : []
+  const extras = Array.isArray(extrasData) ? extrasData : []
+
+  // Filter extras on client side for now (can be optimized later)
+  const filteredExtras = extras.filter(extra => {
+    const matchesCategory = categoryFilter === 'all' || extra.category === categoryFilter
+    const matchesSearch = !searchText || extra.name.toLowerCase().includes(searchText.toLowerCase())
+    return matchesCategory && matchesSearch
+  })
+
+  const handleTableChange = (newPagination, filters, sorter) => {
+    setPagination(newPagination)
   }
 
   const handleCategoryChange = key => {
     setCategoryFilter(key)
-    // Reset pagination to first page
-    setPagination({
-      ...pagination,
-      current: 1,
-    })
+    setPagination({ ...pagination, current: 1 })
   }
 
   const handleSearch = value => {
     setSearchText(value)
-    // Reset pagination to first page
-    setPagination({
-      ...pagination,
-      current: 1,
-    })
-    fetchExtras()
+    setPagination({ ...pagination, current: 1 })
   }
 
   const resetFilters = () => {
     setSearchText('')
-    // Reset pagination to first page
-    setPagination({
-      ...pagination,
-      current: 1,
-    })
-    fetchExtras()
+    setCategoryFilter('all')
+    setPagination({ ...pagination, current: 1 })
   }
 
   const handleEdit = record => {
-    setEditingId(record._id)
+    const editId = record.id || record._id
+    console.log('Editing record:', record, 'editId:', editId)
+    setEditingId(editId)
     form.setFieldsValue({
       name: record.name,
       description: record.description,
@@ -175,40 +127,33 @@ const ExtraServicePage = () => {
       okText: 'Yes, Delete',
       okType: 'danger',
       cancelText: 'Cancel',
-      onOk: async () => {
-        try {
-          await ApiService.delete(`/extras/${id}`)
-          message.success('Extra deleted successfully')
-          fetchExtras()
-        } catch (error) {
-          console.error('Error deleting extra:', error)
-          message.error('Failed to delete extra')
-        }
+      onOk: () => {
+        deleteExtraMutation.mutate(id)
       },
     })
   }
 
   const handleSubmit = async values => {
-    try {
-      const extraData = { ...values }
+    const extraData = { ...values }
 
-      if (editingId) {
-        await ApiService.put(`/extras/${editingId}`, extraData)
-        message.success('Extra updated successfully')
-      } else {
-        await ApiService.post('/extras', extraData)
-        message.success('Extra created successfully')
-      }
-
-      setModalVisible(false)
-      form.resetFields()
-      setFileList([])
-      setEditingId(null)
-      fetchExtras()
-    } catch (error) {
-      console.error('Error saving extra:', error)
-      message.error('Failed to save extra')
-    } finally {
+    if (editingId) {
+      updateExtraMutation.mutate({ extraId: editingId, data: extraData }, {
+        onSuccess: () => {
+          setModalVisible(false)
+          form.resetFields()
+          setFileList([])
+          setEditingId(null)
+        }
+      })
+    } else {
+      createExtraMutation.mutate(extraData, {
+        onSuccess: () => {
+          setModalVisible(false)
+          form.resetFields()
+          setFileList([])
+          setEditingId(null)
+        }
+      })
     }
   }
 
@@ -239,16 +184,7 @@ const ExtraServicePage = () => {
       dataIndex: 'name',
       key: 'name',
       render: (text, record) => (
-        <div className="tw-flex tw-items-center">
-          {record.image && (
-            <img
-              src={record.image}
-              alt={text}
-              className="tw-w-8 tw-h-8 tw-rounded tw-mr-2 tw-object-cover"
-            />
-          )}
-          <span>{text}</span>
-        </div>
+        <span>{text}</span>
       ),
     },
     {
@@ -256,12 +192,14 @@ const ExtraServicePage = () => {
       dataIndex: 'category',
       key: 'category',
       render: category => getCategoryTag(category),
+      responsive: ['sm'],
     },
     {
       title: 'Type',
       dataIndex: 'type',
       key: 'type',
       render: text => <span className="tw-capitalize">{text}</span>,
+      responsive: ['md'],
     },
     {
       title: 'Price',
@@ -275,6 +213,7 @@ const ExtraServicePage = () => {
       dataIndex: 'maxQuantity',
       key: 'maxQuantity',
       align: 'center',
+      responsive: ['lg'],
     },
     {
       title: 'Available',
@@ -286,12 +225,13 @@ const ExtraServicePage = () => {
         { text: 'Unavailable', value: false },
       ],
       onFilter: (value, record) => record.isAvailable === value,
+      responsive: ['sm'],
     },
     {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
-        <div className="tw-flex tw-gap-2">
+        <Space>
           <Tooltip title="Edit">
             <Button
               type="text"
@@ -311,16 +251,16 @@ const ExtraServicePage = () => {
               className="tw-text-red-500 hover:tw-text-red-700"
             />
           </Tooltip>
-        </div>
+        </Space>
       ),
     },
   ]
 
   return (
     <div className="tw-space-y-6">
-      <div className="tw-flex tw-justify-between tw-items-center">
+      <div className="tw-flex tw-flex-col md:tw-flex-row tw-justify-between tw-items-start md:tw-items-center tw-gap-4 md:tw-gap-0">
         <div>
-          <h1 className="tw-text-2xl tw-font-bold tw-text-gray-900">Extra Services</h1>
+          <h1 className="tw-text-xl md:tw-text-2xl tw-font-bold tw-text-gray-900">Extra Services</h1>
           <p className="tw-text-sm tw-text-gray-500">
             Manage additional services and add-ons for bookings
           </p>
@@ -361,93 +301,105 @@ const ExtraServicePage = () => {
           </Space>
         </div>
 
-        <Tabs defaultActiveKey="all" onChange={handleCategoryChange}>
-          <TabPane tab="All Extras" key="all">
-            <Table
+        <div className="tw-overflow-x-auto">
+          <Tabs defaultActiveKey="all" onChange={handleCategoryChange}>
+            <TabPane tab="All Extras" key="all">
+              <Table
               columns={columns}
-              dataSource={extras}
+              dataSource={filteredExtras}
               rowKey="_id"
               loading={loading}
               onChange={handleTableChange}
               pagination={{
                 ...pagination,
+                total: filteredExtras.length,
                 showSizeChanger: true,
                 showTotal: total => `Total ${total} items`,
               }}
               locale={{
                 emptyText: <Empty description="No extras found" />,
               }}
+              scroll={{ x: 'max-content' }}
             />
-          </TabPane>
+            </TabPane>
           <TabPane tab="Child Seats" key="childSeat">
             <Table
               columns={columns}
-              dataSource={extras}
+              dataSource={filteredExtras}
               rowKey="_id"
               loading={loading}
               onChange={handleTableChange}
               pagination={{
                 ...pagination,
+                total: filteredExtras.length,
                 showSizeChanger: true,
                 showTotal: total => `Total ${total} items`,
               }}
               locale={{
                 emptyText: <Empty description="No child seats found" />,
               }}
+              scroll={{ x: 'max-content' }}
             />
-          </TabPane>
+            </TabPane>
           <TabPane tab="Drinks" key="drink">
             <Table
               columns={columns}
-              dataSource={extras}
+              dataSource={filteredExtras}
               rowKey="_id"
               loading={loading}
               onChange={handleTableChange}
               pagination={{
                 ...pagination,
+                total: filteredExtras.length,
                 showSizeChanger: true,
                 showTotal: total => `Total ${total} items`,
               }}
               locale={{
                 emptyText: <Empty description="No drinks found" />,
               }}
+              scroll={{ x: 'max-content' }}
             />
-          </TabPane>
+            </TabPane>
           <TabPane tab="Services" key="service">
             <Table
               columns={columns}
-              dataSource={extras}
+              dataSource={filteredExtras}
               rowKey="_id"
               loading={loading}
               onChange={handleTableChange}
               pagination={{
                 ...pagination,
+                total: filteredExtras.length,
                 showSizeChanger: true,
                 showTotal: total => `Total ${total} items`,
               }}
               locale={{
                 emptyText: <Empty description="No services found" />,
               }}
+              scroll={{ x: 'max-content' }}
             />
-          </TabPane>
+            </TabPane>
           <TabPane tab="Amenities" key="amenity">
             <Table
               columns={columns}
-              dataSource={extras}
+              dataSource={filteredExtras}
               rowKey="_id"
               loading={loading}
               onChange={handleTableChange}
               pagination={{
                 ...pagination,
+                total: filteredExtras.length,
                 showSizeChanger: true,
                 showTotal: total => `Total ${total} items`,
               }}
               locale={{
                 emptyText: <Empty description="No amenities found" />,
               }}
+              scroll={{ x: 'max-content' }}
             />
-          </TabPane>
-        </Tabs>
+            </TabPane>
+          </Tabs>
+        </div>
       </Card>
 
       <ExtrasFormModal

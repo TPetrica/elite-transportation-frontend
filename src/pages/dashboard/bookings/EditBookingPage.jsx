@@ -36,6 +36,7 @@ import {
 } from 'lucide-react'
 import moment from 'moment'
 import ApiService from '@/services/api.service'
+import { useBooking, useUpdateBooking, useExtras } from '@/hooks/useQueryHooks'
 import DatePicker from '@/components/dashboard/DatePicker'
 
 const { Option } = Select
@@ -46,93 +47,69 @@ const EditBookingPage = () => {
   const { bookingId } = useParams()
   const [form] = Form.useForm()
   const navigate = useNavigate()
-  const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
-  const [booking, setBooking] = useState(null)
-  const [extras, setExtras] = useState([])
   const [selectedExtras, setSelectedExtras] = useState([])
   const [totalExtrasPrice, setTotalExtrasPrice] = useState(0)
 
+  // Use cached hooks
+  const { data: booking, isLoading: bookingLoading, error: bookingError } = useBooking(bookingId)
+  const { data: extrasResponse, isLoading: extrasLoading } = useExtras()
+  const updateBookingMutation = useUpdateBooking()
+
+  // Process extras data
+  const extras = extrasResponse?.success ? extrasResponse.data : []
+  const loading = bookingLoading || extrasLoading
+  const submitting = updateBookingMutation.isLoading
+
+  // Process booking data when it loads
   useEffect(() => {
-    const fetchBookingData = async () => {
-      try {
-        setLoading(true)
-        // Check if we have a valid booking ID
-        if (!bookingId || bookingId === 'undefined') {
-          message.error('Invalid booking ID')
-          setLoading(false)
-          return
-        }
+    if (!booking) return
 
-        const [bookingRes, extrasRes] = await Promise.all([
-          ApiService.get(`/bookings/${bookingId}`),
-          ApiService.get('/extras'),
-        ])
+    // Prepare selected extras
+    const currentExtras =
+      booking.extras?.map(extra => ({
+        itemId: extra.item.id || extra.item._id, // Handle both id formats
+        quantity: extra.quantity,
+        name: extra.item.name,
+        price: extra.item.price,
+        category: extra.item.category || 'Other',
+        totalPrice: extra.price,
+      })) || []
 
-        const bookingData = bookingRes.data
-        setBooking(bookingData)
+    setSelectedExtras(currentExtras)
 
-        // Set extras data
-        const extrasData = Array.isArray(extrasRes.data) ? extrasRes.data : []
-        setExtras(extrasData)
+    // Calculate total extras price
+    const totalPrice = currentExtras.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    setTotalExtrasPrice(totalPrice)
 
-        // Prepare selected extras
-        const currentExtras =
-          bookingData.extras?.map(extra => ({
-            itemId: extra.item._id,
-            quantity: extra.quantity,
-            name: extra.item.name,
-            price: extra.item.price,
-            category: extra.item.category || 'Other',
-            totalPrice: extra.price,
-          })) || []
+    // Format the data for the form
+    form.setFieldsValue({
+      // Trip details
+      pickup: {
+        address: booking.pickup.address,
+        date: moment(booking.pickup.date),
+        time: moment(booking.pickup.time, 'HH:mm'),
+        flightNumber: booking.pickup.flightNumber || '',
+      },
+      dropoff: {
+        address: booking.dropoff.address,
+      },
+      service: booking.service,
 
-        setSelectedExtras(currentExtras)
+      // Passenger details
+      passengerDetails: {
+        firstName: booking.passengerDetails.firstName,
+        lastName: booking.passengerDetails.lastName,
+        phone: booking.passengerDetails.phone,
+        email: booking.email,
+        passengers: booking.passengerDetails.passengers,
+        luggage: booking.passengerDetails.luggage,
+        specialRequirements: booking.passengerDetails.specialRequirements || '',
+      },
 
-        // Calculate total extras price
-        const totalPrice = currentExtras.reduce((sum, item) => sum + item.price * item.quantity, 0)
-        setTotalExtrasPrice(totalPrice)
-
-        // Format the data for the form
-        form.setFieldsValue({
-          // Trip details
-          pickup: {
-            address: bookingData.pickup.address,
-            date: moment(bookingData.pickup.date),
-            time: moment(bookingData.pickup.time, 'HH:mm'),
-            flightNumber: bookingData.pickup.flightNumber || '',
-          },
-          dropoff: {
-            address: bookingData.dropoff.address,
-          },
-          service: bookingData.service,
-
-          // Passenger details
-          passengerDetails: {
-            firstName: bookingData.passengerDetails.firstName,
-            lastName: bookingData.passengerDetails.lastName,
-            phone: bookingData.passengerDetails.phone,
-            email: bookingData.email,
-            passengers: bookingData.passengerDetails.passengers,
-            luggage: bookingData.passengerDetails.luggage,
-            specialRequirements: bookingData.passengerDetails.specialRequirements || '',
-          },
-
-          // Status
-          status: bookingData.status,
-        })
-      } catch (error) {
-        console.error('Error fetching booking data:', error)
-        message.error('Failed to load booking data')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    if (bookingId) {
-      fetchBookingData()
-    }
-  }, [bookingId, form])
+      // Status
+      status: booking.status,
+    })
+  }, [booking, form])
 
   useEffect(() => {
     // Calculate total price whenever selectedExtras change
@@ -141,60 +118,50 @@ const EditBookingPage = () => {
   }, [selectedExtras])
 
   const handleSubmit = async values => {
-    try {
-      setSubmitting(true)
-
-      // Format the data for the API
-      const updateData = {
-        pickup: {
-          address: values.pickup.address,
-          date: values.pickup.date.format('YYYY-MM-DD'),
-          time: values.pickup.time.format('HH:mm'),
-          flightNumber: values.pickup.flightNumber,
-          coordinates: booking.pickup.coordinates, // Preserve original coordinates
-        },
-        dropoff: {
-          address: values.dropoff.address,
-          coordinates: booking.dropoff.coordinates, // Preserve original coordinates
-        },
-        passengerDetails: {
-          firstName: values.passengerDetails.firstName,
-          lastName: values.passengerDetails.lastName,
-          phone: values.passengerDetails.phone,
-          passengers: values.passengerDetails.passengers,
-          luggage: values.passengerDetails.luggage,
-          specialRequirements: values.passengerDetails.specialRequirements,
-        },
-        service: values.service,
-        status: values.status,
-        // Format extras from our state
-        extras: selectedExtras.map(item => ({
-          item: item.itemId,
-          quantity: item.quantity,
-        })),
-      }
-
-      await ApiService.patch(`/bookings/${bookingId}`, updateData)
-      message.success('Booking updated successfully')
-      navigate('/dashboard/bookings')
-    } catch (error) {
-      console.error('Error updating booking:', error)
-      if (error.response?.data?.message) {
-        message.error(`Failed to update booking: ${error.response.data.message}`)
-      } else {
-        message.error('Failed to update booking')
-      }
-    } finally {
-      setSubmitting(false)
+    // Format the data for the API
+    const updateData = {
+      pickup: {
+        address: values.pickup.address,
+        date: values.pickup.date.format('YYYY-MM-DD'),
+        time: values.pickup.time.format('HH:mm'),
+        flightNumber: values.pickup.flightNumber,
+        coordinates: booking.pickup.coordinates, // Preserve original coordinates
+      },
+      dropoff: {
+        address: values.dropoff.address,
+        coordinates: booking.dropoff.coordinates, // Preserve original coordinates
+      },
+      passengerDetails: {
+        firstName: values.passengerDetails.firstName,
+        lastName: values.passengerDetails.lastName,
+        phone: values.passengerDetails.phone,
+        passengers: values.passengerDetails.passengers,
+        luggage: values.passengerDetails.luggage,
+        specialRequirements: values.passengerDetails.specialRequirements,
+      },
+      service: values.service,
+      status: values.status,
+      // Format extras from our state
+      extras: selectedExtras.map(item => ({
+        item: item.itemId,
+        quantity: item.quantity,
+      })),
     }
+
+    updateBookingMutation.mutate({ bookingId, data: updateData }, {
+      onSuccess: () => {
+        navigate('/dashboard/bookings')
+      }
+    })
   }
 
   const handleAddExtra = extra => {
-    const extraExists = selectedExtras.some(item => item.itemId === extra._id)
+    const extraId = extra.id || extra._id // Handle both id formats
+    const extraExists = selectedExtras.some(item => item.itemId === extraId)
 
     if (!extraExists) {
       const newExtra = {
-        itemId: extra._id,
+        itemId: extraId,
         quantity: 1,
         name: extra.name,
         price: extra.price,
@@ -247,7 +214,24 @@ const EditBookingPage = () => {
     )
   }
 
-  if (!booking) {
+  if (bookingError) {
+    return (
+      <div className="tw-p-6">
+        <Alert
+          type="error"
+          message="Booking Not Found"
+          description="The requested booking could not be found or you do not have permission to view it."
+          action={
+            <Button type="primary" onClick={() => navigate('/dashboard/bookings')}>
+              Back to Bookings
+            </Button>
+          }
+        />
+      </div>
+    )
+  }
+
+  if (!booking && !loading) {
     return (
       <div className="tw-p-6">
         <Alert
@@ -585,10 +569,11 @@ const EditBookingPage = () => {
                     <Row gutter={[16, 16]}>
                       {items.map(extra => {
                         // Check if this extra is already selected
-                        const isSelected = selectedExtras.some(item => item.itemId === extra._id)
+                        const extraId = extra.id || extra._id // Handle both id formats
+                        const isSelected = selectedExtras.some(item => item.itemId === extraId)
 
                         return (
-                          <Col xs={24} sm={12} md={8} key={extra._id}>
+                          <Col xs={24} sm={12} md={8} key={extraId}>
                             <Card
                               size="small"
                               className={`tw-h-full ${isSelected ? 'tw-opacity-50' : ''}`}

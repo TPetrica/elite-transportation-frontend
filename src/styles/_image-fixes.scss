@@ -1,0 +1,66 @@
+// Fix image references to use webp format
+.box-download-app {
+  background-image: url(/assets/imgs/page/homepage1/bg-download.webp) !important;
+}
+
+.box-download-app-2 {
+  background-image: url(/assets/imgs/page/homepage2/bg-download.webp) !important;
+}
+
+.section-how-it-work {
+  background-image: url(/assets/imgs/page/homepage1/bg-our-fleet.webp) !important;
+}
+
+.section-banner-3 {
+  background-image: url(/assets/imgs/page/homepage1/bg-showcase.webp) !important;
+}
+
+.section-our-service {
+  background-image: url(/assets/imgs/page/homepage1/bg-our-service.webp) !important;
+}
+
+.section-faqs-home1 {
+  background-image: url(/assets/imgs/page/homepage1/bg-faqs.webp) !important;
+}
+
+.section-testimonials-2 {
+  background-image: url(/assets/imgs/page/homepage1/bg-testimonials.webp) !important;
+}
+
+.coming-soon {
+  .banner-hero {
+    background: url(/assets/imgs/page/our-team/bg-trans.webp) repeat top center !important;
+  }
+}
+
+.sidebar-border {
+  .widget {
+    &::before {
+      background-image: url(/assets/imgs/page/homepage1/bg-trans2.webp) !important;
+    }
+  }
+}
+
+.cardService {
+  .cardImage {
+    &::before {
+      background-image: url(/assets/imgs/page/homepage1/bg-trans.webp) !important;
+    }
+  }
+  
+  &.cardServiceStyle2 {
+    .cardImage {
+      &::before {
+        background-image: url(/assets/imgs/page/homepage1/bg-trans2.webp) !important;
+      }
+    }
+  }
+}
+
+.cardGrid {
+  .cardImage {
+    &::before {
+      background-image: url(/assets/imgs/page/our-team/bg-trans.webp) !important;
+    }
+  }
+}

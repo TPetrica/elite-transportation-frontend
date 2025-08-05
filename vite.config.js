@@ -6,6 +6,14 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react()],
   resolve: { alias: { '@': path.resolve(__dirname, './src') } },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        quietDeps: true,
+        silenceDeprecations: ['legacy-js-api', 'import'],
+      },
+    },
+  },
   build: {
     rollupOptions: {
       external: ['@popperjs/core'],

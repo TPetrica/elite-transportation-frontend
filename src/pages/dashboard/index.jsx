@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import ApiService from '@/services/api.service'
+import { useBookings, useBookingStats } from '@/hooks/useQueryHooks'
 import {
   Alert, Button, Card, Col, DatePicker,
   Divider, Empty, Progress, Row, Select, Spin, Statistic,
@@ -18,106 +19,59 @@ import { useNavigate } from 'react-router-dom'
 const { Option } = Select
 const { RangePicker } = DatePicker
 
+const getStartDateForRange = range => {
+  switch (range) {
+    case 'week':
+      return moment().subtract(7, 'days')
+    case 'month':
+      return moment().subtract(30, 'days')
+    case 'year':
+      return moment().subtract(1, 'year')
+    default:
+      return moment().subtract(7, 'days')
+  }
+}
+
+const calculateTotalBookings = statusBreakdown => {
+  return statusBreakdown.reduce((total, item) => total + (item.count || 0), 0)
+}
+
+const calculateTotalRevenue = statusBreakdown => {
+  return statusBreakdown.reduce((total, item) => total + (item.totalRevenue || 0), 0)
+}
+
 const DashboardHome = () => {
   const navigate = useNavigate()
-  const [stats, setStats] = useState({
-    totalBookings: 0,
-    todayBookings: 0,
-    monthlyRevenue: 0,
-    statusBreakdown: [],
-    upcomingBookings: 0,
-  })
-  const [recentBookings, setRecentBookings] = useState([])
-  const [loading, setLoading] = useState(true)
   const [timeRange, setTimeRange] = useState('week') // 'week', 'month', 'year'
-  const [error, setError] = useState(null)
 
-  useEffect(() => {
-    fetchDashboardData()
-  }, [timeRange])
+  // Calculate date range based on selected time period
+  const startDate = getStartDateForRange(timeRange)
+  const endDate = moment()
 
-  const fetchDashboardData = async () => {
-    setLoading(true)
-    setError(null)
+  // Use cached hooks for data fetching
+  const { data: statsData, isLoading: statsLoading, error: statsError } = useBookingStats(
+    startDate.format('YYYY-MM-DD'),
+    endDate.format('YYYY-MM-DD')
+  )
+  
+  const { data: bookingsData, isLoading: bookingsLoading } = useBookings({
+    limit: 5,
+    sortBy: 'createdAt:desc',
+  })
 
-    try {
-      // Set date range based on selected time period
-      const startDate = getStartDateForRange(timeRange)
-
-      // API calls for dashboard data
-      const [statsResponse, bookingsResponse] = await Promise.all([
-        ApiService.get('/bookings/stats', {
-          params: {
-            startDate: startDate.format('YYYY-MM-DD'),
-            endDate: moment().format('YYYY-MM-DD'),
-          },
-        }),
-        ApiService.get('/bookings', {
-          params: {
-            limit: 5,
-            sortBy: 'createdAt:desc',
-          },
-        }),
-      ])
-
-      // Process stats data
-      const statsData = statsResponse.data
-      setStats({
-        totalBookings: calculateTotalBookings(statsData.statusBreakdown || []),
-        todayBookings: await fetchTodayBookingsCount(),
-        monthlyRevenue: calculateTotalRevenue(statsData.statusBreakdown || []),
-        statusBreakdown: statsData.statusBreakdown || [],
-        upcomingBookings: statsData.upcomingBookings || 0,
-      })
-
-      // Process recent bookings
-      const bookingsData = bookingsResponse.data
-      setRecentBookings(Array.isArray(bookingsData.results) ? bookingsData.results : [])
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error)
-      setError('Failed to load dashboard data. Please try again later.')
-    } finally {
-      setLoading(false)
-    }
+  // Process the data from hooks
+  const loading = statsLoading || bookingsLoading
+  const error = statsError ? 'Failed to load dashboard data. Please try again later.' : null
+  
+  const stats = {
+    totalBookings: calculateTotalBookings(statsData?.statusBreakdown || []),
+    todayBookings: statsData?.todayBookings || 0,
+    monthlyRevenue: calculateTotalRevenue(statsData?.statusBreakdown || []),
+    statusBreakdown: statsData?.statusBreakdown || [],
+    upcomingBookings: statsData?.upcomingBookings || 0,
   }
-
-  const getStartDateForRange = range => {
-    switch (range) {
-      case 'week':
-        return moment().subtract(7, 'days')
-      case 'month':
-        return moment().subtract(30, 'days')
-      case 'year':
-        return moment().subtract(1, 'year')
-      default:
-        return moment().subtract(7, 'days')
-    }
-  }
-
-  const fetchTodayBookingsCount = async () => {
-    try {
-      const today = moment().format('YYYY-MM-DD')
-      const response = await ApiService.get('/bookings', {
-        params: {
-          date: today,
-          limit: 1, // We just need the count
-        },
-      })
-      return response.data.totalResults || 0
-    } catch (error) {
-      console.error("Error fetching today's bookings:", error)
-      return 0
-    }
-  }
-
-
-  const calculateTotalBookings = statusBreakdown => {
-    return statusBreakdown.reduce((total, item) => total + (item.count || 0), 0)
-  }
-
-  const calculateTotalRevenue = statusBreakdown => {
-    return statusBreakdown.reduce((total, item) => total + (item.totalRevenue || 0), 0)
-  }
+  
+  const recentBookings = Array.isArray(bookingsData?.results) ? bookingsData.results : []
 
   const bookingColumns = [
     {
@@ -215,11 +169,6 @@ const DashboardHome = () => {
           description={error}
           type="error"
           showIcon
-          action={
-            <Button size="small" type="primary" onClick={fetchDashboardData}>
-              Retry
-            </Button>
-          }
         />
       </div>
     )

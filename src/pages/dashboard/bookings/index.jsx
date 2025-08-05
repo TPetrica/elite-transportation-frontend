@@ -1,4 +1,5 @@
 import ApiService from '@/services/api.service'
+import { useBookings } from '@/hooks/useQueryHooks'
 import { ExclamationCircleOutlined } from '@ant-design/icons'
 import {
     Badge,
@@ -31,8 +32,6 @@ const { Option } = Select
 const { confirm } = Modal
 
 const BookingsPage = () => {
-  const [bookings, setBookings] = useState([])
-  const [loading, setLoading] = useState(true)
   const [currentTab, setCurrentTab] = useState('all')
   const [detailsVisible, setDetailsVisible] = useState(false)
   const [currentBooking, setCurrentBooking] = useState(null)
@@ -45,6 +44,33 @@ const BookingsPage = () => {
   const [sortField, setSortField] = useState('pickup.date')
   const [sortOrder, setSortOrder] = useState('desc')
   const navigate = useNavigate()
+
+  // Build query parameters
+  const queryParams = {
+    page: pagination.current,
+    limit: pagination.pageSize,
+    sortBy: `${sortField}:${sortOrder}`,
+    ...(currentTab !== 'all' && { status: currentTab }),
+    // Add search params from form if any
+    ...searchForm.getFieldsValue(),
+  }
+
+  // Use cached bookings hook
+  const { data: bookingsResponse, isLoading: loading, error } = useBookings(queryParams)
+  
+  // Process bookings data
+  const bookings = Array.isArray(bookingsResponse?.results) ? bookingsResponse.results : []
+  
+  // Update pagination when data changes
+  useEffect(() => {
+    if (bookingsResponse) {
+      setPagination(prev => ({
+        ...prev,
+        total: bookingsResponse.totalResults || 0,
+        current: bookingsResponse.page || 1,
+      }))
+    }
+  }, [bookingsResponse])
 
   const fetchBookings = async (params = {}) => {
     setLoading(true)

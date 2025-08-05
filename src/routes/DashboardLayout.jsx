@@ -102,35 +102,47 @@ const DashboardLayout = () => {
   ]
 
   // Mobile navigation
-  const renderMobileNav = () => (
-    <Drawer
-      placement="left"
-      onClose={toggleMobileDrawer}
-      open={mobileOpen}
-      width={250}
-      bodyStyle={{ padding: 0 }}
-      title="Dashboard"
-    >
-      <AntMenu mode="inline" selectedKeys={[location.pathname]} style={{ borderRight: 0 }}>
-        {navigation.map(item => (
-          <AntMenu.Item
-            key={item.href}
-            icon={<item.icon size={16} />}
-            onClick={() => {
-              navigate(item.href)
-              setMobileOpen(false)
-            }}
-          >
-            {item.name}
+  const renderMobileNav = () => {
+    // Get the selected keys for mobile menu using the same logic as desktop
+    const getSelectedKeys = () => {
+      const activeItem = navigation.find(item => 
+        item.href === '/dashboard' 
+          ? location.pathname === '/dashboard'
+          : location.pathname.startsWith(item.href)
+      )
+      return activeItem ? [activeItem.href] : []
+    }
+
+    return (
+      <Drawer
+        placement="left"
+        onClose={toggleMobileDrawer}
+        open={mobileOpen}
+        width={250}
+        bodyStyle={{ padding: 0 }}
+        title="Dashboard"
+      >
+        <AntMenu mode="inline" selectedKeys={getSelectedKeys()} style={{ borderRight: 0 }}>
+          {navigation.map(item => (
+            <AntMenu.Item
+              key={item.href}
+              icon={<item.icon size={16} />}
+              onClick={() => {
+                navigate(item.href)
+                setMobileOpen(false)
+              }}
+            >
+              {item.name}
+            </AntMenu.Item>
+          ))}
+          <AntMenu.Divider />
+          <AntMenu.Item key="logout" icon={<LogOut size={16} />} onClick={handleLogout}>
+            Logout
           </AntMenu.Item>
-        ))}
-        <AntMenu.Divider />
-        <AntMenu.Item key="logout" icon={<LogOut size={16} />} onClick={handleLogout}>
-          Logout
-        </AntMenu.Item>
-      </AntMenu>
-    </Drawer>
-  )
+        </AntMenu>
+      </Drawer>
+    )
+  }
 
   return (
     <Layout className="tw-min-h-screen">
@@ -157,8 +169,14 @@ const DashboardLayout = () => {
 
         <nav className="tw-mt-6 tw-px-2">
           {navigation.map(item => {
-            const isActive = location.pathname === item.href
+            // Check if current path starts with nav item href, but handle dashboard root specially
+            const isActive = item.href === '/dashboard' 
+              ? location.pathname === '/dashboard'
+              : location.pathname.startsWith(item.href)
             const Icon = item.icon
+            
+            // Debug logging
+            console.log(`Item: ${item.name}, href: ${item.href}, pathname: ${location.pathname}, isActive: ${isActive}`)
 
             return (
               <Link
@@ -166,13 +184,13 @@ const DashboardLayout = () => {
                 to={item.href}
                 className={`tw-flex tw-items-center tw-px-4 tw-py-3 tw-text-sm tw-font-medium tw-rounded-md tw-mb-1 tw-transition-colors ${
                   isActive
-                    ? 'tw-bg-primary-50 tw-text-primary-600'
+                    ? 'tw-bg-blue-50 tw-text-blue-600'
                     : 'tw-text-gray-700 hover:tw-bg-gray-50'
                 }`}
               >
                 <Icon
                   className={`tw-mr-3 tw-h-5 tw-w-5 ${
-                    isActive ? 'tw-text-primary-600' : 'tw-text-gray-400'
+                    isActive ? 'tw-text-blue-600' : 'tw-text-gray-400'
                   }`}
                 />
                 {!collapsed && item.name}

@@ -1,8 +1,16 @@
+// Use modern Sass module syntax
+@use 'sass:color';
+@use 'sass:map';
+
+// Import fixes for deprecated functions
+@import 'sass-fixes';
+
+// Import the legacy stylesheet - we'll keep this for now but should eventually migrate
 @import '../../public/assets/scss/style.scss';
 @import 'antd/dist/reset.css';
 
-/* Import Bootstrap first */
-// @import 'bootstrap/dist/css/bootstrap.min.css';
+// Import image fixes
+@import 'image-fixes';
 
 /* Then Tailwind */
 @tailwind base;
@@ -16,4 +24,12 @@
 
 .cardService .cardInfo {
   transition: background 0.3s ease;
+}
+
+/* Fix for color-adjust deprecation */
+@media print {
+  * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
 }

@@ -13,7 +13,7 @@ import {
   Card,
 } from 'antd'
 import { InfoCircleOutlined } from '@ant-design/icons'
-import { Save, X } from 'lucide-react'
+import { Save, X, Edit, Plus } from 'lucide-react'
 
 const { Option } = Select
 const { TextArea } = Input
@@ -106,8 +106,6 @@ const ExtrasFormModal = ({
                 style={{ width: '100%' }}
                 prefix="$"
                 placeholder="0.00"
-                formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                parser={value => value.replace(/\$\s?|(,*)/g, '')}
               />
             </Form.Item>
 
@@ -208,6 +206,3 @@ const ExtrasFormModal = ({
 
 export default ExtrasFormModal
 
-// Import these at the top of your file
-import { Edit, Plus } from 'lucide-react'
-import { message } from 'antd'

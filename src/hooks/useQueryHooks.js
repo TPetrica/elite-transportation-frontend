@@ -6,7 +6,7 @@ import calendarService from '@/services/calendar.service';
 // ================= SERVICES HOOKS ===================
 
 /**
- * Hook to fetch services
+ * Hook to fetch services with caching
  */
 export const useServices = (params = {}) => {
   return useQuery({
@@ -15,6 +15,9 @@ export const useServices = (params = {}) => {
       const response = await ApiService.get('/services', { params });
       return response.data;
     },
+    staleTime: 1000 * 60 * 10, // 10 minutes (services don't change often)
+    cacheTime: 1000 * 60 * 60, // 1 hour
+    keepPreviousData: true,
   });
 };
 
@@ -407,6 +410,198 @@ export const useTimeSlots = (date) => {
     staleTime: 1000 * 60 * 5, // 5 minutes
     cacheTime: 1000 * 60 * 30, // 30 minutes
     keepPreviousData: true,
+  });
+};
+
+/**
+ * Hook to fetch date exceptions with caching
+ */
+export const useDateExceptions = (startDate, endDate) => {
+  return useQuery({
+    queryKey: ['dateExceptions', startDate, endDate],
+    queryFn: async () => {
+      const response = await ApiService.get('/availability/exceptions', {
+        params: { startDate, endDate }
+      });
+      return response.data;
+    },
+    enabled: !!(startDate && endDate),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    cacheTime: 1000 * 60 * 30, // 30 minutes
+    keepPreviousData: true,
+  });
+};
+
+/**
+ * Hook to create a date exception
+ */
+export const useCreateDateException = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (exceptionData) => ApiService.post('/availability/exceptions', exceptionData),
+    onSuccess: () => {
+      message.success('Date exception created successfully');
+      // Invalidate all date exception queries
+      queryClient.invalidateQueries(['dateExceptions']);
+      // Also invalidate time slots as they depend on exceptions
+      queryClient.invalidateQueries(['timeSlots']);
+    },
+    onError: (error) => {
+      message.error(error.response?.data?.message || 'Failed to create date exception');
+      console.error('Error creating date exception:', error);
+    },
+  });
+};
+
+/**
+ * Hook to update a date exception
+ */
+export const useUpdateDateException = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ exceptionId, data }) => ApiService.patch(`/availability/exceptions/${exceptionId}`, data),
+    onSuccess: () => {
+      message.success('Date exception updated successfully');
+      queryClient.invalidateQueries(['dateExceptions']);
+      queryClient.invalidateQueries(['timeSlots']);
+    },
+    onError: (error) => {
+      message.error(error.response?.data?.message || 'Failed to update date exception');
+      console.error('Error updating date exception:', error);
+    },
+  });
+};
+
+/**
+ * Hook to delete a date exception
+ */
+export const useDeleteDateException = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (exceptionId) => ApiService.delete(`/availability/exceptions/${exceptionId}`),
+    onSuccess: () => {
+      message.success('Date exception deleted successfully');
+      queryClient.invalidateQueries(['dateExceptions']);
+      queryClient.invalidateQueries(['timeSlots']);
+    },
+    onError: (error) => {
+      message.error(error.response?.data?.message || 'Failed to delete date exception');
+      console.error('Error deleting date exception:', error);
+    },
+  });
+};
+
+// ================= BOOKINGS HOOKS ===================
+
+/**
+ * Hook to fetch bookings with caching
+ */
+export const useBookings = (params = {}) => {
+  return useQuery({
+    queryKey: ['bookings', params],
+    queryFn: async () => {
+      const response = await ApiService.get('/bookings', { params });
+      return response.data;
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    cacheTime: 1000 * 60 * 30, // 30 minutes
+    keepPreviousData: true,
+  });
+};
+
+/**
+ * Hook to fetch booking statistics with caching
+ */
+export const useBookingStats = (startDate, endDate) => {
+  return useQuery({
+    queryKey: ['bookingStats', startDate, endDate],
+    queryFn: async () => {
+      const response = await ApiService.get('/bookings/stats', {
+        params: { startDate, endDate }
+      });
+      return response.data;
+    },
+    enabled: !!(startDate && endDate),
+    staleTime: 1000 * 60 * 2, // 2 minutes (stats can be more frequently updated)
+    cacheTime: 1000 * 60 * 10, // 10 minutes
+    keepPreviousData: true,
+  });
+};
+
+/**
+ * Hook to fetch a single booking
+ */
+export const useBooking = (bookingId) => {
+  return useQuery({
+    queryKey: ['booking', bookingId],
+    queryFn: async () => {
+      const response = await ApiService.get(`/bookings/${bookingId}`);
+      return response.data;
+    },
+    enabled: !!bookingId,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    cacheTime: 1000 * 60 * 30, // 30 minutes
+  });
+};
+
+/**
+ * Hook to update a booking
+ */
+export const useUpdateBooking = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ bookingId, data }) => ApiService.patch(`/bookings/${bookingId}`, data),
+    onSuccess: () => {
+      message.success('Booking updated successfully');
+      queryClient.invalidateQueries(['bookings']);
+      queryClient.invalidateQueries(['booking']);
+      queryClient.invalidateQueries(['bookingStats']);
+    },
+    onError: (error) => {
+      message.error(error.response?.data?.message || 'Failed to update booking');
+      console.error('Error updating booking:', error);
+    },
+  });
+};
+
+// ================= SCHEDULE HOOKS ===================
+
+/**
+ * Hook to fetch schedule with caching
+ */
+export const useSchedule = () => {
+  return useQuery({
+    queryKey: ['schedule'],
+    queryFn: async () => {
+      const response = await ApiService.get('/availability/schedule');
+      return response.data;
+    },
+    staleTime: 1000 * 60 * 10, // 10 minutes (schedule doesn't change often)
+    cacheTime: 1000 * 60 * 60, // 1 hour
+  });
+};
+
+/**
+ * Hook to update schedule
+ */
+export const useUpdateSchedule = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (scheduleData) => ApiService.put('/availability/schedule', scheduleData),
+    onSuccess: () => {
+      message.success('Schedule updated successfully');
+      queryClient.invalidateQueries(['schedule']);
+      queryClient.invalidateQueries(['timeSlots']);
+    },
+    onError: (error) => {
+      message.error(error.response?.data?.message || 'Failed to update schedule');
+      console.error('Error updating schedule:', error);
+    },
   });
 };
 

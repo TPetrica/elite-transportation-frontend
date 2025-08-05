@@ -49,6 +49,7 @@ import dayjs from 'dayjs'
 import ApiService from '@/services/api.service'
 import DatePicker from '@/components/dashboard/DatePicker'
 import CalendarView from './CalendarView'
+import { useDateExceptions, useCreateDateException, useUpdateDateException, useDeleteDateException, useSchedule, useUpdateSchedule } from '@/hooks/useQueryHooks'
 
 const { Title, Text } = Typography
 const { TabPane } = Tabs
@@ -56,17 +57,36 @@ const { Option } = Select
 const { confirm } = Modal
 const { TextArea } = Input
 
+// Shared date range to ensure both components use the same dates
+const getCurrentMonthRange = () => {
+  const startDate = moment().startOf('month').format('YYYY-MM-DD')
+  const endDate = moment().endOf('month').format('YYYY-MM-DD')
+  return { startDate, endDate }
+}
+
 const SchedulePage = () => {
   const [form] = Form.useForm()
-  const [schedule, setSchedule] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [exceptionLoading, setExceptionLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
-  const [dateExceptions, setDateExceptions] = useState([])
   const [exceptionModalVisible, setExceptionModalVisible] = useState(false)
   const [editingException, setEditingException] = useState(null)
   const [exceptionForm] = Form.useForm()
   const [activeTab, setActiveTab] = useState('calendar')
+
+  // Get date range for current month
+  const { startDate, endDate } = getCurrentMonthRange()
+
+  // TanStack Query hooks
+  const { data: scheduleData, isLoading: scheduleLoading } = useSchedule()
+  const { data: dateExceptionsData, isLoading: exceptionLoading } = useDateExceptions(startDate, endDate)
+  const updateScheduleMutation = useUpdateSchedule()
+  const createDateExceptionMutation = useCreateDateException()
+  const updateDateExceptionMutation = useUpdateDateException()
+  const deleteExceptionMutation = useDeleteDateException()
+
+  // Process the data
+  const schedule = Array.isArray(scheduleData) ? scheduleData : []
+  const dateExceptions = dateExceptionsData?.results || []
+  const loading = scheduleLoading
+  const submitting = updateScheduleMutation.isLoading
 
   const daysOfWeek = [
     { name: 'Sunday', value: 0 },
@@ -78,87 +98,35 @@ const SchedulePage = () => {
     { name: 'Saturday', value: 6 },
   ]
 
-  const fetchSchedule = async () => {
-    setLoading(true)
-    try {
-      const response = await ApiService.get('/availability/schedule')
-
-      // If no schedule exists, initialize with default values
-      if (!response.data || response.data.length === 0) {
-        const defaultSchedule = daysOfWeek.map(day => ({
-          dayOfWeek: day.value,
-          isEnabled: true,
-          timeRanges: [{ start: '09:00', end: '17:00' }],
-        }))
-        setSchedule(defaultSchedule)
-      } else {
-        // Sort by day of week
-        const sortedSchedule = [...response.data].sort((a, b) => a.dayOfWeek - b.dayOfWeek)
-        setSchedule(sortedSchedule)
-      }
-    } catch (error) {
-      console.error('Error fetching schedule:', error)
-      message.error('Failed to fetch schedule')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const fetchDateExceptions = async () => {
-    setExceptionLoading(true)
-    try {
-      const today = moment().format('YYYY-MM-DD')
-      const oneYearLater = moment().add(1, 'year').format('YYYY-MM-DD')
-
-      const response = await ApiService.get(
-        `/availability/exceptions?startDate=${today}&endDate=${oneYearLater}`
-      )
-
-      if (response.data && response.data.results) {
-        setDateExceptions(response.data.results)
-      } else {
-        setDateExceptions([])
-      }
-    } catch (error) {
-      console.error('Error fetching date exceptions:', error)
-      message.error('Failed to fetch date exceptions')
-    } finally {
-      setExceptionLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchSchedule()
-    fetchDateExceptions()
-  }, [])
+  // Initialize default schedule if no data exists
+  const processedSchedule = schedule.length === 0 
+    ? daysOfWeek.map(day => ({
+        dayOfWeek: day.value,
+        isEnabled: true,
+        timeRanges: [{ start: '09:00', end: '17:00' }],
+      }))
+    : [...schedule].sort((a, b) => a.dayOfWeek - b.dayOfWeek)
 
   const handleSubmit = async values => {
-    setSubmitting(true)
+    const { days } = values
+    const updatedSchedule = days.map((day, index) => {
+      return {
+        dayOfWeek: index,
+        isEnabled: day.isEnabled,
+        timeRanges: day.timeRanges.map(range => ({
+          start: range.start.format('HH:mm'),
+          end: range.end.format('HH:mm'),
+        })),
+      }
+    })
+
+    // Update each day individually using Promise.all
     try {
-      const { days } = values
-      const updatedSchedule = days.map((day, index) => {
-        return {
-          dayOfWeek: index,
-          isEnabled: day.isEnabled,
-          timeRanges: day.timeRanges.map(range => ({
-            start: range.start.format('HH:mm'),
-            end: range.end.format('HH:mm'),
-          })),
-        }
-      })
-
-      // Update each day individually
       await Promise.all(
-        updatedSchedule.map(daySchedule => ApiService.put('/availability/schedule', daySchedule))
+        updatedSchedule.map(daySchedule => updateScheduleMutation.mutateAsync(daySchedule))
       )
-
-      message.success('Schedule updated successfully')
-      fetchSchedule()
     } catch (error) {
       console.error('Error updating schedule:', error)
-      message.error('Failed to update schedule')
-    } finally {
-      setSubmitting(false)
     }
   }
 
@@ -176,10 +144,10 @@ const SchedulePage = () => {
   }
 
   const formatScheduleForForm = () => {
-    if (!schedule.length) return { days: [] }
+    if (!processedSchedule.length) return { days: [] }
 
     const days = daysOfWeek.map(day => {
-      const daySchedule = schedule.find(s => s.dayOfWeek === day.value) || {
+      const daySchedule = processedSchedule.find(s => s.dayOfWeek === day.value) || {
         isEnabled: false,
         timeRanges: [{ start: '09:00', end: '17:00' }],
       }
@@ -220,7 +188,6 @@ const SchedulePage = () => {
     exceptionForm.setFieldsValue({
       date: moment(record.date),
       isEnabled: record.isEnabled,
-      reason: record.reason || '',
       type: record.type || 'closed',
       timeRanges: formattedTimeRanges.length
         ? formattedTimeRanges
@@ -241,46 +208,40 @@ const SchedulePage = () => {
       icon: <ExclamationCircleOutlined />,
       content: 'This action cannot be undone.',
       onOk: async () => {
-        try {
-          await ApiService.delete(`/availability/exceptions/${exceptionId}`)
-          message.success('Date exception deleted successfully')
-          fetchDateExceptions()
-        } catch (error) {
-          console.error('Error deleting date exception:', error)
-          message.error('Failed to delete date exception')
-        }
+        deleteExceptionMutation.mutate(exceptionId)
       },
     })
   }
 
   const handleExceptionSubmit = async values => {
-    try {
-      // Format date and time ranges
-      const formattedValues = {
-        ...values,
-        date: values.date.format('YYYY-MM-DD'),
-        timeRanges:
-          values.type === 'custom-hours'
-            ? values.timeRanges.map(range => ({
-                start: range.start.format('HH:mm'),
-                end: range.end.format('HH:mm'),
-              }))
-            : [],
-      }
+    // Format date and time ranges
+    const formattedValues = {
+      ...values,
+      date: values.date.format('YYYY-MM-DD'),
+      timeRanges:
+        (values.type === 'custom-hours' || values.type === 'blocked-hours')
+          ? values.timeRanges?.map(range => ({
+              start: range.start.format('HH:mm'),
+              end: range.end.format('HH:mm'),
+            })) || []
+          : [],
+    }
 
-      if (editingException) {
-        await ApiService.patch(`/availability/exceptions/${editingException.id}`, formattedValues)
-        message.success('Date exception updated successfully')
-      } else {
-        await ApiService.post('/availability/exceptions', formattedValues)
-        message.success('Date exception created successfully')
-      }
-
-      setExceptionModalVisible(false)
-      fetchDateExceptions()
-    } catch (error) {
-      console.error('Error saving date exception:', error)
-      message.error('Failed to save date exception')
+    if (editingException) {
+      updateDateExceptionMutation.mutate({
+        exceptionId: editingException.id,
+        data: formattedValues
+      }, {
+        onSuccess: () => {
+          setExceptionModalVisible(false)
+        }
+      })
+    } else {
+      createDateExceptionMutation.mutate(formattedValues, {
+        onSuccess: () => {
+          setExceptionModalVisible(false)
+        }
+      })
     }
   }
 
@@ -364,8 +325,13 @@ const SchedulePage = () => {
       dataIndex: 'isEnabled',
       key: 'isEnabled',
       render: (isEnabled, record) => (
-        <Tag color={isEnabled ? 'success' : 'error'}>
-          {isEnabled ? (
+        <Tag color={record.type === 'blocked-hours' ? 'warning' : (isEnabled ? 'success' : 'error')}>
+          {record.type === 'blocked-hours' ? (
+            <span>
+              <Ban size={14} className="tw-mr-1" />
+              Blocked Hours
+            </span>
+          ) : isEnabled ? (
             <span>
               <Clock4 size={14} className="tw-mr-1" />
               {record.type === 'custom-hours' ? 'Custom Hours' : 'Open'}
@@ -380,12 +346,6 @@ const SchedulePage = () => {
       ),
     },
     {
-      title: 'Reason',
-      dataIndex: 'reason',
-      key: 'reason',
-      render: reason => reason || <Text type="secondary">-</Text>,
-    },
-    {
       title: 'Hours',
       key: 'hours',
       render: (_, record) => {
@@ -393,11 +353,12 @@ const SchedulePage = () => {
           return <Text type="secondary">Closed</Text>
         }
 
-        if (record.type === 'custom-hours' && record.timeRanges?.length) {
+        if ((record.type === 'custom-hours' || record.type === 'blocked-hours') && record.timeRanges?.length) {
           return (
             <Space direction="vertical" size="small">
               {record.timeRanges.map((range, index) => (
-                <Text key={index}>
+                <Text key={index} className={record.type === 'blocked-hours' ? 'tw-text-orange-600' : ''}>
+                  {record.type === 'blocked-hours' ? 'Blocked: ' : ''}
                   {moment(range.start, 'HH:mm').format('h:mm A')} -{' '}
                   {moment(range.end, 'HH:mm').format('h:mm A')}
                 </Text>
@@ -406,7 +367,7 @@ const SchedulePage = () => {
           )
         }
 
-        return <Text type="secondary">Default hours</Text>
+        return <Text type="secondary">{record.type === 'blocked-hours' ? 'No blocked hours' : 'Default hours'}</Text>
       },
     },
     {
@@ -433,10 +394,10 @@ const SchedulePage = () => {
 
   // Check if form data is ready
   useEffect(() => {
-    if (schedule.length) {
+    if (processedSchedule.length) {
       form.setFieldsValue(formatScheduleForForm())
     }
-  }, [schedule])
+  }, [processedSchedule.length])
 
   return (
     <div className="tw-space-y-6">
@@ -620,13 +581,6 @@ const SchedulePage = () => {
             </Form.Item>
           </div>
 
-          <Form.Item
-            name="reason"
-            label="Reason (Optional)"
-            tooltip="Provide a reason for this exception (e.g. Holiday, Special Event, etc.)"
-          >
-            <Input placeholder="e.g. Christmas Day, Maintenance, etc." />
-          </Form.Item>
 
           <Form.Item
             noStyle
@@ -639,7 +593,8 @@ const SchedulePage = () => {
                 <div>
                   <Form.Item name="type" label="Schedule Type">
                     <Radio.Group>
-                      <Radio value="custom-hours">Custom Hours</Radio>
+                      <Radio value="custom-hours">Custom Available Hours</Radio>
+                      <Radio value="blocked-hours">Block Specific Hours</Radio>
                       <Radio value="regular">Use Regular Schedule</Radio>
                     </Radio.Group>
                   </Form.Item>
@@ -652,14 +607,14 @@ const SchedulePage = () => {
                     }
                   >
                     {({ getFieldValue }) =>
-                      getFieldValue('type') === 'custom-hours' && getFieldValue('isEnabled') ? (
+                      (getFieldValue('type') === 'custom-hours' || getFieldValue('type') === 'blocked-hours') && getFieldValue('isEnabled') ? (
                         <div className="tw-border tw-border-gray-200 tw-rounded-md tw-p-4 tw-mb-4">
                           <Form.List name="timeRanges" rules={[{ validator: validateTimeRanges }]}>
                             {(fields, { add, remove }) => (
                               <>
                                 <div className="tw-flex tw-justify-between tw-items-center tw-mb-2">
                                   <Title level={5} className="tw-m-0">
-                                    Custom Time Ranges
+                                    {getFieldValue('type') === 'blocked-hours' ? 'Blocked Time Ranges' : 'Available Time Ranges'}
                                   </Title>
                                 </div>
 

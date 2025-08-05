@@ -1,0 +1,17 @@
+// Modern Sass module syntax
+@use 'sass:color';
+@use 'sass:map';
+
+// Override deprecated functions
+@function darken($color, $amount) {
+  @return color.adjust($color, $lightness: -$amount);
+}
+
+@function lighten($color, $amount) {
+  @return color.adjust($color, $lightness: $amount);
+}
+
+// Override map-get function
+@function map-get($map, $key) {
+  @return map.get($map, $key);
+}

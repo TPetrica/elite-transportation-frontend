@@ -1,4 +1,5 @@
 import ApiService from '@/services/api.service'
+import { useServices, useCreateService, useUpdateService, useDeleteService } from '@/hooks/useQueryHooks'
 import {
   Button,
   Card,
@@ -19,41 +20,23 @@ import ServiceFormModal from './ServiceFormModal'
 const { Option } = Select
 
 const Services = () => {
-  const [services, setServices] = useState([])
-  const [loading, setLoading] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
   const [form] = Form.useForm()
   const [editingId, setEditingId] = useState(null)
   const [editingService, setEditingService] = useState(null)
 
-  const fetchServices = async () => {
-    try {
-      setLoading(true)
-      const [servicesRes] = await Promise.all([
-        ApiService.get('/services'),
-      ])
+  // Use cached hooks
+  const { data: servicesData, isLoading: loading, error } = useServices()
+  const createServiceMutation = useCreateService()
+  const updateServiceMutation = useUpdateService()
+  const deleteServiceMutation = useDeleteService()
 
-      // Ensure services is an array before setting state
-      const servicesData = Array.isArray(servicesRes.data)
-        ? servicesRes.data
-        : Array.isArray(servicesRes.data.results)
-          ? servicesRes.data.results
-          : []
-
-      setServices(servicesData)
-    } catch (error) {
-      console.error('Failed to fetch services:', error)
-      message.error('Failed to fetch services')
-      // Set empty arrays to prevent errors
-      setServices([])
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchServices()
-  }, [])
+  // Process the services data
+  const services = Array.isArray(servicesData)
+    ? servicesData
+    : Array.isArray(servicesData?.results)
+      ? servicesData.results
+      : []
 
   // Function to get service type label with proper formatting
   const formatServiceType = type => {

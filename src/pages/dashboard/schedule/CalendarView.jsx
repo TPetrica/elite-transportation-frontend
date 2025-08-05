@@ -1,41 +1,39 @@
 import React, { useState, useEffect } from 'react'
-import { Calendar, Badge, Modal, Button, Form, Input, TimePicker, Switch, message, Select, Card, Alert } from 'antd'
+import { Calendar, Badge, Modal, Button, Form, Input, TimePicker, Switch, Select, Card, Alert } from 'antd'
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
 import moment from 'moment'
-import ApiService from '@/services/api.service'
+import { useDateExceptions, useCreateDateException, useUpdateDateException, useDeleteDateException } from '@/hooks/useQueryHooks'
 
 const { Option } = Select
 const { TextArea } = Input
 
 const CalendarView = () => {
-  const [dateExceptions, setDateExceptions] = useState([])
-  const [loading, setLoading] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
   const [selectedDate, setSelectedDate] = useState(null)
+  const [currentMonth, setCurrentMonth] = useState(moment())
+  const [isChangingMonth, setIsChangingMonth] = useState(false)
   const [form] = Form.useForm()
 
-  useEffect(() => {
-    fetchDateExceptions()
-  }, [])
+  // Use the currently viewed month for date range
+  const startDate = currentMonth.clone().startOf('month').format('YYYY-MM-DD')
+  const endDate = currentMonth.clone().endOf('month').format('YYYY-MM-DD')
 
-  const fetchDateExceptions = async () => {
-    setLoading(true)
-    try {
-      const today = moment().format('YYYY-MM-DD')
-      const oneYearLater = moment().add(1, 'year').format('YYYY-MM-DD')
-      
-      const response = await ApiService.get(
-        `/availability/exceptions?startDate=${today}&endDate=${oneYearLater}`
-      )
-      
-      if (response.data && response.data.results) {
-        setDateExceptions(response.data.results)
-      }
-    } catch (error) {
-      console.error('Error fetching date exceptions:', error)
-      message.error('Failed to fetch calendar data')
-    } finally {
-      setLoading(false)
+  // TanStack Query hooks
+  const { data: dateExceptionsData, isLoading: loading } = useDateExceptions(startDate, endDate)
+  const createDateExceptionMutation = useCreateDateException()
+  const updateDateExceptionMutation = useUpdateDateException()
+  const deleteExceptionMutation = useDeleteDateException()
+
+  // Extract results from the query data
+  const dateExceptions = dateExceptionsData?.results || []
+
+  const handlePanelChange = (value, mode) => {
+    if (mode === 'month') {
+      setIsChangingMonth(true)
+      const newMonth = moment(value)
+      setCurrentMonth(newMonth)
+      // Clear the flag after a short delay
+      setTimeout(() => setIsChangingMonth(false), 100)
     }
   }
 
@@ -50,27 +48,38 @@ const CalendarView = () => {
   const dateCellRender = (value) => {
     if (!value || !value.format) return null
     const dateData = getDateData(value)
-    if (!dateData) return null
-
-    const getStatusBadge = () => {
-      if (!dateData.isEnabled) {
-        return <Badge status="error" text="Closed" />
-      }
-      if (dateData.type === 'custom-hours') {
-        return <Badge status="warning" text="Custom Hours" />
-      }
-      return <Badge status="success" text="Special" />
-    }
-
+    
+    // Always render a clickable area for all dates
     return (
-      <div className="tw-text-xs">
-        {getStatusBadge()}
+      <div 
+        className="tw-h-full tw-w-full tw-cursor-pointer" 
+        onClick={(e) => {
+          e.stopPropagation()
+          onSelectDate(value)
+        }}
+      >
+        {dateData && (
+          <div className="tw-text-xs">
+            {(() => {
+              if (!dateData.isEnabled && dateData.type === 'closed') {
+                return <Badge status="error" text="Closed" />
+              }
+              if (dateData.type === 'custom-hours') {
+                return <Badge status="processing" text="Custom Hours" />
+              }
+              if (dateData.type === 'blocked-hours') {
+                return <Badge status="warning" text="Blocked Hours" />
+              }
+              return <Badge status="success" text="Special" />
+            })()}
+          </div>
+        )}
       </div>
     )
   }
 
   const onSelectDate = (value) => {
-    if (!value || !value.format) return
+    if (!value || !value.format || isChangingMonth) return
     setSelectedDate(value)
     const existingException = getDateData(value)
     
@@ -84,7 +93,6 @@ const CalendarView = () => {
           start: moment(range.start, 'HH:mm'),
           end: moment(range.end, 'HH:mm'),
         })) || [],
-        description: existingException.description || '',
       }
       form.setFieldsValue(formData)
     } else {
@@ -94,7 +102,6 @@ const CalendarView = () => {
         isEnabled: false,
         type: 'closed',
         timeRanges: [],
-        description: '',
       })
     }
     
@@ -103,79 +110,69 @@ const CalendarView = () => {
 
   const handleQuickBlock = async (date) => {
     if (!date || !date.format) return
-    try {
-      const dateStr = date.format('YYYY-MM-DD')
-      const existingException = getDateData(date)
+    
+    const dateStr = date.format('YYYY-MM-DD')
+    const existingException = getDateData(date)
 
-      if (existingException) {
-        // Delete existing exception
-        await ApiService.delete(`/availability/exceptions/${existingException._id}`)
-        message.success('Date exception removed')
-      } else {
-        // Create new blocked date
-        await ApiService.post('/availability/exceptions', {
-          date: dateStr,
-          isEnabled: false,
-          type: 'closed',
-          description: 'Blocked via calendar',
-        })
-        message.success('Date blocked successfully')
-      }
-      
-      fetchDateExceptions()
-    } catch (error) {
-      console.error('Error toggling date block:', error)
-      message.error('Failed to update date')
+    if (existingException) {
+      // Delete existing exception
+      deleteExceptionMutation.mutate(existingException.id)
+    } else {
+      // Create new blocked date
+      createDateExceptionMutation.mutate({
+        date: dateStr,
+        isEnabled: false,
+        type: 'closed',
+      })
     }
   }
 
   const handleSubmit = async (values) => {
     if (!selectedDate || !selectedDate.format) return
-    try {
-      const existingException = getDateData(selectedDate)
-      const dateStr = selectedDate.format('YYYY-MM-DD')
-      
-      const exceptionData = {
-        date: dateStr,
-        isEnabled: values.isEnabled,
-        type: values.type,
-        timeRanges: values.timeRanges?.map(range => ({
-          start: range.start.format('HH:mm'),
-          end: range.end.format('HH:mm'),
-        })) || [],
-        description: values.description || '',
-      }
+    
+    const existingException = getDateData(selectedDate)
+    const dateStr = selectedDate.format('YYYY-MM-DD')
+    
+    const exceptionData = {
+      date: dateStr,
+      isEnabled: values.type === 'blocked-hours' ? true : values.isEnabled,
+      type: values.type,
+      timeRanges: values.timeRanges?.map(range => ({
+        start: range.start.format('HH:mm'),
+        end: range.end.format('HH:mm'),
+      })) || [],
+    }
 
-      if (existingException) {
-        await ApiService.patch(`/availability/exceptions/${existingException._id}`, exceptionData)
-        message.success('Date exception updated')
-      } else {
-        await ApiService.post('/availability/exceptions', exceptionData)
-        message.success('Date exception created')
-      }
-
-      setModalVisible(false)
-      form.resetFields()
-      fetchDateExceptions()
-    } catch (error) {
-      console.error('Error saving date exception:', error)
-      message.error('Failed to save date exception')
+    if (existingException) {
+      updateDateExceptionMutation.mutate({
+        exceptionId: existingException.id,
+        data: exceptionData
+      }, {
+        onSuccess: () => {
+          setModalVisible(false)
+          form.resetFields()
+        }
+      })
+    } else {
+      createDateExceptionMutation.mutate(exceptionData, {
+        onSuccess: () => {
+          setModalVisible(false)
+          form.resetFields()
+        }
+      })
     }
   }
 
   const handleDelete = async () => {
     if (!selectedDate || !selectedDate.format) return
-    try {
-      const existingException = getDateData(selectedDate)
-      if (existingException) {
-        await ApiService.delete(`/availability/exceptions/${existingException._id}`)
-        message.success('Date exception deleted')
-        setModalVisible(false)
-        fetchDateExceptions()
-      }
-    } catch (error) {
-      console.error('Error deleting date exception:', error)
-      message.error('Failed to delete date exception')
+    
+    const existingException = getDateData(selectedDate)
+    if (existingException) {
+      deleteExceptionMutation.mutate(existingException.id, {
+        onSuccess: () => {
+          setModalVisible(false)
+        }
+      })
     }
   }
 
@@ -183,7 +180,7 @@ const CalendarView = () => {
     <div>
       <Alert
         message="Calendar View"
-        description="Click on any date to quickly block it or set custom hours. Red badges indicate closed dates, yellow badges show custom hours."
+        description="Click on any date to manage exceptions. Red badges indicate closed dates or blocked hours, yellow badges show custom available hours."
         type="info"
         showIcon
         className="tw-mb-4"
@@ -192,7 +189,7 @@ const CalendarView = () => {
       <Card>
         <Calendar 
           dateCellRender={dateCellRender}
-          onSelect={onSelectDate}
+          onPanelChange={handlePanelChange}
           loading={loading}
         />
       </Card>
@@ -226,7 +223,8 @@ const CalendarView = () => {
           >
             <Select>
               <Option value="closed">Closed (No bookings)</Option>
-              <Option value="custom-hours">Custom Hours</Option>
+              <Option value="custom-hours">Custom Hours (Available)</Option>
+              <Option value="blocked-hours">Block Specific Hours</Option>
             </Select>
           </Form.Item>
 
@@ -258,12 +256,14 @@ const CalendarView = () => {
           >
             {({ getFieldValue }) => {
               const type = getFieldValue('type')
-              return type === 'custom-hours' ? (
+              return (type === 'custom-hours' || type === 'blocked-hours') ? (
                 <Form.List name="timeRanges">
                   {(fields, { add, remove }) => (
                     <div>
                       <div className="tw-flex tw-justify-between tw-items-center tw-mb-2">
-                        <label className="tw-font-medium">Custom Time Ranges</label>
+                        <label className="tw-font-medium">
+                          {type === 'custom-hours' ? 'Available Time Ranges' : 'Blocked Time Ranges'}
+                        </label>
                         <Button
                           type="dashed"
                           onClick={() => add({ start: moment('09:00', 'HH:mm'), end: moment('17:00', 'HH:mm') })}
@@ -304,12 +304,6 @@ const CalendarView = () => {
             }}
           </Form.Item>
 
-          <Form.Item
-            name="description"
-            label="Description (Optional)"
-          >
-            <TextArea rows={3} placeholder="Add a note about this date exception" />
-          </Form.Item>
 
           <div className="tw-flex tw-justify-between tw-pt-4">
             <div>
