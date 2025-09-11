@@ -70,7 +70,7 @@ const EditBookingPage = () => {
         itemId: extra.item.id || extra.item._id, // Handle both id formats
         quantity: extra.quantity,
         name: extra.item.name,
-        price: extra.item.price,
+        price: extra.item.price || 0,
         category: extra.item.category || 'Other',
         totalPrice: extra.price,
       })) || []
@@ -164,9 +164,9 @@ const EditBookingPage = () => {
         itemId: extraId,
         quantity: 1,
         name: extra.name,
-        price: extra.price,
+        price: extra.price || 0,
         category: extra.category || 'Other',
-        totalPrice: extra.price,
+        totalPrice: extra.price || 0,
       }
 
       setSelectedExtras(prevExtras => [...prevExtras, newExtra])
@@ -584,7 +584,7 @@ const EditBookingPage = () => {
                                   <Text strong>{extra.name}</Text>
                                   <div>
                                     <Text className="tw-text-blue-600 tw-font-medium">
-                                      ${extra.price.toFixed(2)}
+                                      ${(extra.price || 0).toFixed(2)}
                                     </Text>
                                   </div>
                                   {extra.description && (
