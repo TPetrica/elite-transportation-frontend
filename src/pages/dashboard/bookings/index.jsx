@@ -1,5 +1,5 @@
 import ApiService from '@/services/api.service'
-import { useBookings } from '@/hooks/useQueryHooks'
+import { useBookings, useUpdateBooking } from '@/hooks/useQueryHooks'
 import { ExclamationCircleOutlined } from '@ant-design/icons'
 import {
     Badge,
@@ -58,6 +58,9 @@ const BookingsPage = () => {
   // Use cached bookings hook
   const { data: bookingsResponse, isLoading: loading, error } = useBookings(queryParams)
   
+  // Use update booking mutation
+  const updateBookingMutation = useUpdateBooking()
+  
   // Process bookings data
   const bookings = Array.isArray(bookingsResponse?.results) ? bookingsResponse.results : []
   
@@ -72,66 +75,9 @@ const BookingsPage = () => {
     }
   }, [bookingsResponse])
 
-  const fetchBookings = async (params = {}) => {
-    setLoading(true)
-    try {
-      // Build API query parameters
-      const queryParams = { ...params }
+  // Removed fetchBookings function - TanStack Query handles data fetching
 
-      // Add status filter from tab if applicable
-      if (currentTab !== 'all') {
-        queryParams.status = currentTab
-      }
-
-      // Pagination
-      queryParams.page = params.page || pagination.current
-      queryParams.limit = params.pageSize || pagination.pageSize
-
-      // Sorting
-      const currentSortField = params.sortField || sortField
-      const currentSortOrder = params.sortOrder || sortOrder
-      queryParams.sortBy = `${currentSortField}:${currentSortOrder === 'ascend' ? 'asc' : 'desc'}`
-
-      // Add search parameters if they exist
-      const searchValues = searchForm.getFieldsValue()
-      if (searchValues.bookingNumber) {
-        queryParams.bookingNumber = searchValues.bookingNumber
-      }
-      if (searchValues.customerName) {
-        queryParams.customerName = searchValues.customerName
-      }
-      if (searchValues.date) {
-        queryParams.date = searchValues.date.format('YYYY-MM-DD')
-      }
-      if (searchValues.status && searchValues.status !== 'all') {
-        queryParams.status = searchValues.status
-      }
-
-      const response = await ApiService.get('/bookings', { params: queryParams })
-
-      // Make sure we always have an array of bookings
-      const bookingsData = Array.isArray(response.data.results) ? response.data.results : []
-
-      setBookings(bookingsData)
-
-      // Update pagination
-      setPagination({
-        ...pagination,
-        current: response.data.page || 1,
-        total: response.data.totalResults || 0,
-      })
-    } catch (error) {
-      console.error('Error fetching bookings:', error)
-      message.error('Failed to fetch bookings')
-      setBookings([])
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchBookings()
-  }, [currentTab, sortField, sortOrder]) // Re-fetch when tab or sorting changes
+  // TanStack Query automatically handles refetching when queryParams change
 
   const handleTabChange = key => {
     setCurrentTab(key)
@@ -144,19 +90,19 @@ const BookingsPage = () => {
     searchForm.resetFields()
   }
 
-  const handleTableChange = (pagination, filters, sorter) => {
+  const handleTableChange = (paginationInfo, filters, sorter) => {
+    // Update pagination
+    setPagination({
+      ...pagination,
+      current: paginationInfo.current,
+      pageSize: paginationInfo.pageSize,
+    })
+
     // Update sort state if sorter is defined and has a column
     if (sorter && sorter.column) {
       setSortField(sorter.field || 'pickup.date')
       setSortOrder(sorter.order || 'desc')
     }
-
-    fetchBookings({
-      page: pagination.current,
-      sortField: sorter.field,
-      sortOrder: sorter.order,
-      ...filters,
-    })
   }
 
   const handleSearch = values => {
@@ -165,7 +111,8 @@ const BookingsPage = () => {
       ...pagination,
       current: 1,
     })
-    fetchBookings()
+    // The search values are already in the searchForm and will be included in queryParams
+    // TanStack Query will automatically refetch when queryParams change
   }
 
   const resetSearch = () => {
@@ -175,7 +122,7 @@ const BookingsPage = () => {
       ...pagination,
       current: 1,
     })
-    fetchBookings()
+    // TanStack Query will automatically refetch when form fields are cleared
   }
 
   const showBookingDetails = booking => {
@@ -183,15 +130,11 @@ const BookingsPage = () => {
     setDetailsVisible(true)
   }
 
-  const handleStatusChange = async (bookingId, newStatus) => {
-    try {
-      await ApiService.patch(`/bookings/${bookingId}`, { status: newStatus })
-      message.success(`Booking ${newStatus} successfully`)
-      fetchBookings()
-    } catch (error) {
-      console.error('Error updating booking status:', error)
-      message.error('Failed to update booking status')
-    }
+  const handleStatusChange = (bookingId, newStatus) => {
+    updateBookingMutation.mutate({
+      bookingId,
+      data: { status: newStatus }
+    })
   }
 
   const showCancelConfirm = bookingId => {
@@ -277,18 +220,23 @@ const BookingsPage = () => {
           </Button>
         ),
       },
-      {
+    ]
+
+    // Only show edit button if booking is not completed
+    if (booking.status !== 'completed') {
+      items.push({
         key: 'edit',
         label: (
           <Button type="text" icon={<Edit size={14} />} onClick={() => handleEditBooking(booking)}>
             Edit Booking
           </Button>
         ),
-      },
-      {
-        type: 'divider',
-      },
-    ]
+      })
+    }
+
+    items.push({
+      type: 'divider',
+    })
 
     // Add status-specific actions
     if (booking.status === 'pending') {

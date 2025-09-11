@@ -555,15 +555,61 @@ export const useUpdateBooking = () => {
 
   return useMutation({
     mutationFn: ({ bookingId, data }) => ApiService.patch(`/bookings/${bookingId}`, data),
-    onSuccess: () => {
-      message.success('Booking updated successfully');
-      queryClient.invalidateQueries(['bookings']);
-      queryClient.invalidateQueries(['booking']);
-      queryClient.invalidateQueries(['bookingStats']);
+    onMutate: async ({ bookingId, data }) => {
+      // Cancel any outgoing refetches so they don't overwrite optimistic update
+      await queryClient.cancelQueries(['booking', bookingId]);
+      
+      // Snapshot the previous value for rollback
+      const previousBooking = queryClient.getQueryData(['booking', bookingId]);
+      
+      // Optimistically update the specific booking
+      if (previousBooking) {
+        queryClient.setQueryData(['booking', bookingId], {
+          ...previousBooking,
+          ...data
+        });
+      }
+      
+      // Optimistically update bookings in lists
+      queryClient.setQueriesData(
+        { queryKey: ['bookings'] },
+        (oldData) => {
+          if (!oldData?.results) return oldData;
+          
+          return {
+            ...oldData,
+            results: oldData.results.map(booking =>
+              booking.id === bookingId ? { ...booking, ...data } : booking
+            )
+          };
+        }
+      );
+      
+      return { previousBooking };
     },
-    onError: (error) => {
+    onSuccess: (responseData, variables) => {
+      message.success('Booking updated successfully');
+      
+      // Update with actual server data
+      queryClient.setQueryData(['booking', variables.bookingId], responseData);
+      
+      // Only invalidate stats if status was changed (affects dashboard statistics)
+      if (variables.data.status) {
+        queryClient.invalidateQueries(['bookingStats']);
+      }
+    },
+    onError: (error, variables, context) => {
       message.error(error.response?.data?.message || 'Failed to update booking');
       console.error('Error updating booking:', error);
+      
+      // Rollback optimistic update
+      if (context?.previousBooking) {
+        queryClient.setQueryData(['booking', variables.bookingId], context.previousBooking);
+      }
+      
+      // Refetch to get correct data
+      queryClient.invalidateQueries(['booking', variables.bookingId]);
+      queryClient.invalidateQueries({ queryKey: ['bookings'], exact: false });
     },
   });
 };
