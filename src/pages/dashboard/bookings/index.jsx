@@ -175,6 +175,41 @@ const BookingsPage = () => {
     }
   }
 
+  const resendBookingEmails = async bookingId => {
+    try {
+      const response = await ApiService.post(`/bookings/${bookingId}/resend-emails`)
+      const results = response.data.results
+      
+      // Show detailed success/error messages
+      let successCount = 0
+      let errorMessages = []
+      
+      if (results.customer.sent) successCount++
+      else if (results.customer.error) errorMessages.push(`Customer: ${results.customer.error}`)
+      
+      if (results.admin.sent) successCount++
+      else if (results.admin.error) errorMessages.push(`Admin: ${results.admin.error}`)
+      
+      if (results.affiliate.sent) successCount++
+      else if (results.affiliate.error) errorMessages.push(`Affiliate: ${results.affiliate.error}`)
+      
+      if (results.invoice.sent) successCount++
+      else if (results.invoice.error) errorMessages.push(`Invoice: ${results.invoice.error}`)
+      
+      if (successCount > 0) {
+        message.success(`${successCount} email(s) resent successfully`)
+      }
+      
+      if (errorMessages.length > 0) {
+        message.warning(`Some emails failed: ${errorMessages.join(', ')}`)
+      }
+      
+    } catch (error) {
+      console.error('Error resending emails:', error)
+      message.error('Failed to resend emails')
+    }
+  }
+
   const getStatusBadge = status => {
     switch (status) {
       case 'pending':
@@ -277,6 +312,22 @@ const BookingsPage = () => {
             onClick={() => sendReminderEmail(booking.id)}
           >
             Send Reminder
+          </Button>
+        ),
+      })
+    }
+
+    // Add resend emails option for all bookings with payment
+    if (booking.payment && (booking.status === 'confirmed' || booking.status === 'completed')) {
+      items.push({
+        key: 'resend-emails',
+        label: (
+          <Button
+            type="text"
+            icon={<RefreshCw size={14} />}
+            onClick={() => resendBookingEmails(booking.id)}
+          >
+            Resend Emails
           </Button>
         ),
       })

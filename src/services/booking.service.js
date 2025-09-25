@@ -118,6 +118,21 @@ class BookingService {
     }
   }
 
+  async resendEmails(id) {
+    try {
+      const response = await ApiService.post(`/bookings/${id}/resend-emails`)
+      return {
+        success: true,
+        data: response.data,
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to resend emails',
+      }
+    }
+  }
+
   async getBookingStats() {
     try {
       const response = await ApiService.get('/bookings/stats')
