@@ -178,35 +178,29 @@ const BookingsPage = () => {
   const resendBookingEmails = async bookingId => {
     try {
       const response = await ApiService.post(`/bookings/${bookingId}/resend-emails`)
-      const results = response.data.results
       
-      // Show detailed success/error messages
-      let successCount = 0
-      let errorMessages = []
-      
-      if (results.customer.sent) successCount++
-      else if (results.customer.error) errorMessages.push(`Customer: ${results.customer.error}`)
-      
-      if (results.admin.sent) successCount++
-      else if (results.admin.error) errorMessages.push(`Admin: ${results.admin.error}`)
-      
-      if (results.affiliate.sent) successCount++
-      else if (results.affiliate.error) errorMessages.push(`Affiliate: ${results.affiliate.error}`)
-      
-      if (results.invoice.sent) successCount++
-      else if (results.invoice.error) errorMessages.push(`Invoice: ${results.invoice.error}`)
-      
-      if (successCount > 0) {
-        message.success(`${successCount} email(s) resent successfully`)
-      }
-      
-      if (errorMessages.length > 0) {
-        message.warning(`Some emails failed: ${errorMessages.join(', ')}`)
+      if (response.data.results?.customer?.sent) {
+        message.success(`Booking confirmation resent to ${response.data.customerEmail}`)
+      } else if (response.data.results?.customer?.error) {
+        message.error(`Failed to resend: ${response.data.results.customer.error}`)
+      } else {
+        message.success('Booking confirmation email resent successfully')
       }
       
     } catch (error) {
-      console.error('Error resending emails:', error)
-      message.error('Failed to resend emails')
+      console.error('Error resending booking confirmation:', error)
+      message.error('Failed to resend booking confirmation')
+    }
+  }
+
+  const resendInvoiceEmail = async bookingId => {
+    try {
+      const response = await ApiService.post(`/bookings/${bookingId}/resend-invoice`)
+      message.success(`Invoice resent to ${response.data.customerEmail}`)
+    } catch (error) {
+      console.error('Error resending invoice:', error)
+      const errorMsg = error.response?.data?.message || 'Failed to resend invoice'
+      message.error(errorMsg)
     }
   }
 
@@ -250,10 +244,12 @@ const BookingsPage = () => {
       {
         key: 'view',
         label: (
-          <Button type="text" icon={<Eye size={14} />} onClick={() => showBookingDetails(booking)}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Eye size={14} />
             View Details
-          </Button>
+          </span>
         ),
+        onClick: () => showBookingDetails(booking),
       },
     ]
 
@@ -262,10 +258,12 @@ const BookingsPage = () => {
       items.push({
         key: 'edit',
         label: (
-          <Button type="text" icon={<Edit size={14} />} onClick={() => handleEditBooking(booking)}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Edit size={14} />
             Edit Booking
-          </Button>
+          </span>
         ),
+        onClick: () => handleEditBooking(booking),
       })
     }
 
@@ -278,14 +276,12 @@ const BookingsPage = () => {
       items.push({
         key: 'confirm',
         label: (
-          <Button
-            type="text"
-            icon={<Check size={14} />}
-            onClick={() => handleStatusChange(booking.id, 'confirmed')}
-          >
+          <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Check size={14} />
             Confirm Booking
-          </Button>
+          </span>
         ),
+        onClick: () => handleStatusChange(booking.id, 'confirmed'),
       })
     }
 
@@ -293,27 +289,23 @@ const BookingsPage = () => {
       items.push({
         key: 'complete',
         label: (
-          <Button
-            type="text"
-            icon={<Check size={14} />}
-            onClick={() => showCompleteConfirm(booking.id)}
-          >
+          <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Check size={14} />
             Mark as Completed
-          </Button>
+          </span>
         ),
+        onClick: () => showCompleteConfirm(booking.id),
       })
 
       items.push({
         key: 'remind',
         label: (
-          <Button
-            type="text"
-            icon={<MailPlus size={14} />}
-            onClick={() => sendReminderEmail(booking.id)}
-          >
+          <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <MailPlus size={14} />
             Send Reminder
-          </Button>
+          </span>
         ),
+        onClick: () => sendReminderEmail(booking.id),
       })
     }
 
@@ -327,7 +319,20 @@ const BookingsPage = () => {
             icon={<RefreshCw size={14} />}
             onClick={() => resendBookingEmails(booking.id)}
           >
-            Resend Emails
+            Resend Booking Confirmation
+          </Button>
+        ),
+      })
+
+      items.push({
+        key: 'resend-invoice',
+        label: (
+          <Button
+            type="text"
+            icon={<Printer size={14} />}
+            onClick={() => resendInvoiceEmail(booking.id)}
+          >
+            Resend Invoice
           </Button>
         ),
       })

@@ -128,7 +128,22 @@ class BookingService {
     } catch (error) {
       return {
         success: false,
-        error: error.response?.data?.message || 'Failed to resend emails',
+        error: error.response?.data?.message || 'Failed to resend booking confirmation',
+      }
+    }
+  }
+
+  async resendInvoice(id) {
+    try {
+      const response = await ApiService.post(`/bookings/${id}/resend-invoice`)
+      return {
+        success: true,
+        data: response.data,
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to resend invoice',
       }
     }
   }

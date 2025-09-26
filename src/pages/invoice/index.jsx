@@ -1,4 +1,4 @@
-import Invoice from "@/components/Invoice";
+import InvoicePageComponent from "@/pages/dashboard/bookings/InvoicePage";
 
 import MetaComponent from "@/components/common/MetaComponent";
 const metadata = {
@@ -9,9 +9,7 @@ export default function InvoicePage() {
 	return (
 		<>
 			<MetaComponent meta={metadata} />
-			<main className="main">
-				<Invoice />
-			</main>
+			<InvoicePageComponent />
 		</>
 	);
 }

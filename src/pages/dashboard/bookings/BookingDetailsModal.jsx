@@ -278,13 +278,17 @@ const BookingDetailsModal = ({ booking, visible, onClose }) => {
                     <Title level={5} className="tw-mb-0">
                       {booking.passengerDetails.firstName} {booking.passengerDetails.lastName}
                     </Title>
-                    <Text type="secondary">{booking.email}</Text>
+                    <Text type="secondary">{booking.email || booking.passengerDetails?.email || 'N/A'}</Text>
                   </div>
                 </div>
 
                 <Divider className="tw-my-3" />
 
                 <Descriptions column={1} size="small" className="tw-mb-0">
+                  <Descriptions.Item label="Email">
+                    {booking.email || booking.passengerDetails?.email || 'N/A'}
+                  </Descriptions.Item>
+                  
                   <Descriptions.Item label="Phone">
                     {booking.passengerDetails.phone}
                   </Descriptions.Item>
