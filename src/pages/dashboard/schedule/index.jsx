@@ -88,6 +88,9 @@ const SchedulePage = () => {
   const loading = scheduleLoading
   const submitting = updateScheduleMutation.isLoading
 
+  const formatExceptionDate = date => moment.utc(date).format('YYYY-MM-DD')
+  const exceptionMoment = date => moment(formatExceptionDate(date), 'YYYY-MM-DD')
+
   const daysOfWeek = [
     { name: 'Sunday', value: 0 },
     { name: 'Monday', value: 1 },
@@ -186,7 +189,7 @@ const SchedulePage = () => {
       })) || []
 
     exceptionForm.setFieldsValue({
-      date: moment(record.date),
+      date: exceptionMoment(record.date),
       isEnabled: record.isEnabled,
       type: record.type || 'closed',
       timeRanges: formattedTimeRanges.length

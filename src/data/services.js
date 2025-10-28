@@ -103,13 +103,13 @@ export const services = [
     slug: 'group-transportation',
     title: 'Group Transportation',
     description:
-      'Premium group transportation in spacious luxury SUVs accommodating up to 7 passengers. Ideal for corporate events, wedding parties, family gatherings, and special occasions. For groups over 4 passengers, please contact us directly for pricing and availability.',
-    image: '/assets/imgs/page/homepage1/service2.jpg',
+      'Premium group transportation in spacious luxury SUVs accommodating up to 14 passengers. Ideal for corporate events, wedding parties, family gatherings, and special occasions. For groups over 7 passengers, please contact us directly for pricing and availability.',
+    image: '/assets/imgs/page/homepage1/limo-van.jpg',
     secondaryImage: '/assets/imgs/page/homepage1/service1.jpg',
     longDescription:
       'Experience coordinated group transportation with our spacious luxury SUVs. Perfect for larger groups, our service is designed to provide comfort and efficiency. If your group exceeds 4 passengers, please reach out for a custom quote.',
     features: [
-      'Up to 7 passengers',
+      'up to 14 passengers',
       'Luggage accommodation',
       'Professional chauffeur',
       'Group rates available',

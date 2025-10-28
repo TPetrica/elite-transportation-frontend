@@ -27,6 +27,9 @@ const CalendarView = () => {
   // Extract results from the query data
   const dateExceptions = dateExceptionsData?.results || []
 
+  const formatExceptionDate = (date) => moment.utc(date).format('YYYY-MM-DD')
+  const momentFromDateString = (dateStr) => moment(dateStr, 'YYYY-MM-DD')
+
   const handlePanelChange = (value, mode) => {
     if (mode === 'month') {
       setIsChangingMonth(true)
@@ -41,7 +44,7 @@ const CalendarView = () => {
     if (!value || !value.format) return null
     const dateStr = value.format('YYYY-MM-DD')
     return dateExceptions.find(exception => 
-      moment(exception.date).format('YYYY-MM-DD') === dateStr
+      formatExceptionDate(exception.date) === dateStr
     )
   }
 
@@ -85,8 +88,9 @@ const CalendarView = () => {
     
     if (existingException) {
       // Edit existing exception
+      const exceptionDateString = formatExceptionDate(existingException.date)
       const formData = {
-        date: moment(existingException.date),
+        date: momentFromDateString(exceptionDateString),
         isEnabled: existingException.isEnabled,
         type: existingException.type,
         timeRanges: existingException.timeRanges?.map(range => ({

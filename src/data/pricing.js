@@ -34,11 +34,11 @@ export const mainRates = [
   {
     title: 'Group Rates',
     vehicle: 'Private SUV',
-    capacity: 'Up to 7 people',
+    capacity: 'Up to 14 people',
     summer: 'Please inquire for pricing and availability',
     winter: 'Please inquire for pricing and availability',
     description:
-      'Ideal for larger groups and events. For groups over 4 passengers, please contact us directly for pricing and availability.',
+      'Ideal for larger groups and events. For groups over 7 passengers, please contact us directly for pricing and availability.',
     features: [
       'Spacious interior',
       'Second car for luggage included',
@@ -46,7 +46,7 @@ export const mainRates = [
       'Flight tracking included',
       'Group rates available',
     ],
-    note: 'The Group Rates service includes a second car for luggage. For groups over 4 passengers, please contact us for custom pricing.',
+    note: 'The Group Rates service includes a second car for luggage. For groups over 7 passengers, please contact us for custom pricing.',
   },
 ]
 
