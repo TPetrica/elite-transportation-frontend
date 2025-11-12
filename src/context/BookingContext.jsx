@@ -157,9 +157,9 @@ const calculateBasePrice = (
     }
   }
 
-  // Double the price for round trip services (except hourly services)
+  // Double price for round trip (except hourly) and apply $10 discount overall
   if (isRoundTrip && service.serviceType !== 'hourly') {
-    price = price * 2
+    price = Math.max(price * 2 - 10, 0)
   }
 
   return price

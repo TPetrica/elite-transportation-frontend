@@ -1,11 +1,9 @@
-import ApiService from '@/services/api.service'
 import { useServices, useCreateService, useUpdateService, useDeleteService } from '@/hooks/useQueryHooks'
 import {
   Button,
   Card,
   Empty,
   Form,
-  message,
   Modal,
   Select,
   Space,
@@ -26,7 +24,7 @@ const Services = () => {
   const [editingService, setEditingService] = useState(null)
 
   // Use cached hooks
-  const { data: servicesData, isLoading: loading, error } = useServices()
+  const { data: servicesData, isLoading: loading } = useServices()
   const createServiceMutation = useCreateService()
   const updateServiceMutation = useUpdateService()
   const deleteServiceMutation = useDeleteService()
@@ -169,23 +167,20 @@ const Services = () => {
     setModalVisible(true)
   }
 
-  const handleDelete = async id => {
+  const handleDelete = id => {
     Modal.confirm({
       title: 'Are you sure you want to delete this service?',
       content: 'This action cannot be undone.',
       okText: 'Yes, Delete',
       okType: 'danger',
       cancelText: 'Cancel',
-      onOk: async () => {
-        try {
-          await ApiService.delete(`/services/${id}`)
-          message.success('Service deleted successfully')
-          fetchServices()
-        } catch (error) {
-          console.error('Failed to delete service:', error)
-          message.error('Failed to delete service')
-        }
-      },
+      onOk: () =>
+        deleteServiceMutation
+          .mutateAsync(id)
+          .catch(error => {
+            console.error('Failed to delete service:', error)
+            throw error
+          }),
     })
   }
 
@@ -200,24 +195,16 @@ const Services = () => {
           delete updateData.serviceType
         }
 
-        await ApiService.patch(`/services/${editingId}`, updateData)
-        message.success('Service updated successfully')
+        await updateServiceMutation.mutateAsync({ serviceId: editingId, data: updateData })
       } else {
-        await ApiService.post('/services', values)
-        message.success('Service created successfully')
+        await createServiceMutation.mutateAsync(values)
       }
       setModalVisible(false)
       form.resetFields()
       setEditingId(null)
       setEditingService(null)
-      fetchServices()
     } catch (error) {
       console.error('Failed to save service:', error)
-      if (error.response && error.response.data && error.response.data.message) {
-        message.error(`Failed to save service: ${error.response.data.message}`)
-      } else {
-        message.error('Failed to save service. Please try again.')
-      }
     }
   }
 
