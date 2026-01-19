@@ -339,10 +339,10 @@ function BookingTime() {
         time: time,
       })
 
-      // Check if it's a night service (11 PM - 7 AM)
+      // Check if it's a night service (11 PM - 6 AM)
       const hour = parseInt(time.split(':')[0], 10)
-      if (hour >= 23 || hour < 7) {
-        setError('Night service fee will be applied for services between 11 PM and 7 AM')
+      if (hour >= 23 || hour < 6) {
+        setError('Night service fee will be applied for services between 11 PM and 6 AM')
       }
     },
     [selectedDate, setSelectedTime, pickupDetails, setPickupDetails, selectedTime]

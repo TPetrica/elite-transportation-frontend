@@ -3,7 +3,7 @@ export const faqs = [
 		id: 1,
 		question: "Do you offer a Meet and Greet service?",
 		answer:
-			"Yes, we provide a Meet and Greet service for an additional $30. Your driver will greet you at the baggage claim area with a sign displaying the primary passenger's last name, assist with luggage, and escort you to the vehicle.",
+			"Yes, we provide a Meet and Greet service for an additional $45. Your driver will greet you at the baggage claim area with a sign displaying the primary passenger's last name, assist with luggage, and escort you to the vehicle.",
 	},
 	{
 		id: 2,
@@ -181,4 +181,3 @@ export const faqs3 = [
 			"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 	},
 ];
-

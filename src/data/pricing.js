@@ -20,8 +20,8 @@ export const mainRates = [
     title: 'Cottonwood Canyon Transfer',
     vehicle: 'Private SUV',
     capacity: '1-4 passengers',
-    summer: 150,
-    winter: 150,
+    summer: 170,
+    winter: 170,
     description:
       'Specialized transfer service in the Cottonwood Canyons area, offering scenic routes and expert local drivers.',
     features: [
@@ -54,8 +54,8 @@ export const hourlyRates = [
   {
     vehicle: 'Private SUV',
     capacity: '1-5 people',
-    rate: 100,
-    duration: '1 hour minimum',
+    rate: 120,
+    duration: '2 hour minimum',
     includes: 'Professional chauffeur and luxury vehicle',
     note: 'During the Christmas Holiday and the Sundance Film Festival, all as‐directed reservations require a 3‐hour minimum.',
   },
@@ -69,12 +69,12 @@ export const perPersonRates = {
 export const additionalFees = [
   {
     service: 'Night Service',
-    fee: 20,
-    note: 'Applicable between 11:00 PM and 7:00 AM',
+    fee: 30,
+    note: 'Applicable between 11:00 PM and 6:00 AM',
   },
   {
     service: 'Meet & Greet',
-    fee: 30,
+    fee: 45,
     note: 'Includes name sign',
   },
   {
@@ -101,6 +101,6 @@ export const serviceTypes = [
   },
   {
     type: 'Hourly',
-    details: '1 hour minimum - $100/h',
+    details: '2 hour minimum - $120/h',
   },
 ]
