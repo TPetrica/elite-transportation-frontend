@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import {
   Card,
   Table,
@@ -10,14 +10,11 @@ import {
   Empty,
   Space,
   Tag,
-  Switch,
   Tooltip,
   Badge,
   Input,
 } from 'antd'
-import { InfoCircleOutlined } from '@ant-design/icons'
-import { Plus, Image, Edit, Trash2, Search, Filter, RefreshCw } from 'lucide-react'
-import ApiService from '@/services/api.service'
+import { Plus, Edit, Trash2, Search, RefreshCw } from 'lucide-react'
 import { useExtras, useCreateExtra, useUpdateExtra, useDeleteExtra } from '@/hooks/useQueryHooks'
 import ExtrasFormModal from './ExtrasFormModal'
 
@@ -30,23 +27,15 @@ const ExtraServicePage = () => {
   const [form] = Form.useForm()
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [searchText, setSearchText] = useState('')
-  const [fileList, setFileList] = useState([])
+  const [, setFileList] = useState([])
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
     total: 0,
   })
 
-  // Build query parameters for the API
-  const queryParams = {
-    page: pagination.current,
-    limit: pagination.pageSize,
-    ...(categoryFilter !== 'all' && { category: categoryFilter }),
-    ...(searchText && { name: searchText }),
-  }
-
   // Use cached hooks
-  const { data: extrasResponse, isLoading: loading, error } = useExtras()
+  const { data: extrasResponse, isLoading: loading } = useExtras()
   const createExtraMutation = useCreateExtra()
   const updateExtraMutation = useUpdateExtra()
   const deleteExtraMutation = useDeleteExtra()
@@ -94,8 +83,6 @@ const ExtraServicePage = () => {
       category: record.category,
       maxQuantity: record.maxQuantity,
       isAvailable: record.isAvailable,
-      slug: record.slug || '',
-      sortOrder: record.sortOrder || 0,
     })
 
     // Set the image if available
@@ -134,7 +121,11 @@ const ExtraServicePage = () => {
   }
 
   const handleSubmit = async values => {
+    // Backend currently supports only the core Extra fields (no slug/sortOrder).
+    // Strip any UI-only fields to avoid validation errors.
     const extraData = { ...values }
+    delete extraData.slug
+    delete extraData.sortOrder
 
     if (editingId) {
       updateExtraMutation.mutate({ extraId: editingId, data: extraData }, {

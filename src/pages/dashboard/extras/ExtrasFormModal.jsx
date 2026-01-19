@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import {
   Modal,
   Form,
@@ -8,7 +8,6 @@ import {
   Switch,
   Button,
   Space,
-  Divider,
   Tooltip,
   Card,
 } from 'antd'
@@ -157,33 +156,6 @@ const ExtrasFormModal = ({
             </Form.Item>
           </div>
 
-          <Divider />
-
-          <div className="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-4">
-            <Form.Item
-              name="slug"
-              label="Slug (Optional)"
-              tooltip={{
-                title: 'A unique identifier used in URLs',
-                icon: <InfoCircleOutlined />,
-              }}
-            >
-              <Input placeholder="e.g. child-seat-premium" />
-            </Form.Item>
-
-            <Form.Item
-              name="sortOrder"
-              label="Sort Order (Optional)"
-              tooltip={{
-                title: 'Display order (lower numbers appear first)',
-                icon: <InfoCircleOutlined />,
-              }}
-            >
-              <InputNumber min={0} className="tw-w-full" />
-            </Form.Item>
-          </div>
-
-
           <div className="tw-flex tw-justify-end tw-mt-6">
             <Space>
               <Button onClick={onCancel} icon={<X size={16} className="tw-mr-2" />}>
@@ -205,4 +177,3 @@ const ExtrasFormModal = ({
 }
 
 export default ExtrasFormModal
-
