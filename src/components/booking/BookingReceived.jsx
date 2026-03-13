@@ -13,6 +13,7 @@ export default function BookingReceived() {
 
   useEffect(() => {
     const sessionId = searchParams.get('session_id')
+    const accessToken = searchParams.get('accessToken')
     if (!sessionId) {
       setError('No session ID found')
       setLoading(false)
@@ -21,7 +22,7 @@ export default function BookingReceived() {
 
     const verifySession = async () => {
       try {
-        const result = await PaymentService.getSession(sessionId)
+        const result = await PaymentService.getSession(sessionId, accessToken)
         if (result.success) {
           setSessionData(result.data)
           if (result.data.bookingDetails?.bookingNumber) {

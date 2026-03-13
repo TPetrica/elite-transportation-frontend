@@ -21,9 +21,11 @@ const PaymentService = {
 		}
 	},
 
-	async getSession(sessionId) {
+	async getSession(sessionId, accessToken) {
 		try {
-			const response = await ApiService.get(`/payment/session/${sessionId}`);
+			const response = await ApiService.get(`/payment/session/${sessionId}`, {
+				params: accessToken ? { accessToken } : undefined,
+			});
 			return {
 				success: true,
 				data: response.data,

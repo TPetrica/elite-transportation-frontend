@@ -1,7 +1,7 @@
 import axios from 'axios'
+import { getApiBaseUrl } from './apiBaseUrl'
 
-const BASE_URL =
-  import.meta.env.VITE_API_URL || 'https://elite-transportation-backend.onrender.com/v1'
+const BASE_URL = getApiBaseUrl()
 
 const apiClient = axios.create({
   baseURL: BASE_URL,

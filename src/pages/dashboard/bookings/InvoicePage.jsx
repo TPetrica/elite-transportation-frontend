@@ -1,13 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card, Button, Space, Spin, message, Tooltip } from 'antd'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import {
   ArrowLeft,
   Printer,
   Download,
   Mail,
   Eye,
-  RefreshCw,
   ExternalLink,
 } from 'lucide-react'
 import { useReactToPrint } from 'react-to-print'
@@ -16,6 +15,7 @@ import ApiService from '@/services/api.service'
 const InvoicePage = () => {
   const { bookingNumber } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const [invoiceData, setInvoiceData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -33,7 +33,10 @@ const InvoicePage = () => {
     const fetchInvoiceData = async () => {
       try {
         setLoading(true)
-        const response = await ApiService.get(`/bookings/invoice/${bookingNumber}`)
+        const accessToken = new URLSearchParams(location.search).get('accessToken')
+        const response = await ApiService.get(`/bookings/invoice/${bookingNumber}`, {
+          params: accessToken ? { accessToken } : undefined,
+        })
         setInvoiceData(response.data)
       } catch (error) {
         console.error('Error fetching invoice:', error)
@@ -49,7 +52,7 @@ const InvoicePage = () => {
     if (bookingNumber) {
       fetchInvoiceData()
     }
-  }, [bookingNumber])
+  }, [bookingNumber, location.search])
 
   const handlePrint = useReactToPrint({
     content: () => printRef.current,
@@ -247,7 +250,7 @@ const InvoicePage = () => {
                 No Payment Information
               </h3>
               <p style={{ color: '#6b7280', marginBottom: '24px' }}>
-                This booking doesn't have payment information yet. The invoice will be available after payment is processed.
+                This booking does not have payment information yet. The invoice will be available after payment is processed.
               </p>
               {isLoggedIn && (
                 <Space>
